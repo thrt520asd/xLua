@@ -328,7 +328,7 @@ namespace XLua
 			};
 		}
 
-		internal static IEnumerable<MethodInfo> GetExtensionMethodsOf(Type type_to_be_extend)
+		public static IEnumerable<MethodInfo> GetExtensionMethodsOf(Type type_to_be_extend)
 		{
 			if (InternalGlobals.extensionMethodMap == null)
 			{
@@ -1265,7 +1265,7 @@ namespace XLua
 			int cls_setter_idx = abs_idx(top, CLS_SETTER_IDX);
 			int cls_meta_idx = abs_idx(top, CLS_META_IDX);
 
-			//begin cls index
+			//begin cls index //upvalue --- [1]:getters, [2]:feilds, [3]:base, [4]:indexfuncs, [5]:baseindex
 			LuaAPI.xlua_pushasciistring(L, "__index");
 			LuaAPI.lua_pushvalue(L, cls_getter_idx);
 			LuaAPI.lua_pushvalue(L, cls_idx);

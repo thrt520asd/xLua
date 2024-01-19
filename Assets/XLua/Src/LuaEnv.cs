@@ -79,7 +79,10 @@ namespace XLua
 #endif
                 // Create State
                 rawL = LuaAPI.luaL_newstate();
-
+#if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
+                XLua.IL2CPP.NativeAPI.SetLogCallback(XLua.IL2CPP.NativeAPI.Log);
+                XLua.IL2CPP.NativeAPI.InitialXLua_IL2CPP(XLua.IL2CPP.NativeAPI.xlua_getImpl());
+#endif
                 //Init Base Libs
                 LuaAPI.luaopen_xlua(rawL);
                 LuaAPI.luaopen_i64lib(rawL);
@@ -118,29 +121,40 @@ namespace XLua
 
                 AddBuildin("CS", StaticLuaCallbacks.LoadCS);
 
-                LuaAPI.lua_newtable(rawL); //metatable of indexs and newindexs functions
+                LuaAPI.lua_newtable(rawL); //metatable of indexs and newindexs functions originMetatable
                 LuaAPI.xlua_pushasciistring(rawL, "__index");
                 LuaAPI.lua_pushstdcallcfunction(rawL, StaticLuaCallbacks.MetaFuncIndex);
-                LuaAPI.lua_rawset(rawL, -3);
-
+                LuaAPI.lua_rawset(rawL, -3); // table[__index] = StaticLuaCallbacks.MetaFuncIndex
+                //local LuaIndexs
+                //lua_setmetatable(LuaIndexs, originMetatable)
+                //LUA_REGISTRYINDEX[LuaIndexs] = LuaIndexs
                 LuaAPI.xlua_pushasciistring(rawL, Utils.LuaIndexsFieldName);
                 LuaAPI.lua_newtable(rawL);
                 LuaAPI.lua_pushvalue(rawL, -3);
                 LuaAPI.lua_setmetatable(rawL, -2);
                 LuaAPI.lua_rawset(rawL, LuaIndexes.LUA_REGISTRYINDEX);
 
+                //local LuaNewIndexs
+                //lua_setmetatable(LuaNewIndexs, originMetatable)
+                //LUA_REGISTRYINDEX[LuaNewIndexs] = LuaNewIndexs
                 LuaAPI.xlua_pushasciistring(rawL, Utils.LuaNewIndexsFieldName);
                 LuaAPI.lua_newtable(rawL);
                 LuaAPI.lua_pushvalue(rawL, -3);
                 LuaAPI.lua_setmetatable(rawL, -2);
                 LuaAPI.lua_rawset(rawL, LuaIndexes.LUA_REGISTRYINDEX);
 
+                //local LuaClassIndexs
+                //lua_setmetatable(LuaClassIndexs, originMetatable)
+                //LUA_REGISTRYINDEX[LuaClassIndexs] = LuaClassIndexs
                 LuaAPI.xlua_pushasciistring(rawL, Utils.LuaClassIndexsFieldName);
                 LuaAPI.lua_newtable(rawL);
                 LuaAPI.lua_pushvalue(rawL, -3);
                 LuaAPI.lua_setmetatable(rawL, -2);
                 LuaAPI.lua_rawset(rawL, LuaIndexes.LUA_REGISTRYINDEX);
 
+                //local LuaClassNewIndexs
+                //lua_setmetatable(LuaClassNewIndexs, originMetatable)
+                //LUA_REGISTRYINDEX[LuaClassNewIndexs] = LuaClassNewIndexs
                 LuaAPI.xlua_pushasciistring(rawL, Utils.LuaClassNewIndexsFieldName);
                 LuaAPI.lua_newtable(rawL);
                 LuaAPI.lua_pushvalue(rawL, -3);
@@ -357,7 +371,7 @@ namespace XLua
 #endif
         }
 
-        //兼容API
+        //锟斤拷锟斤拷API
         public void GC()
         {
             Tick();
@@ -471,9 +485,9 @@ namespace XLua
             function metatable:__index(key) 
                 local fqn = rawget(self,'.fqn')
                 fqn = ((fqn and fqn .. '.') or '') .. key
-
+                print('metatable:__index', key, debug.traceback())
                 local obj = import_type(fqn)
-
+                print(3333, obj)
                 if obj == nil then
                     -- It might be an assembly, so we load it too.
                     obj = { ['.fqn'] = fqn }
@@ -493,6 +507,7 @@ namespace XLua
 
             -- A non-type has been called; e.g. foo = System.Foo()
             function metatable:__call(...)
+                print('metatable:__call')
                 local n = select('#', ...)
                 local fqn = rawget(self,'.fqn')
                 if n > 0 then
@@ -598,8 +613,8 @@ namespace XLua
 
         internal List<CustomLoader> customLoaders = new List<CustomLoader>();
 
-        //loader : CustomLoader， filepath参数：（ref类型）输入是require的参数，如果需要支持调试，需要输出真实路径。
-        //                        返回值：如果返回null，代表加载该源下无合适的文件，否则返回UTF8编码的byte[]
+        //loader : CustomLoader锟斤拷 filepath锟斤拷锟斤拷锟斤拷锟斤拷ref锟斤拷锟酵ｏ拷锟斤拷锟斤拷锟斤拷require锟侥诧拷锟斤拷锟斤拷锟斤拷锟斤拷锟揭э拷值锟斤拷裕锟斤拷锟揭拷锟斤拷锟斤拷实路锟斤拷锟斤拷
+        //                        锟斤拷锟斤拷值锟斤拷锟斤拷锟斤拷锟斤拷锟絥ull锟斤拷锟斤拷锟斤拷锟斤拷锟截革拷源锟斤拷锟睫猴拷锟绞碉拷锟侥硷拷锟斤拷锟斤拷锟津返伙拷UTF8锟斤拷锟斤拷锟絙yte[]
         public void AddLoader(CustomLoader loader)
         {
             customLoaders.Add(loader);

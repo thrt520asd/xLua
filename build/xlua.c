@@ -366,6 +366,7 @@ LUA_API void xlua_pushcsobj(lua_State *L, int key, int meta_ref, int need_cache,
 	lua_setmetatable(L, -2);
 }
 
+
 void print_top(lua_State *L) {
 	lua_getglobal(L, "print");
 	lua_pushvalue(L, -2);
@@ -1224,6 +1225,56 @@ LUA_API int css_clone(lua_State *L) {
 LUA_API void* xlua_gl(lua_State *L) {
 	return G(L);
 }
+
+typedef void (*lapi_func_ptr)(void);
+
+int lapi_lua_upvalueindex(index){
+    return lua_upvalueindex(index);
+}
+
+
+typedef struct {
+	int poolIdx;
+	intptr_t pointer;
+} CSharpObject;
+
+
+LUA_API void xlua_pushcsobj_ptr(lua_State* L, intptr_t ptr, int meta_ref, int key, int need_cache, int cache_ref){
+    CSharpObject* pointer = (CSharpObject*)lua_newuserdata(L, sizeof(CSharpObject));
+	pointer->poolIdx = key;
+	pointer->pointer = ptr; 
+	
+	if (need_cache) cacheud(L, key, cache_ref);
+
+    lua_rawgeti(L, LUA_REGISTRYINDEX, meta_ref);
+
+	lua_setmetatable(L, -2);
+}
+
+static lapi_func_ptr funcs[] = {
+    (lapi_func_ptr) &lua_touserdata,
+    (lapi_func_ptr) &lua_type,
+    (lapi_func_ptr) &lua_gettop,
+    (lapi_func_ptr) &lapi_lua_upvalueindex,
+    (lapi_func_ptr) &xlua_pushcsobj_ptr,
+(lapi_func_ptr)&lua_isnumber, // 5
+(lapi_func_ptr)&lua_isstring,
+(lapi_func_ptr)&lua_iscfunction,
+(lapi_func_ptr)&lua_isinteger,
+(lapi_func_ptr)&lua_isuserdata,
+(lapi_func_ptr)&lua_typename,
+(lapi_func_ptr)&lua_tonumber,
+(lapi_func_ptr)&lua_tolstring,
+(lapi_func_ptr)&lua_toboolean,
+(lapi_func_ptr)&lua_topointer,
+(lapi_func_ptr)&xlua_tryget_cachedud,
+};
+
+LUA_API lapi_func_ptr* xlua_getImpl(){
+    return funcs;
+}
+
+
 
 static const luaL_Reg xlualib[] = {
 	{"sethook", profiler_set_hook},

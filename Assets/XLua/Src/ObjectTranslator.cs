@@ -5,7 +5,9 @@
  * http://opensource.org/licenses/MIT
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 */
-
+#if IL2CPP_ENHANCED_LUA_DEVELOP
+#define ENABLE_IL2CPP
+#endif
 #if USE_UNI_LUA
 using LuaAPI = UniLua.Lua;
 using RealStatePtr = UniLua.ILuaState;
@@ -135,6 +137,7 @@ namespace XLua
         Dictionary<Type, bool> loaded_types = new Dictionary<Type, bool>();
         public bool TryDelayWrapLoader(RealStatePtr L, Type type)
         {
+            UnityEngine.Debug.Log("TryDelayWrapLoader:"+type);
             if (loaded_types.ContainsKey(type)) return true;
             loaded_types.Add(type, true);
 
@@ -162,7 +165,16 @@ namespace XLua
                     Utils.ReflectionWrap(L, type, privateAccessibleFlags.Contains(type));
                 }
 #else
+#if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
+                if(type == typeof(IL2CPPTest)){
+                    XLua.IL2CPP.TypeRegister.Register(L,type, privateAccessibleFlags.Contains(type));
+
+                }else{
+                    Utils.ReflectionWrap(L, type, privateAccessibleFlags.Contains(type));    
+                }
+#else
                 Utils.ReflectionWrap(L, type, privateAccessibleFlags.Contains(type));
+#endif
 #endif
 #if NOT_GEN_WARNING
                 if (!typeof(Delegate).IsAssignableFrom(type))
@@ -1023,22 +1035,28 @@ namespace XLua
                 }
             }
         }
-
+        
         internal int getTypeId(RealStatePtr L, Type type, out bool is_first, LOGLEVEL log_level = LOGLEVEL.WARN)
         {
             int type_id;
             is_first = false;
+            
             if (!typeIdMap.TryGetValue(type, out type_id)) // no reference
             {
+                UnityEngine.Debug.Log("getTypeId:"+type);
                 if (type.IsArray)
                 {
+                    UnityEngine.Debug.Log("getType: type is array ");
                     if (common_array_meta == -1) throw new Exception("Fatal Exception! Array Metatable not inited!");
+                    //#TODO@benp il2cpp array处理
                     return common_array_meta;
                 }
                 if (typeof(MulticastDelegate).IsAssignableFrom(type))
                 {
+                    UnityEngine.Debug.Log("getType: type is delegate ");
                     if (common_delegate_meta == -1) throw new Exception("Fatal Exception! Delegate Metatable not inited!");
                     TryDelayWrapLoader(L, type);
+                    //#TODO@benp il2cpp delegate处理
                     return common_delegate_meta;
                 }
 
@@ -1085,6 +1103,7 @@ namespace XLua
                     }
                     LuaAPI.lua_pushvalue(L, -1);
                     type_id = LuaAPI.luaL_ref(L, LuaIndexes.LUA_REGISTRYINDEX);
+                    UnityEngine.Debug.Log($"{type}+{type_id}");
                     LuaAPI.lua_pushnumber(L, type_id);
                     LuaAPI.xlua_rawseti(L, -2, 1);
                     LuaAPI.lua_pop(L, 1);
@@ -1096,6 +1115,11 @@ namespace XLua
 
                     typeIdMap.Add(type, type_id);
                 }
+                #if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
+                if(type == typeof(IL2CPPTest) ){
+                    XLua.IL2CPP.TypeRegister.SetTypeMetaId(type, type_id);
+                }
+                #endif
             }
             return type_id;
         }

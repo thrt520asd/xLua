@@ -11,6 +11,7 @@ using System.Collections;
 using System.Collections.Generic;
 using XLua;
 using System;
+using UnityEngine.SocialPlatforms;
 
 namespace XLuaTest
 {
@@ -64,6 +65,7 @@ namespace XLuaTest
             {
                 luaAwake();
             }
+            
         }
 
         // Use this for initialization

@@ -79,6 +79,7 @@ namespace XLua.LuaDLL
 
         public static int luaL_error(IntPtr L, string message) //[-0, +1, m]
         {
+            
             xlua_csharp_str_error(L, message);
             return 0;
         }

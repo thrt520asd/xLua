@@ -6,6 +6,7 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 */
 
+using System.Collections.Generic;
 using UnityEngine;
 using XLua;
 
@@ -19,6 +20,9 @@ namespace XLuaTest
             LuaEnv luaenv = new LuaEnv();
             luaenv.DoString("CS.UnityEngine.Debug.Log('hello world')");
             luaenv.Dispose();
+            UnityEngine.UI.Button b = this.gameObject.AddComponent<UnityEngine.UI.Button>();
+            List<int> list = new List<int>();
+
         }
 
         // Update is called once per frame
