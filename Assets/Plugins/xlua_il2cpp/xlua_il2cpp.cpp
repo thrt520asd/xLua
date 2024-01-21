@@ -22,7 +22,7 @@
 #include "lua_api_adpt.h"
 #include "UnityExports4Lua.h"
 #include "xlua_il2cpp_def.h"
-#include "LuaClassRegister.h"
+// #include "LuaClassRegister.h"
 #include "CppObjMapper.h"
 static_assert(IL2CPP_GC_BOEHM, "Only BOEHM GC supported!");
 
@@ -1698,7 +1698,7 @@ namespace xlua
     inline static void* CStringToCSharpString(const char* str)
     {
         //#TODO@benp
-        return "";
+        return nullptr;
     }
 
     WrapData* AddMethod(LuaClassInfo* classInfo, Il2CppString *signatureIlstring, WrapFuncPtr WrapFunc,  Il2CppString *nameIlstring, bool isStatic, bool isExtensionMethod, bool isGetter, bool isSetter, void* method, MethodPointer methodPointer, int typeInfoNum)
@@ -1795,11 +1795,11 @@ namespace xlua
     {
         std::string str = ilstring2stdstring(ilstring);
         const char* signature = str.c_str();
-        xlua::GLogFormatted("FindWrapFunc char %s",signature);
         auto begin = &g_wrapFuncInfos[0];
         auto end = &g_wrapFuncInfos[sizeof(g_wrapFuncInfos) / sizeof(WrapFuncInfo) - 1];
         auto first = std::lower_bound(begin, end, signature, [](const WrapFuncInfo& x, const char* signature) {return strcmp(x.Signature, signature) < 0;});
         if (first != end && strcmp(first->Signature, signature) == 0) {
+            xlua::GLogFormatted("FindWrapFunc char %s",signature);
             return first->Method;
         }
         return nullptr;
@@ -1874,9 +1874,9 @@ namespace xlua
                 //#TODO@benp 初始化
                 clsName2ClsInfo[luaClsInfo->Name] = def;
                 clsId2ClsDef[luaClsInfo->TypeId] = def;
-                xlua::GLogFormatted("Reigster class %p %s", luaClsInfo->TypeId, luaClsInfo->Name);
+                xlua::GLogFormatted("Reigster class %p %s", luaClsInfo->TypeId, luaClsInfo->Name.c_str());
             }else{
-                xlua::GLogFormatted(" class %p %s has been reigstered", luaClsInfo->TypeId, luaClsInfo->Name);
+                xlua::GLogFormatted(" class %p %s has been reigstered", luaClsInfo->TypeId, luaClsInfo->Name.c_str());
             }
         }
     }
@@ -2016,7 +2016,7 @@ int ClsConstructorCallBack(lua_State *L){
         xlua::GLogFormatted("light user data %p", ptr);
         xlua::LuaClassDefinition* def = xlua::GetLuaDefinitionByTypeId(ptr);
         if(def){
-            xlua::GLogFormatted("find LuaClassDefinition %s", def->clsInfo->Name);
+            xlua::GLogFormatted("find LuaClassDefinition %s", def->clsInfo->Name.c_str());
             for(auto ctor : def->clsInfo->Ctors){
                 if(ctor->Wrap(ctor->Method, ctor->Il2CppMethodPointer, L, true, ctor)){
                     xlua::GLogFormatted("ctor suc");
@@ -2031,7 +2031,7 @@ int ClsConstructorCallBack(lua_State *L){
 
 
 void * GetClsConstructorCallBackPtr(){
-    return &ClsConstructorCallBack;
+    return reinterpret_cast<void*>(&ClsConstructorCallBack);
 }
 
 void SetLuaCacheRef(int cache_ref){

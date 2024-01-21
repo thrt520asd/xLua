@@ -5,7 +5,8 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "C:\\ClientDev\\UnityEditorWin\\WindowsEditor\\Data\\il2cpp\\libil2cpp",
-                "D:\\UGit\\xLua\\build\\lua-5.4.1\\src"
+                "D:\\UGit\\xLua\\build\\lua-5.4.1\\src",
+                "/Applications/Unity/Hub/Editor/2019.4.40f1c1/Unity.app/Contents/il2cpp/libil2cpp"
             ],
             "defines": [
                 "_DEBUG",

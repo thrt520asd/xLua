@@ -71,6 +71,7 @@
         ".vs":true,
         "WebGLPlugins":true,
         "winBuild":true,
+        "il2cpp_BackUpThisFolder_ButDontShipItWithYourGame/":true,
     },
     "files.associations": {
         "*.lua.text": "lua",

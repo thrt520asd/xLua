@@ -21,8 +21,6 @@ public class IL2CppTestMono : MonoBehaviour
             end
             
             local f = meta.__call
-            local up1 = debug.getupvalue(f, 1)
-            print(""up1"", up1)
             local res = cls()
             print(res)
         ");

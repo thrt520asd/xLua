@@ -38,3 +38,5 @@ obj/Debug
 obj
 Logs
 winBuild
+il2cpp_BackUpThisFolder_ButDontShipItWithYourGame
+il2cpp.app

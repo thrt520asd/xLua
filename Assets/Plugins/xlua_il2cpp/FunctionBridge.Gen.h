@@ -70,8 +70,8 @@
     }
 
     static WrapFuncInfo g_wrapFuncInfos[] = {
-        {"vts", (WrapFuncPtr)w_vts},
         {"vt", (WrapFuncPtr)w_vt},
+        {"vts", (WrapFuncPtr)w_vts},
     };
 
     ///模拟生成方法 field wrap

@@ -1,5 +1,4 @@
-﻿
-#pragma once
+﻿#pragma once
 #include "lua_api_adpt.h"
 namespace xlua
 {    

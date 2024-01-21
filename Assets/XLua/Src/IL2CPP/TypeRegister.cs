@@ -248,6 +248,7 @@ namespace XLua.IL2CPP
                                 {
 #if WARNING_IF_MEMBERFAIL
                                     UnityEngine.Debug.LogWarning(string.Format("add constructor for {0} fail, signature:{1}", type, TypeUtils.GetMethodSignature(ctor)));
+                                    
 #endif
                                     continue;
                                 }

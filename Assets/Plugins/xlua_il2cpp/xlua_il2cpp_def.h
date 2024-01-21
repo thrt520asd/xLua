@@ -2,8 +2,8 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <unordered_map>
 #include <cstdarg>
+#include "UnityExports4Lua.h"
 namespace xlua{
 
     struct CSharpMethodInfo

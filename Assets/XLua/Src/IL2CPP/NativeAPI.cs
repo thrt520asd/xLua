@@ -26,6 +26,7 @@ namespace XLua.IL2CPP
     {
 #if (UNITY_ANDROID || UNITY_IPHONE || UNITY_TVOS || UNITY_WEBGL || UNITY_SWITCH) && !UNITY_EDITOR
         const string DLLNAME = "__Internal";
+        const string LUADLL = "__Internal";
 #else
         const string LUADLL = "xlua";
         const string DLLNAME = "__Internal";
@@ -79,10 +80,10 @@ namespace XLua.IL2CPP
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
 		public static extern IntPtr xlua_getImpl();
 
-        [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void SetClassMetaId(IntPtr p, int metaId);
 
-        [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void SetLuaCacheRef(int cacheRef);
         //[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         //public static extern void SetObjectPool(IntPtr jsEnv, IntPtr objectPoolAddMethodInfo, IntPtr objectPoolAdd, IntPtr objectPoolRemoveMethodInfo, IntPtr objectPoolRemove, IntPtr objectPoolInstance);
