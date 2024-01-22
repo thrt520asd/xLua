@@ -1,6 +1,6 @@
 #include "il2cpp-config.h"
-#include "codegen/il2cpp-codegen.h"
 
+#include "codegen/il2cpp-codegen.h"
 #include "il2cpp-api.h"
 #include "il2cpp-class-internals.h"
 #include "il2cpp-object-internals.h"
@@ -18,8 +18,7 @@
 #include "vm/Image.h"
 #include "utils/StringUtils.h"
 #include "gc/WriteBarrier.h"
-#include "utils/Logging.h"
-#include "lua_api_adpt.h"
+#include "lua_api_adapt.h"
 #include "UnityExports4Lua.h"
 #include "xlua_il2cpp_def.h"
 // #include "LuaClassRegister.h"

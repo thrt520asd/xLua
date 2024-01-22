@@ -1,7 +1,7 @@
 #pragma once
 #include "unordered_map"
 #include <il2cpp-api-types.h>
-#include "lua_api_adpt.h"
+#include "lua_api_adapt.h"
 #include "xlua_il2cpp_def.h"
 #include "CppObjMapper.h"
 #include <vm/Exception.h>

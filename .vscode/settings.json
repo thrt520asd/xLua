@@ -72,6 +72,7 @@
         "WebGLPlugins":true,
         "winBuild":true,
         "il2cpp_BackUpThisFolder_ButDontShipItWithYourGame/":true,
+        "winBuildVs/":true,
     },
     "files.associations": {
         "*.lua.text": "lua",
@@ -155,6 +156,7 @@
         "*.tlh": "cpp",
         "lua.h": "c",
         "lualib.h": "c",
-        "xlua": "c"
+        "xlua": "c",
+        "lua_api_adapt.h": "c"
     }
 }

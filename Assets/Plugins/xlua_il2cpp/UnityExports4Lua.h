@@ -1,5 +1,10 @@
 ﻿#pragma once
-#include "lua_api_adpt.h"
+#include "lua_api_adapt.h"
+#include "codegen/il2cpp-codegen.h"
+#include "il2cpp-api.h"
+#include "il2cpp-api-types.h"
+#include "il2cpp-class-internals.h"
+#include "il2cpp-object-internals.h"
 namespace xlua
 {    
 #define MethodPointer Il2CppMethodPointer
@@ -50,7 +55,7 @@ typedef const Il2CppClass* (*GetParameterTypeFunc)(const MethodInfo* method, int
 
 // typedef pesapi_value (*GetPersistentObjectFunc)(pesapi_env env, const PersistentObjectInfo* objectInfo);
 
-typedef Il2CppObject* (*GetJSObjectValueFunc)(const PersistentObjectInfo* objectInfo, const char* key, Il2CppClass* type);
+// typedef Il2CppObject* (*GetJSObjectValueFunc)(const PersistentObjectInfo* objectInfo, const char* key, Il2CppClass* type);
 
 // typedef pesapi_value (*GetModuleExecutorFunc)(pesapi_env env);
 
@@ -142,7 +147,7 @@ struct UnityExports
 
     // SetPersistentObjectFunc SetPersistentObject = nullptr;
     // GetPersistentObjectFunc GetPersistentObject = nullptr;
-    GetJSObjectValueFunc GetJSObjectValue = nullptr;
+    // GetJSObjectValueFunc GetJSObjectValue = nullptr;
     // GetModuleExecutorFunc GetModuleExecutor = nullptr;
 
     // GetRuntimeObjectFromPersistentObjectFunc GetRuntimeObjectFromPersistentObject = nullptr;

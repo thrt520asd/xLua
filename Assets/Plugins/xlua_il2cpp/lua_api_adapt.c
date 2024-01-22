@@ -1,32 +1,5 @@
-#ifndef LUA_API_ADPT
-#define LUA_API_ADPT
-typedef void* lua_State;
-#define LUA_TNONE		(-1)
-
-#define LUA_TNIL		0
-#define LUA_TBOOLEAN		1
-#define LUA_TLIGHTUSERDATA	2
-#define LUA_TNUMBER		3
-#define LUA_TSTRING		4
-#define LUA_TTABLE		5
-#define LUA_TFUNCTION		6
-#define LUA_TUSERDATA		7
-#define LUA_TTHREAD		8
-
-#define LUA_NUMTYPES		9
-
-#define LUA_NUMBER	double
-#define LUA_INTEGER		long long
-/* type of numbers in Lua */
-typedef LUA_NUMBER lua_Number;
-
-
-/* type for integer functions */
-typedef LUA_INTEGER lua_Integer;
-
-
-typedef void (*lapi_func_ptr)(void);
-
+#include "lua_api_adapt.h"
+#include "stddef.h"
 //lua_touserdata
 typedef void* (*lapi_lua_touserdataType)(lua_State*L, int idx);
 
@@ -191,5 +164,3 @@ void lapi_init(lapi_func_ptr* func_array){
     lapi_lua_topointer_ptr = (lapi_lua_topointerType)func_array[14];
     lapi_xlua_tryget_cachedud_ptr = (lapi_xlua_tryget_cachedudType)func_array[15];
 }
-
-#endif
