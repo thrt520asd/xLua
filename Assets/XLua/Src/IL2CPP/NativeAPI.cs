@@ -85,6 +85,10 @@ namespace XLua.IL2CPP
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void SetLuaCacheRef(int cacheRef);
+        [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+		public static extern IntPtr GetClsGetCallBackPtr();
+        [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+		public static extern IntPtr GetObjGetCallBackPtr();
         //[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         //public static extern void SetObjectPool(IntPtr jsEnv, IntPtr objectPoolAddMethodInfo, IntPtr objectPoolAdd, IntPtr objectPoolRemoveMethodInfo, IntPtr objectPoolRemove, IntPtr objectPoolInstance);
 

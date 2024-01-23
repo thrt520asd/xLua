@@ -12,4 +12,5 @@ cmake --build build32_54 --config Release
 md plugin_lua54\Plugins\x86
 copy /Y build32_54\Release\xlua.dll plugin_lua54\Plugins\x86\xlua.dll
 
+xcopy /E /Y plugin_lua54\Plugins ..\Assets\Plugins
 pause

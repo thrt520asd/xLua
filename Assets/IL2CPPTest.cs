@@ -22,10 +22,10 @@ public class IL2CPPTest
     // {
     // }
 
-    // public void Print(string str)
-    // {
-    //     Debug.Log("IL2CPPTest"+str);
-    // }
+    public void Print(string str)
+    {
+        Debug.Log("IL2CPPTest"+str);
+    }
 
     public void Prin_Int(int i)
     {

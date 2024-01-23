@@ -1,0 +1,1 @@
+xcopy /E /Y ..\winBuildVs\Il2CppOutputProject\Source\CppPlugins ..\Assets\Plugins\xlua_il2cpp

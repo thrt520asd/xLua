@@ -1,5 +1,6 @@
 #include "lua_api_adapt.h"
 #include "stddef.h"
+EXTERN_C_START
 //lua_touserdata
 typedef void* (*lapi_lua_touserdataType)(lua_State*L, int idx);
 
@@ -138,12 +139,21 @@ const void * lapi_lua_topointer(lua_State*L, int idx){
 }
 
 //xlua_tryget_cachedud
-typedef const int (*lapi_xlua_tryget_cachedudType)(lua_State*L, int key, int cache_ref);
+typedef int (*lapi_xlua_tryget_cachedudType)(lua_State*L, int key, int cache_ref);
 
 static lapi_xlua_tryget_cachedudType lapi_xlua_tryget_cachedud_ptr;
 
 int lapi_xlua_tryget_cachedud(lua_State*L, int key, int cache_ref){
     return lapi_xlua_tryget_cachedud_ptr(L, key, cache_ref);
+}
+
+//xlua_getcsobj_ptr
+typedef void* (*lapi_xlua_getcsobj_ptrType)(lua_State*L, int index);
+
+static lapi_xlua_getcsobj_ptrType lapi_xlua_getcsobj_ptr_ptr;
+
+void* lapi_xlua_getcsobj_ptr(lua_State*L, int index){
+    return lapi_xlua_getcsobj_ptr_ptr(L, index);
 }
 
 void lapi_init(lapi_func_ptr* func_array){
@@ -163,4 +173,7 @@ void lapi_init(lapi_func_ptr* func_array){
     lapi_lua_toboolean_ptr = (lapi_lua_tobooleanType)func_array[13];
     lapi_lua_topointer_ptr = (lapi_lua_topointerType)func_array[14];
     lapi_xlua_tryget_cachedud_ptr = (lapi_xlua_tryget_cachedudType)func_array[15];
+    lapi_xlua_getcsobj_ptr_ptr = (lapi_xlua_getcsobj_ptrType)func_array[16];
 }
+
+EXTERN_C_END

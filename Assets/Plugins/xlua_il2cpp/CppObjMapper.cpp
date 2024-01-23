@@ -33,7 +33,12 @@ int32_t CppObjMapper::GetTypeId(void* kclass){
 
     return -1;
 }
-int cacheRef = 0;
+
+
+void CppObjMapper::SetCacheRef(int32_t cache_ref) {
+    cacheRef = cache_ref;
+}
+
 void CppObjMapper::TryPushObject(lua_State *L, void * obj){
     auto iter = objCache.find(obj);
     if(cacheRef == 0){
@@ -46,7 +51,7 @@ void CppObjMapper::TryPushObject(lua_State *L, void * obj){
         xlua::GLogFormatted("find cache obj %d", key);
         if (lapi_xlua_tryget_cachedud(L, key, cacheRef) == 1)
         {
-            xlua::GLogFormatted("pus cache obj %d success", key);
+            xlua::GLogFormatted("put cache obj %d success", key);
             return;
         }
     }
@@ -56,7 +61,7 @@ void CppObjMapper::TryPushObject(lua_State *L, void * obj){
     int32_t metaId = GetTypeId(kclass);
     xlua::GLogFormatted("obj metaId %d", metaId);
     if(metaId != -1){
-        xlua::GLogFormatted("lapi_xlua_pushcsobj_ptr %p  metaId %d key %d cacheRef %d", obj, metaId, key, cahceRef);
+        xlua::GLogFormatted("lapi_xlua_pushcsobj_ptr %p  metaId %d key %d cacheRef %d", obj, metaId, key, cacheRef);
         lapi_xlua_pushcsobj_ptr(L, obj, metaId, key, 1, cacheRef);
     }else{
         //#TODO@benp throw error

@@ -16,7 +16,7 @@ typedef void (*FieldOperationFunc)(void *obj, FieldInfo *fieldInfo, size_t offse
 typedef void* (*GetValueTypeFieldPtrFunc)(void *obj, FieldInfo *field, size_t offset);
 typedef MethodInfo MethodType;
 typedef bool (*WrapFuncPtr)(MethodType* method, Il2CppMethodPointer methodPointer, lua_State * L, bool checkArgument, struct WrapData* wrapData);
-typedef void (*FunctionCallbackFunc)(lua_State* L);
+typedef void (*FunctionCallbackFunc)(lua_State* L, WrapData**);
 typedef void* (*InitializeFunc)(lua_State* L);
 // typedef pesapi_constructor InitializeFunc;
 typedef void (*FieldWrapFuncPtr)(lua_State L, FieldInfo* field, size_t offset, Il2CppClass* fieldType);

@@ -1251,6 +1251,14 @@ LUA_API void xlua_pushcsobj_ptr(lua_State* L, intptr_t ptr, int meta_ref, int ke
 	lua_setmetatable(L, -2);
 }
 
+LUA_API void* xlua_getcsobj_ptr(lua_State* L,int index){
+    CSharpObject* pointer = (CSharpObject*)lua_touserdata(L, index);
+    if(pointer->poolIdx > -1){
+        return pointer->pointer;
+    }
+	return NULL;
+}
+
 static lapi_func_ptr funcs[] = {
     (lapi_func_ptr) &lua_touserdata,
     (lapi_func_ptr) &lua_type,
@@ -1268,6 +1276,7 @@ static lapi_func_ptr funcs[] = {
 (lapi_func_ptr)&lua_toboolean,
 (lapi_func_ptr)&lua_topointer,
 (lapi_func_ptr)&xlua_tryget_cachedud,
+(lapi_func_ptr) &xlua_getcsobj_ptr,
 };
 
 LUA_API lapi_func_ptr* xlua_getImpl(){

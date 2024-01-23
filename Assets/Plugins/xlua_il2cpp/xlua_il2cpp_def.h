@@ -58,7 +58,9 @@ namespace xlua{
 
         /// @brief UnityLog
     typedef void(*LogCallback)(const char* value);
-    static LogCallback GLogCallback = nullptr;
-
+    
+    void SetLogHandler(LogCallback log);
     void GLogFormatted(const char* format, ...);
+    
+    
 }

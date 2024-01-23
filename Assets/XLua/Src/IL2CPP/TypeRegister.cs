@@ -49,8 +49,10 @@ namespace XLua.IL2CPP
         {
             UnityEngine.Debug.Log($"Register {L} {type} {includeNonPublic} {throwIfMemberFail}");
             var translator = ObjectTranslatorPool.Instance.Find(L);
-            if(ObjGetCallBack == IntPtr.Zero){
+            if(ClsConstructorCallBack == IntPtr.Zero){
                 ClsConstructorCallBack = NativeAPI.GetClsConstructorCallBackPtr();
+                ClsGetCallBack = NativeAPI.GetClsGetCallBackPtr();
+                ObjGetCallBack = NativeAPI.GetObjGetCallBackPtr();
                 NativeAPI.SetLuaCacheRef(translator.cacheRef);
             }
             BindingFlags flag = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public;

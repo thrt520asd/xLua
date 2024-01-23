@@ -87,6 +87,10 @@ const void * lapi_lua_topointer(lua_State*L, int idx);
 //xlua_tryget_cachedud
 int lapi_xlua_tryget_cachedud(lua_State*L, int key, int cache_ref);
 
+//xlua_getcsobj_ptr
+void* lapi_xlua_getcsobj_ptr(lua_State*L, int index);
+
 void lapi_init(lapi_func_ptr* func_array);
+
 EXTERN_C_END
 #endif

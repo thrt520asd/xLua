@@ -27,9 +27,7 @@
         
 
         typedef void* (*FuncToCall)(void*,const void* method);
-        void * ret = ((FuncToCall)methodPointer)(nullptr, method);
-        GetCppObjMapper()->TryPushObject(L, ret);
-        
+        ((FuncToCall)methodPointer)(nullptr, method);
         
         return true;
     }
@@ -40,31 +38,31 @@
     // Void DeleteSubKey(System.String)
     static bool w_vts(void* method, MethodPointer methodPointer, lua_State *L, bool checkArgument, WrapData* wrapData) {
         // PLog(LogLevel::Log, "Running w_vts");
-        xlua::GLogCallback("Running w_vts");
+        xlua::GLogFormatted("Running w_vts");
         auto TIp0 = wrapData->TypeInfos[0];
 
         if (checkArgument) {
 
-            // if(lua_gettop(L) != 2){
-            //     return false;
-            // }
-            // if(lua_type(L, 2) != LUA_TSTRING){
-            //     return false;
-            // }
+            if(lapi_lua_gettop(L) != 2){
+                return false;
+            }
+            if(lapi_lua_isstring(L, 2) != LUA_TSTRING){
+                return false;
+            }
         }
         // lua api 编译失败 为啥
-        // const char* str =  lua_tostring(L, 1);
+        const char* str =  lapi_lua_tolstring(L, 2);
+        auto ilstring = il2cpp::vm::String::New(str);
+
         //#TODO@benp 拿到自己指针
-        // auto self = xlua_get_csobj_pointer(L); //Cshare obj pointer
-        // auto self = puerts::DataTransfer::GetPointerFast<void>(info.Holder());
-        
-        // JSValToCSVal s
-        // v8::String::Utf8Value tp0(isolate, info[0]);
-        // void* p0 = CStringToCSharpString(str);
+        auto self = lapi_xlua_getcsobj_ptr(L, 1);
+        if(self == nullptr){
+            return false;
+        }
 
         typedef void (*FuncToCall)(void*,void* p0, const void* method);
-        //#TODO@benp 执行方法
-        // ((FuncToCall)methodPointer)(self, p0,  method);  
+        
+        ((FuncToCall)methodPointer)(self, ilstring,  method);  
 
         return true;
     }
@@ -72,6 +70,7 @@
     static WrapFuncInfo g_wrapFuncInfos[] = {
         {"vt", (WrapFuncPtr)w_vt},
         {"vts", (WrapFuncPtr)w_vts},
+        {nullptr, nullptr},
     };
 
     ///模拟生成方法 field wrap

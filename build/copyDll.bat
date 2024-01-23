@@ -1,0 +1,1 @@
+xcopy /E /Y plugin_lua54\Plugins ..\Assets\Plugins
