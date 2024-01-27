@@ -60,6 +60,7 @@ void CppObjMapper::TryPushObject(lua_State *L, void * obj){
     void* kclass = *reinterpret_cast<void**>(obj);
     int32_t metaId = GetTypeId(kclass);
     xlua::GLogFormatted("obj metaId %d", metaId);
+    //todo objPool 持有引用
     if(metaId != -1){
         xlua::GLogFormatted("lapi_xlua_pushcsobj_ptr %p  metaId %d key %d cacheRef %d", obj, metaId, key, cacheRef);
         lapi_xlua_pushcsobj_ptr(L, obj, metaId, key, 1, cacheRef);

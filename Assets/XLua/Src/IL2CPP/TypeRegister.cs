@@ -16,11 +16,11 @@ namespace XLua.IL2CPP
     public class TypeRegister
     {
         //#TODO@benp C++类型释放
-        private static IntPtr ObjGetCallBack = IntPtr.Zero;
-        private static IntPtr ObjSetCallBack = IntPtr.Zero;
-        private static IntPtr ClsConstructorCallBack = IntPtr.Zero;
-        private static IntPtr ClsSetCallBack = IntPtr.Zero;
-        private static IntPtr ClsGetCallBack = IntPtr.Zero;
+        // private static IntPtr ObjGetCallBack = IntPtr.Zero;
+        // private static IntPtr ObjSetCallBack = IntPtr.Zero;
+        // private static IntPtr ClsConstructorCallBack = IntPtr.Zero;
+        // private static IntPtr ClsSetCallBack = IntPtr.Zero;
+        // private static IntPtr ClsGetCallBack = IntPtr.Zero;
 
         private static IntPtr GetFieldWrapper(string name, bool isStatic, string signature)
         {
@@ -44,15 +44,16 @@ namespace XLua.IL2CPP
             NativeAPI.SetLuaCacheRef(cacheRef);
         }
 
-
+        private static bool setcache = false;
         public static void Register(RealStatePtr L, Type type, bool includeNonPublic, bool throwIfMemberFail = false)
         {
             UnityEngine.Debug.Log($"Register {L} {type} {includeNonPublic} {throwIfMemberFail}");
             var translator = ObjectTranslatorPool.Instance.Find(L);
-            if(ClsConstructorCallBack == IntPtr.Zero){
-                ClsConstructorCallBack = NativeAPI.GetClsConstructorCallBackPtr();
-                ClsGetCallBack = NativeAPI.GetClsGetCallBackPtr();
-                ObjGetCallBack = NativeAPI.GetObjGetCallBackPtr();
+            if(!setcache){
+                setcache = true;
+                // ClsConstructorCallBack = NativeAPI.GetClsConstructorCallBackPtr();
+                // ClsGetCallBack = NativeAPI.GetClsGetCallBackPtr();
+                // ObjGetCallBack = NativeAPI.GetObjGetCallBackPtr();
                 NativeAPI.SetLuaCacheRef(translator.cacheRef);
             }
             BindingFlags flag = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public;
@@ -88,7 +89,7 @@ namespace XLua.IL2CPP
             LuaAPI.lua_rawset(L, tableIdx);
         }
 
-        private static void Register2Lua(Type type, int type_id, IntPtr cppClsDef, ObjectTranslator translator, RealStatePtr L){
+        private static void Register2Lua(Type type, int type_id, IntPtr typeId, ObjectTranslator translator, RealStatePtr L){
             //todo hotfix 处理
             //obj meta register begin
             if (type == null)
@@ -124,18 +125,20 @@ namespace XLua.IL2CPP
 			LuaAPI.lua_pushstdcallcfunction(L, translator.metaFunctions.ToStringMeta);
 			LuaAPI.lua_rawset(L, -3);
 
-            // get
+            NativeAPI.HandleObjMetatable(L, -3, typeId);
+            // Push_stdcallcfunctionWithCppDef(L, "__index", -3, cppClsDef, ObjGetCallBack);
             // LuaAPI.xlua_pushasciistring(L, "__index");
-            // LuaAPI.lua_pushlightuserdata(L, cppClsDef);
-            // LuaAPI.xlua_push_csharp_function(L, ObjGetCallBack, 1);
+            // LuaAPI.lua_pushlightuserdata(L, typeId);
+            // LuaAPI.lua_createtable(L, 0, 0);
+            // LuaAPI.lua_createtable(L, 0, 0);
+            // LuaAPI.lua_pushcclosure(L, ObjGetCallBack, 3);
             // LuaAPI.lua_rawset(L, -3);
-            Push_stdcallcfunctionWithCppDef(L, "__index", -3, cppClsDef, ObjGetCallBack);
             //set
             // LuaAPI.xlua_pushasciistring(L, "__newindex");
             // LuaAPI.lua_pushlightuserdata(L, cppClsDef);
             // LuaAPI.xlua_push_csharp_function(L, ObjSetCallBack, 0);
             // LuaAPI.lua_rawset(L, -3);
-            Push_stdcallcfunctionWithCppDef(L, "__newindex", -3, cppClsDef, ObjSetCallBack);
+            // Push_stdcallcfunctionWithCppDef(L, "__newindex", -3, typeId, ObjSetCallBack);
             //obj meta register end
 
             //cls meta register begin
@@ -152,32 +155,34 @@ namespace XLua.IL2CPP
             LuaAPI.lua_createtable(L, 0, 3); // // 1 objMeta 2 clsTable 3 clsMeta
 			int meta_table = LuaAPI.lua_gettop(L);
             
-            Push_stdcallcfunctionWithCppDef(L, "__call", meta_table, cppClsDef, ClsConstructorCallBack);
-            
-            Push_stdcallcfunctionWithCppDef(L, "__index", -3, cppClsDef, ClsGetCallBack);
+            NativeAPI.HandleClsMetaTable(L, meta_table, typeId);
 
-            Push_stdcallcfunctionWithCppDef(L, "__newindex", -3, cppClsDef, ClsSetCallBack);
+            // Push_stdcallcfunctionWithCppDef(L, "__call", meta_table, cppClsDef, ClsConstructorCallBack);
+            
+            // Push_stdcallcfunctionWithCppDef(L, "__index", -3, cppClsDef, ClsGetCallBack);
+
+            // Push_stdcallcfunctionWithCppDef(L, "__newindex", -3, cppClsDef, ClsSetCallBack);
 
             LuaAPI.lua_pushvalue(L, meta_table); // 1 objMeta 2 clsTable 3 clsMeta 4 clsMeta
 			LuaAPI.lua_setmetatable(L, cls_table); //  setmetatable(clsTable, clsMeta[4])  1 objMeta 2 clsTable 3 clsMeta
             LuaAPI.lua_pop(L,3);
         }
 
-        [MonoPInvokeCallback(typeof(LuaCSFunction))]
-        static int ConstructorCallBack(RealStatePtr L)
-        {
-            try
-            {
-                return NativeAPI.ClsConstructorCallBack(L);
-                // ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
-                // LuaCSFunction func = (LuaCSFunction)translator.FastGetCSObj(L, LuaAPI.xlua_upvalueindex(1));
-                // return func(L);
-            }
-            catch (Exception e)
-            {
-                return LuaAPI.luaL_error(L, "c# exception in StaticCSFunction:" + e);
-            }
-        }
+        // [MonoPInvokeCallback(typeof(LuaCSFunction))]
+        // static int ConstructorCallBack(RealStatePtr L)
+        // {
+        //     try
+        //     {
+        //         return NativeAPI.ClsConstructorCallBack(L);
+        //         // ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
+        //         // LuaCSFunction func = (LuaCSFunction)translator.FastGetCSObj(L, LuaAPI.xlua_upvalueindex(1));
+        //         // return func(L);
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         return LuaAPI.luaL_error(L, "c# exception in StaticCSFunction:" + e);
+        //     }
+        // }
 
         /// <summary>
         /// 注册类型信息到IL2CPP,
@@ -400,12 +405,11 @@ namespace XLua.IL2CPP
                         }
                     }
                 }
-                var index =  NativeAPI.RegisterLuaClass(typeInfo);
-                if(index == -1){
+                if(NativeAPI.RegisterLuaClass(typeInfo)){
+                    return typeId;
+                }else{
                     throw new Exception(string.Format("Register for {0} fail", type));
                 }
-                return typeId;
-
             }
             catch (Exception e){
                 UnityEngine.Debug.Log("Register 2 CPP Excepitoni " + e.ToString());

@@ -3,7 +3,6 @@
 EXTERN_C_START
 //lua_touserdata
 typedef void* (*lapi_lua_touserdataType)(lua_State*L, int idx);
-
 static lapi_lua_touserdataType lapi_lua_touserdata_ptr;
 
 void* lapi_lua_touserdata(lua_State*L, int idx){
@@ -111,6 +110,11 @@ lua_Number lapi_lua_tonumber(lua_State*L, int idx){
     return lapi_lua_tonumber_ptr(L, idx);
 }
 
+int lapi_xlua_tointeger(lua_State* L, int idx)
+{
+    return (int)lapi_lua_tonumber(L, idx);
+}
+
 //lua_tolstring
 typedef const char * (*lapi_lua_tolstringType)(lua_State*L, int idx, size_t *len);
 
@@ -156,6 +160,151 @@ void* lapi_xlua_getcsobj_ptr(lua_State*L, int index){
     return lapi_xlua_getcsobj_ptr_ptr(L, index);
 }
 
+// lua_pushcclosure
+typedef void (*lapi_lua_pushcclosureType)(lua_State* L, lua_CFunction fn, int n);
+
+static lapi_lua_pushcclosureType lapi_lua_pushcclosure_ptr;
+
+void lapi_lua_pushcclosure(lua_State* L, lua_CFunction fn, int n) {
+    return lapi_lua_pushcclosure_ptr(L, fn, n);
+}
+
+// lua_setupvalue
+typedef const char* (*lapi_lua_setupvalueType)(lua_State* L, int funcindex, int n);
+static lapi_lua_setupvalueType lapi_lua_setupvalue_ptr;
+
+const char* lapi_lua_setupvalue(lua_State* L, int funcindex, int n) {
+    return lapi_lua_setupvalue_ptr(L, funcindex, n);
+}
+
+// lua_getupvalue
+typedef const char* (*lapi_lua_getupvalueType)(lua_State* L, int index);
+
+static lapi_lua_getupvalueType lapi_lua_getupvalue_ptr;
+
+const char* lapi_lua_getupvalue(lua_State* L, int index) {
+    return lapi_lua_getupvalue_ptr(L, index);
+}
+
+// lua_pushvalue
+typedef void (*lapi_lua_pushvalueType)(lua_State* L, int index);
+
+static lapi_lua_pushvalueType lapi_lua_pushvalue_ptr;
+
+void lapi_lua_pushvalue(lua_State* L, int index) {
+    return lapi_lua_pushvalue_ptr(L, index);
+}
+
+// lua_gettable
+typedef int (*lapi_lua_gettableType)(lua_State* L, int index);
+
+static lapi_lua_gettableType lapi_lua_gettable_ptr;
+
+int lapi_lua_gettable(lua_State* L, int index) {
+    return lapi_lua_gettable_ptr(L, index);
+}
+
+// lua_call
+typedef void (*lapi_lua_callType)(lua_State* L, int index);
+
+static lapi_lua_callType lapi_lua_call_ptr;
+
+void lapi_lua_call(lua_State* L, int index) {
+    return lapi_lua_call_ptr(L, index);
+}
+
+// lua_settop
+typedef void (*lapi_lua_settopType)(lua_State* L, int index);
+
+static lapi_lua_settopType lapi_lua_settop_ptr;
+
+void lapi_lua_settop(lua_State* L, int amount) {
+    return lapi_lua_settop_ptr(L, amount);
+}
+
+
+// lua_pushlightuserdata
+typedef void (*lapi_lua_pushlightuserdataType)(lua_State* L, void* p);
+
+static lapi_lua_pushlightuserdataType lapi_lua_pushlightuserdata_ptr;
+
+void lapi_lua_pushlightuserdata(lua_State* L, void* p) {
+    return lapi_lua_pushlightuserdata_ptr(L, p);
+}
+
+
+// lua_settable
+typedef void (*lapi_lua_settableType)(lua_State* L,int index);
+
+static lapi_lua_settableType lapi_lua_settable_ptr;
+
+void lapi_lua_settable(lua_State* L,int index) {
+    return lapi_lua_settable_ptr(L, index);
+}
+
+
+// lua_createtable
+typedef void (*lapi_lua_createtableType)(lua_State* L,int narr, int nrec);
+
+static lapi_lua_createtableType lapi_lua_createtable_ptr;
+
+void lapi_lua_createtable(lua_State* L,int narr, int nrec) {
+    return lapi_lua_createtable_ptr(L, narr ,nrec);
+}
+
+// lua_pushboolean
+typedef void (*lapi_lua_pushbooleanType)(lua_State* L,int b);
+
+static lapi_lua_pushbooleanType lapi_lua_pushboolean_ptr;
+
+void lapi_lua_pushboolean(lua_State* L,int b) {
+    return lapi_lua_pushboolean_ptr(L, b);
+}
+
+// lua_pushstring
+typedef void (*lapi_lua_pushstringType)(lua_State* L,const char * c);
+
+static lapi_lua_pushstringType lapi_lua_pushstring_ptr;
+
+void lapi_lua_pushstring(lua_State* L,const char * c) {
+    return lapi_lua_pushstring_ptr(L, c);
+}
+
+// lua_pushlstring
+typedef void (*lapi_lua_pushlstringType)(lua_State* L,const char * c, size_t len);
+
+static lapi_lua_pushlstringType lapi_lua_pushlstring_ptr;
+
+void lapi_lua_pushlstring(lua_State* L,const char * c, size_t len) {
+    return lapi_lua_pushlstring_ptr(L, c, len);
+}
+
+// lua_pushnumber
+typedef void (*lapi_lua_pushnumberType)(lua_State* L, double d);
+
+static lapi_lua_pushnumberType lapi_lua_pushnumber_ptr;
+
+void lapi_lua_pushnumber(lua_State* L, double d) {
+    return lapi_lua_pushnumber_ptr(L, d);
+}
+
+// lua_pushinteger
+typedef void (*lapi_lua_pushintegerType)(lua_State* L, long long d);
+
+static lapi_lua_pushintegerType lapi_lua_pushinteger_ptr;
+
+void lapi_lua_pushinteger(lua_State* L, long long d) {
+    return lapi_lua_pushinteger_ptr(L, d);
+}
+
+// lua_pushnil
+typedef void (*lapi_lua_pushnilType)(lua_State* L);
+
+static lapi_lua_pushnilType lapi_lua_pushnil_ptr;
+
+void lapi_lua_pushnil(lua_State* L) {
+    return lapi_lua_pushnil_ptr(L);
+}
 void lapi_init(lapi_func_ptr* func_array){
     lapi_lua_touserdata_ptr = (lapi_lua_touserdataType)func_array[0];
     lapi_lua_type_ptr = (lapi_lua_typeType)func_array[1];
@@ -174,6 +323,23 @@ void lapi_init(lapi_func_ptr* func_array){
     lapi_lua_topointer_ptr = (lapi_lua_topointerType)func_array[14];
     lapi_xlua_tryget_cachedud_ptr = (lapi_xlua_tryget_cachedudType)func_array[15];
     lapi_xlua_getcsobj_ptr_ptr = (lapi_xlua_getcsobj_ptrType)func_array[16];
+    lapi_lua_pushcclosure_ptr = (lapi_lua_pushcclosureType)func_array[17];
+    lapi_lua_setupvalue_ptr = (lapi_lua_setupvalueType)func_array[18];
+    lapi_lua_getupvalue_ptr = (lapi_lua_getupvalueType)func_array[19];
+    lapi_lua_pushvalue_ptr = (lapi_lua_pushvalueType)func_array[20];
+    lapi_lua_gettable_ptr = (lapi_lua_gettableType)func_array[21];
+    lapi_lua_call_ptr = (lapi_lua_callType)func_array[22];
+    lapi_lua_settop_ptr = (lapi_lua_settopType)func_array[23];
+    lapi_lua_pushlightuserdata_ptr = (lapi_lua_pushlightuserdataType)func_array[24];
+    lapi_lua_settable_ptr = (lapi_lua_settableType)func_array[25];
+    lapi_lua_createtable_ptr = (lapi_lua_createtableType)func_array[26];
+    lapi_lua_pushboolean_ptr = (lapi_lua_pushbooleanType)func_array[27];
+    lapi_lua_pushstring_ptr = (lapi_lua_pushstringType)func_array[28];
+    lapi_lua_pushlstring_ptr = (lapi_lua_pushlstringType)func_array[29];
+    lapi_lua_pushnumber_ptr = (lapi_lua_pushnumberType)func_array[30];
+    lapi_lua_pushinteger_ptr = (lapi_lua_pushintegerType)func_array[31];
+    lapi_lua_pushnil_ptr = (lapi_lua_pushnilType)func_array[32];
+    lapi_lua_pushnil_ptr = (lapi_lua_pushnilType)func_array[33];
 }
 
 EXTERN_C_END

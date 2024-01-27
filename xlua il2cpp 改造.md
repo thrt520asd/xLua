@@ -60,7 +60,6 @@ MethodCallback回调发起
 TryDelayWrapLoader 
 	--delayWrap 导入C# Class Wrap方案
 	--ReflectionWrap 反射方案   
-		todo 参考dybridge的方案是实现一个新的OverloadMethodWrap
 		构建C++ WrapData 执行方法
 		持有C++的方法指针
 		这块完全放在C++来调用
@@ -186,3 +185,16 @@ objUserData = {csObjPointer, typeId}
 需要锁吗，不需要 对lua的访问有C#的锁来保证
 lua中所有的对象都是table，使用table来桥接C#的行为
 
+note
+il2ppobj *reinterpret_cast<void**>(ptr) => il2cppclass
+
+for 遍历vector 注意& 指向的是地址 不带&是复制
+
+il2cpp fastmutex windows CRITICAL_SECTION(only win) other  pthread_mutex_t
+
+il2cpp Alloc{
+    NewPtrFree 没有引用的特殊类型
+    AllocateSpec
+    Allocate
+}
+可以用GCHandle来持有引用 不能用gchandler  gchandler是重新申请内存 还是要走C#池

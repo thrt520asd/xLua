@@ -157,6 +157,8 @@
         "lua.h": "c",
         "lualib.h": "c",
         "xlua": "c",
-        "lua_api_adapt.h": "c"
+        "lua_api_adapt.h": "c",
+        "llimits.h": "c",
+        "i64lib.h": "c"
     }
 }

@@ -4,6 +4,7 @@
 #include <map>
 #include <cstdarg>
 #include "UnityExports4Lua.h"
+#include "xlua_il2cpp_def.h"
 namespace xlua{
 
     struct CSharpMethodInfo
@@ -13,6 +14,19 @@ namespace xlua{
         bool IsGetter;
         bool IsSetter;
         std::vector<WrapData*> OverloadDatas;
+        //// 默认构造函数
+        //CSharpMethodInfo() {
+        //    a = 0;
+        //}
+        //// 拷贝构造函数
+        //CSharpMethodInfo(const CSharpMethodInfo& other) {
+        //    a = 1;
+        //}
+
+        //// 移动构造函数
+        //CSharpMethodInfo(CSharpMethodInfo&& other) noexcept {
+        //    a = 2;
+        //}
     };
 
     struct FieldWrapData
@@ -31,29 +45,29 @@ namespace xlua{
         FieldWrapData *Data;
     };
 
-    struct LuaClassInfo 
+    struct LuaClassInfo:LuaClassInfoHeader
     {
-        const void* TypeId;
-        const void* SuperTypeId;
-        TypeIdType* Class;
-        bool IsValueType;
-        MethodPointer DelegateBridge;
-        WrapData** CtorWrapDatas;
         std::string Name;
         std::vector<WrapData*> Ctors;
         std::vector<CSharpMethodInfo> Methods;
         std::vector<CSharpFieldInfo> Fields;
+        std::map<std::string, CSharpMethodInfo*> MethodsMap;
+        std::map<std::string, CSharpFieldInfo*>  FieldMap;
+        int a;
+
     };
 
     struct LuaClassDefinition
     {
         const void* TypeId;
         const void* SuperTypeId;
-        std::string Name;
+        const char* Name;
+        WrapData** CtorWrapDatas;
+        
         std::vector<WrapData*> Ctors;
-        std::map<std::string, CSharpMethodInfo*> MethodsMap;
-        std::map<std::string, CSharpFieldInfo>  FieldMap;
-        LuaClassInfo * clsInfo;
+        // std::map<std::string, WrapData*> MethodsMap;
+        // std::map<std::string, CSharpFieldInfo>  FieldMap;
+        LuaClassInfo *clsInfo;
     };
 
         /// @brief UnityLog

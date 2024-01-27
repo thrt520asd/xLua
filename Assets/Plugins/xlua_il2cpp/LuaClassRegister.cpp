@@ -1,88 +1,81 @@
-// #include "LuaClassRegister.h"
-// #include <map>
-// #include <utils/StringUtils.h>
-// namespace xlua
-// {
-//     class LuaClassRegister
-//     {
-//     public:
-//         LuaClassRegister(/* args */);
-//         ~LuaClassRegister();
-
-//         LuaClassDefinition *GetLuaDefByTypeId(const void *typeId);
-
-//         void RegisterClass( LuaClassInfo *luaClsInfo);
-//         void UnRegisterClass( std::string name);
+#include "LuaClassRegister.h"
+#include <map>
+#include <utils/StringUtils.h>
+namespace xlua
+{
     
-//     private:
-//         std::map<std::string, LuaClassDefinition*> clsName2ClsInfo;
-//         std::map<const void*, LuaClassDefinition*> clsId2ClsDef;
-//     };
+    LuaClassRegister::LuaClassRegister(/* args */)
+    {
+    }
     
-//     LuaClassRegister::LuaClassRegister(/* args */)
-//     {
-//     }
-    
-//     LuaClassRegister::~LuaClassRegister()
-//     {
-//         //#TODO@benp 清理
-//     }
+    LuaClassRegister::~LuaClassRegister()
+    {
+        //#TODO@benp 清理
+    }
 
-//     LuaClassDefinition* LuaClassRegister::GetLuaDefByTypeId(const void* typeId)
-//     {
-//         auto Iter = clsId2ClsDef.find(typeId);
-//         if (Iter == clsId2ClsDef.end())
-//         {
-//             return nullptr;
-//         }
-//         else
-//         {
-//             return Iter->second;
-//         }
-//     }
+    LuaClassInfo* LuaClassRegister::GetLuaClsInfoByTypeId(const void* typeId)
+    {
+        auto Iter = clsId2ClsDef.find(typeId);
+        if (Iter == clsId2ClsDef.end())
+        {
+            return nullptr;
+        }
+        else
+        {
+            return Iter->second;
+        }
+    }
 
-//     void LuaClassRegister::RegisterClass(LuaClassInfo *luaClsInfo)
-//     {
-//         xlua::GLog(luaClsInfo->Name.c_str());
-//         if(luaClsInfo->TypeId){
-//             auto iter = clsId2ClsDef.find(luaClsInfo->TypeId);
-//             if(iter != clsId2ClsDef.end()){
+    int LuaClassRegister::RegisterClass(LuaClassInfo *luaClsInfo)
+    {
+        xlua::GLogFormatted(luaClsInfo->Name.c_str());
+        auto iter = clsId2ClsDef.find(luaClsInfo->TypeId);
+        if(iter == clsId2ClsDef.end()){
+            
+            for(auto& method: luaClsInfo->Methods){
 
-//                 LuaClassDefinition* def = new LuaClassDefinition;
-//                 def->TypeId = luaClsInfo->TypeId;
-//                 def->clsInfo = luaClsInfo;
-                
-//                 //#TODO@benp 初始化
-//                 clsName2ClsInfo[luaClsInfo->Name] = def;
-//                 clsId2ClsDef[luaClsInfo->TypeId] = def;
-//             }
-//         }
-//     }
+                method.OverloadDatas.push_back(nullptr);
+                luaClsInfo->MethodsMap[method.Name] = &method;
+            }
 
-//     void LuaClassRegister::UnRegisterClass(std::string name){
-//         //#TODO@benp 清理
-//     }
+            for(auto& field: luaClsInfo->Fields){
+                luaClsInfo->FieldMap[field.Name] = &field;
+            }
+            luaClsInfo->Ctors.push_back(nullptr);
+            luaClsInfo->CtorWrapDatas = luaClsInfo->Ctors.data();
+            clsId2ClsDef[luaClsInfo->TypeId] = luaClsInfo;
+            clsName2ClsInfo[luaClsInfo->Name] = luaClsInfo;
+            return 1;
+        }else{
+            //#TODO@benp throw error
+            return 0;
+        }
+    }
 
-//     LuaClassRegister* GetLuaClassRegister()
-//     {
-//         static LuaClassRegister S_LuaClassRegister;
-//         return &S_LuaClassRegister;
-//     }
+    void LuaClassRegister::UnRegisterClass(std::string name){
+        //#TODO@benp 清理
+    }
 
-//     void RegisterLuaClass(xlua::LuaClassInfo *luaClsInfo)
-//     {
-//         xlua::GetLuaClassRegister()->RegisterClass(luaClsInfo);
-//     }
+    LuaClassRegister* GetLuaClassRegister()
+    {
+        static LuaClassRegister S_LuaClassRegister;
+        return &S_LuaClassRegister;
+    }
 
-//     void UnRegisterLuaClass(Il2CppString* ilstring){
-//         const Il2CppChar* utf16 = il2cpp::utils::StringUtils::GetChars(ilstring);
-//         auto name = il2cpp::utils::StringUtils::Utf16ToUtf8(utf16);
-//         xlua::GetLuaClassRegister()->UnRegisterClass(name);
-//     }
+    void RegisterLuaClass(xlua::LuaClassInfo *luaClsInfo)
+    {
+        xlua::GetLuaClassRegister()->RegisterClass(luaClsInfo);
+    }
 
-//     xlua::LuaClassDefinition *GetLuaDefinitionByTypeId(const void *typeId)
-//     {
-//         return xlua::GetLuaClassRegister()->GetLuaDefByTypeId(typeId);
-//     }
-// } 
+    void UnRegisterLuaClass(Il2CppString* ilstring){
+        const Il2CppChar* utf16 = il2cpp::utils::StringUtils::GetChars(ilstring);
+        auto name = il2cpp::utils::StringUtils::Utf16ToUtf8(utf16);
+        xlua::GetLuaClassRegister()->UnRegisterClass(name);
+    }
+
+    LuaClassInfo *GetLuaClsInfoByTypeId(const void *typeId)
+    {
+        return xlua::GetLuaClassRegister()->GetLuaClsInfoByTypeId(typeId);
+    }
+} 
 

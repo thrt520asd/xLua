@@ -64,9 +64,10 @@ public class TypeInfoEditorWindow:EditorWindow{
 
                 if(fields != null){
                     Debug.Log("======================fields======================");
-                    foreach (var item in fields)
+                    foreach (var field in fields)
                     {   
-                        Debug.Log(item+"|"+ item.Name);
+                        string signature = (field.IsStatic ? "" : "t") + TypeUtils.GetTypeSignature(field.FieldType);
+                        Debug.Log(signature+"|"+ field.Name);
                     }
                 }
             }

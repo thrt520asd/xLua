@@ -8,6 +8,8 @@ public class IL2CppTestMono : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        // IL2CPPTestBase b = new IL2CPPTestBase();
+        // b.TestIL2CPPGC();
         LuaEnv l = new LuaEnv();
         var filePath = Application.streamingAssetsPath +"/14_IL2CPP.lua";
         if(File.Exists(filePath)){

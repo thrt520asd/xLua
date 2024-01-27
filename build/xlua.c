@@ -1259,24 +1259,46 @@ LUA_API void* xlua_getcsobj_ptr(lua_State* L,int index){
 	return NULL;
 }
 
+void xlua_call(lua_State*L, int nargs, int nresults){
+    lua_call(L, nargs, nresults);
+}
+
 static lapi_func_ptr funcs[] = {
-    (lapi_func_ptr) &lua_touserdata,
-    (lapi_func_ptr) &lua_type,
-    (lapi_func_ptr) &lua_gettop,
-    (lapi_func_ptr) &lapi_lua_upvalueindex,
-    (lapi_func_ptr) &xlua_pushcsobj_ptr,
+(lapi_func_ptr) &lua_touserdata,
+(lapi_func_ptr) &lua_type,
+(lapi_func_ptr) &lua_gettop,
+(lapi_func_ptr) &lapi_lua_upvalueindex,
+(lapi_func_ptr) &xlua_pushcsobj_ptr,
 (lapi_func_ptr)&lua_isnumber, // 5
 (lapi_func_ptr)&lua_isstring,
 (lapi_func_ptr)&lua_iscfunction,
 (lapi_func_ptr)&lua_isinteger,
 (lapi_func_ptr)&lua_isuserdata,
-(lapi_func_ptr)&lua_typename,
+(lapi_func_ptr)&lua_typename,//10
 (lapi_func_ptr)&lua_tonumber,
 (lapi_func_ptr)&lua_tolstring,
 (lapi_func_ptr)&lua_toboolean,
 (lapi_func_ptr)&lua_topointer,
-(lapi_func_ptr)&xlua_tryget_cachedud,
+(lapi_func_ptr)&xlua_tryget_cachedud,//15
 (lapi_func_ptr) &xlua_getcsobj_ptr,
+(lapi_func_ptr) &lua_pushcclosure,
+(lapi_func_ptr) &lua_setupvalue,
+(lapi_func_ptr) &lua_getupvalue, 
+(lapi_func_ptr) &lua_pushvalue,//20
+(lapi_func_ptr) &lua_gettable,
+(lapi_func_ptr) &xlua_call,
+(lapi_func_ptr) &lua_settop,
+(lapi_func_ptr) &lua_pushlightuserdata,
+(lapi_func_ptr) &lua_settable,//25
+(lapi_func_ptr) &lua_createtable,
+(lapi_func_ptr) &lua_pushboolean,
+(lapi_func_ptr) &lua_pushstring,
+(lapi_func_ptr) &lua_pushlstring,
+(lapi_func_ptr) &lua_pushnumber,//30
+(lapi_func_ptr) &lua_pushinteger, 
+(lapi_func_ptr) &lua_pushnil,
+(lapi_func_ptr) &lua_pushuint64,
+
 };
 
 LUA_API lapi_func_ptr* xlua_getImpl(){

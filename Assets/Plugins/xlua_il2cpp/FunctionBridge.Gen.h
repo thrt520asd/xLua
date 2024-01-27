@@ -11,7 +11,7 @@
     }
     static BridgeFuncInfo g_bridgeFuncInfos[] = {{"N_bS_S_u8_i2__o", (MethodPointer)b_N_bS_i4i4i4i4u8__o}};
 
-    static bool w_vt(void* method, MethodPointer methodPointer, lua_State *L, bool checkArgument, WrapData* wrapData) {
+    static bool w_vt(void* method, MethodPointer methodPointer, lua_State *L, bool checkArgument, WrapData* wrapData, int index = 1) {
         // PLog(LogLevel::Log, "Running w_vts");
         xlua::GLogFormatted("Running w_vt");
         //#TODO@benp 构造函数再说
@@ -25,9 +25,9 @@
         // }
         // auto self = puerts::DataTransfer::GetPointerFast<void>(info.Holder());
         
-
+        auto self = lapi_xlua_getcsobj_ptr(L, index);
         typedef void* (*FuncToCall)(void*,const void* method);
-        ((FuncToCall)methodPointer)(nullptr, method);
+        ((FuncToCall)methodPointer)(self, method);
         
         return true;
     }
@@ -36,7 +36,7 @@
     ///模拟生成方法 method wrap
     // System.Nullable`1[System.DateTimeOffset] op_Explicit(Newtonsoft.Json.Linq.JToken)
     // Void DeleteSubKey(System.String)
-    static bool w_vts(void* method, MethodPointer methodPointer, lua_State *L, bool checkArgument, WrapData* wrapData) {
+    static bool w_vts(void* method, MethodPointer methodPointer, lua_State *L, bool checkArgument, WrapData* wrapData, int index = 1) {
         // PLog(LogLevel::Log, "Running w_vts");
         xlua::GLogFormatted("Running w_vts");
         auto TIp0 = wrapData->TypeInfos[0];
@@ -74,13 +74,21 @@
     };
 
     ///模拟生成方法 field wrap
-    static void ifg_O(lua_State* L, void* fieldInfo, size_t offset, void* TIret) {
-        
+    static void ifg_ti4(lua_State* L, void* fieldInfo, size_t offset, void* TIret) {
+        auto self = lapi_xlua_getcsobj_ptr(L, 1);
+        xlua::GLogFormatted("Running ifg_ti4");
+        int32_t ret;
+        xlua:GetFieldValue(self, (FieldInfo*)fieldInfo, offset, &ret);
+        lapi_lua_pushinteger(L,ret);
     }
 
     static void ifs_O(lua_State* L, void* fieldInfo, size_t offset, void* TIp) {
-        
+        auto self = lapi_xlua_getcsobj_ptr(L, 1);
+        xlua::GLogFormatted("Running ifg_ti4");
+        auto value = lapi_xlua_tointeger(L, 3);
+        xlua:SetFieldValue(self, (FieldInfo*)fieldInfo, offset, &value);
     }
     static FieldWrapFuncInfo g_fieldWrapFuncInfos[] = {
-        {"O", (FieldWrapFuncPtr)ifg_O, (FieldWrapFuncPtr)ifs_O},
+        {"ti4", (FieldWrapFuncPtr)ifg_ti4, (FieldWrapFuncPtr)ifs_O},
+        {nullptr, nullptr},
     };

@@ -36,11 +36,11 @@ namespace XLua.IL2CPP
         public static extern void InitialXLua_IL2CPP(IntPtr apiImpl);
 
 
-        [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr GetClsConstructorCallBackPtr();
+        // [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+        // public static extern IntPtr GetClsConstructorCallBackPtr();
 
-        [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int ClsConstructorCallBack(IntPtr L);
+        // [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+        // public static extern int ClsConstructorCallBack(IntPtr L);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static IntPtr CreateCSharpTypeInfo(string name, IntPtr type_id, IntPtr super_type_id, IntPtr klass, bool isValueType, bool isDelegate, string delegateSignature){
@@ -71,11 +71,11 @@ namespace XLua.IL2CPP
         public static extern void SetTypeInfo(IntPtr wrapData, int index, IntPtr typeId);
 
 
-         [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern Int32 RegisterLuaClass(IntPtr classInfo);
+        [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool RegisterLuaClass(IntPtr classInfo);
 
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern void UnRegisterLuaClass(IntPtr classInfo);
+        [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void UnRegisterLuaClass(string name);
 
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
 		public static extern IntPtr xlua_getImpl();
@@ -86,9 +86,15 @@ namespace XLua.IL2CPP
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void SetLuaCacheRef(int cacheRef);
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-		public static extern IntPtr GetClsGetCallBackPtr();
+		// public static extern IntPtr GetClsGetCallBackPtr();
+        // [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+		// public static extern IntPtr GetObjGetCallBackPtr();
+
+        // [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void HandleObjMetatable(IntPtr L, int tableIdx, IntPtr typeId);
+
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-		public static extern IntPtr GetObjGetCallBackPtr();
+		public static extern void HandleClsMetaTable(IntPtr L, int tabldIdx, IntPtr typeId);
         //[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         //public static extern void SetObjectPool(IntPtr jsEnv, IntPtr objectPoolAddMethodInfo, IntPtr objectPoolAdd, IntPtr objectPoolRemoveMethodInfo, IntPtr objectPoolRemove, IntPtr objectPoolInstance);
 
