@@ -166,12 +166,12 @@ namespace XLua
                 }
 #else
 #if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
-                if(type == typeof(IL2CPPTest)){
                     XLua.IL2CPP.TypeRegister.Register(L,type, privateAccessibleFlags.Contains(type));
+                // if(type == typeof(IL2CPPTest)){
 
-                }else{
-                    Utils.ReflectionWrap(L, type, privateAccessibleFlags.Contains(type));    
-                }
+                // }else{
+                //     Utils.ReflectionWrap(L, type, privateAccessibleFlags.Contains(type));    
+                // }
 #else
                 Utils.ReflectionWrap(L, type, privateAccessibleFlags.Contains(type));
 #endif

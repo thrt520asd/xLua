@@ -1,6 +1,7 @@
 #include "LuaClassRegister.h"
 #include <map>
 #include <utils/StringUtils.h>
+#include "vm/Reflection.h"
 namespace xlua
 {
     
@@ -25,6 +26,38 @@ namespace xlua
             return Iter->second;
         }
     }
+
+    LuaClassInfo* LuaClassRegister::GetOrLoadLuaClsInfoByTypeId(const Il2CppClass *klass, lua_State *L){
+        auto clsInfo = GetLuaClsInfoByTypeId(klass);
+        if(!clsInfo){
+            auto type = il2cpp::vm::Reflection::GetTypeObject(&klass->byval_arg);
+            if(type){
+                // call C# to register 
+                if (CSharpRegister(L, type)) {
+                    clsInfo = GetLuaClsInfoByTypeId(klass);
+                }
+            }
+        }
+        return clsInfo;
+
+    }
+
+    int LuaClassRegister::CSharpRegister(lua_State *L, Il2CppReflectionType* reflectionType) {
+        if (cSharpGetTypeMethodPtr) {
+             int typeId = cSharpGetTypeMethodPtr(nullptr, L, reflectionType, cSharpGetTypeMethod);
+             return typeId;
+        }
+        else {
+            xlua::GLogFormatted("[error] cSharpGetTypeMethodPtr hasn't register");
+        }
+        return 0;
+    }
+
+    void LuaClassRegister::SetGetTypeIdFuncPtr(CSharpGetTypeId methodPtr, void* method) {
+        cSharpGetTypeMethodPtr = methodPtr;
+        cSharpGetTypeMethod = method;
+    }
+
 
     int LuaClassRegister::RegisterClass(LuaClassInfo *luaClsInfo)
     {
@@ -56,6 +89,7 @@ namespace xlua
         //#TODO@benp 清理
     }
 
+
     LuaClassRegister* GetLuaClassRegister()
     {
         static LuaClassRegister S_LuaClassRegister;
@@ -77,5 +111,6 @@ namespace xlua
     {
         return xlua::GetLuaClassRegister()->GetLuaClsInfoByTypeId(typeId);
     }
+
 } 
 

@@ -1253,7 +1253,7 @@ LUA_API void xlua_pushcsobj_ptr(lua_State* L, intptr_t ptr, int meta_ref, int ke
 
 LUA_API void* xlua_getcsobj_ptr(lua_State* L,int index){
     CSharpObject* pointer = (CSharpObject*)lua_touserdata(L, index);
-    if(pointer->poolIdx > -1){
+    if(pointer && pointer->poolIdx > -1){
         return pointer->pointer;
     }
 	return NULL;

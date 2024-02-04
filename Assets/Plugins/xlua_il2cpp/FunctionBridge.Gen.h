@@ -88,7 +88,21 @@
         auto value = lapi_xlua_tointeger(L, 3);
         xlua:SetFieldValue(self, (FieldInfo*)fieldInfo, offset, &value);
     }
+    static void ifg_i4(lua_State* L, void* fieldInfo, size_t offset, void* TIret) {
+        xlua::GLogFormatted("Running ifg_ti4");
+        int32_t ret;
+        xlua:GetFieldValue(nullptr, (FieldInfo*)fieldInfo, offset, &ret);
+        lapi_lua_pushinteger(L, ret);
+    }
+
+    static void ifs_i4(lua_State* L, void* fieldInfo, size_t offset, void* TIp) {
+        
+        auto value = lapi_xlua_tointeger(L, 3);
+        xlua:SetFieldValue(nullptr, (FieldInfo*)fieldInfo, offset, &value);
+    }
     static FieldWrapFuncInfo g_fieldWrapFuncInfos[] = {
+        {"i4", (FieldWrapFuncPtr)ifg_i4, (FieldWrapFuncPtr)ifs_i4},
         {"ti4", (FieldWrapFuncPtr)ifg_ti4, (FieldWrapFuncPtr)ifs_O},
+        
         {nullptr, nullptr},
     };

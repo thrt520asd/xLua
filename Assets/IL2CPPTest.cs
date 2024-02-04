@@ -19,43 +19,79 @@ public class IL2CPPTestBase{
 
     public void TestIL2CPPGC(){
         Debug.Log("test");
-        // IntPtr ptr2 = GenIL2CPPTest(true);
-        // GC.Collect();
-        // Debug.Log(ptr2);
-        
-        // IntPtr ptr = GenIL2CPPTest(false);
-        // GC.Collect();
-        // Debug.Log(ptr);
     }
 
 }
 
-public class IL2CPPTest 
+public class IL2CPPTest :IL2CPPTestBase
 {
-    // public IL2CPPTest(string name) : base(name)
-    // {
-    // }
 
-    // public IL2CPPTest(string name) : base(name)
-    // {
-    // }
-    public int a  = 1;
+    public int fieldInt  = 1;
+    private int privateInt = 1;
+    public static int staticInt = 1;
+
+    private int propertyInt = 1; 
+
+    public int PropertyInt {
+        get { Debug.Log("propertyInt get "); return propertyInt;}
+        set { Debug.Log("propertyInt set "); propertyInt = value;}
+    }
+
+    private static int staticPropertyInt = 1; 
+
+    public static int StaticPropertyInt {
+        get { Debug.Log("staticPropertyInt get "); return staticPropertyInt;}
+        set { Debug.Log("staticPropertyInt set "); staticPropertyInt = value;}
+    }
+
+    private int[] arr = new int[1024];
+    public int this[int index]{
+        get{
+            return arr[index];
+        }
+        set{
+            arr[index] = value;
+        }
+    }
+
+    private int ctorInt = 1;
+    public IL2CPPTest(string name) : base(name)
+    {
+    }
+
+    public IL2CPPTest(int n) : base("name")
+    {
+        ctorInt = n;
+    }
+
+    
+
     public void Print(string str)
     {
-        Debug.Log("IL2CPPTest"+str);
+        Debug.Log("Print"+str);
     }
 
+    public void Print(int n){
+        Debug.Log("Print"+n);
+    }
 
-    public void Prin_Int(int i)
+    public static void StaticPrint(string str)
     {
-        Debug.Log("IL2CPPTest"+i);
+        Debug.Log("StaticPrint"+str);
     }
+
+    public static void StaticPrint(int n){
+        Debug.Log("StaticPrint"+n);
+    }
+    
 }
 
 
 public class TestEntry{
 
     public void Test(){
+        IL2CPPTest test = new IL2CPPTest(1);
+        
         // IL2CPPTest test = new IL2CPPTest("111");
     }
 

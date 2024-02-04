@@ -10,12 +10,15 @@ public class IL2CppTestMono : MonoBehaviour
     {
         // IL2CPPTestBase b = new IL2CPPTestBase();
         // b.TestIL2CPPGC();
+        // IL2CPPTest tset = new IL2CPPTest();
+        Debug.Log("IL2CPPTest " + IL2CPPTest.staticInt);
         LuaEnv l = new LuaEnv();
         var filePath = Application.streamingAssetsPath +"/14_IL2CPP.lua";
         if(File.Exists(filePath)){
             var content = File.ReadAllText(filePath);
             l.DoString(content);
         }
+        Dictionary<int, int> a = new Dictionary<int, int>();
         // l.DoString(@"
         //     local cls = CS.IL2CPPTest
         //     print(cls)
