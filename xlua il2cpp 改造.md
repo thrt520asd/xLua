@@ -122,6 +122,18 @@ clsTable cache in CS[FullName]
 
 
 ## 单元测试特
+进度
+class 特性测试{
+    method,  inheirt
+    staticMethod，
+    field get/set,
+    static field get/set,
+    property get/set
+    inheirt
+}
+
+
+
 ----------------结构类型----------------
 
 class
@@ -198,3 +210,4 @@ il2cpp Alloc{
     Allocate
 }
 可以用GCHandle来持有引用 不能用gchandler  gchandler是重新申请内存 还是要走C#池
+
