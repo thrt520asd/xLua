@@ -42,7 +42,7 @@ static FieldWrapFuncInfo g_fieldWrapFuncInfos[] = {
 };";
 
         public static string GenFunctionBridge(FileExporter.CppWrappersInfo cppWrappersInfo){
-            
+                           
             return content;      
         }
 
