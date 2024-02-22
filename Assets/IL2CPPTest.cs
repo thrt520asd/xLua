@@ -17,8 +17,8 @@ public class IL2CPPTestBase{
 
     
 
-    public void TestIL2CPPGC(){
-        Debug.Log("test");
+    public void InheritTest(){
+        Debug.Log("InheritTest");
     }
 
 }

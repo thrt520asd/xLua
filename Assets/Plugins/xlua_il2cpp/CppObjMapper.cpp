@@ -39,12 +39,12 @@ void CppObjMapper::SetCacheRef(int32_t cache_ref) {
     cacheRef = cache_ref;
 }
 
-void CppObjMapper::TryPushObject(lua_State *L, void * obj){
+bool CppObjMapper::TryPushObject(lua_State *L, void * obj){
     auto iter = objCache.find(obj);
     if(cacheRef == 0){
         xlua::GLogFormatted("[error]please set cacheRef first");
         //#TODO@benp throw error
-        return;
+        return false;
     }
     if(iter != objCache.end()){
         int32_t key = iter->second;
@@ -52,7 +52,7 @@ void CppObjMapper::TryPushObject(lua_State *L, void * obj){
         if (lapi_xlua_tryget_cachedud(L, key, cacheRef) == 1)
         {
             xlua::GLogFormatted("put cache obj %d success", key);
-            return;
+            return true;
         }
     }
     int32_t key = objCache.size();
@@ -64,7 +64,9 @@ void CppObjMapper::TryPushObject(lua_State *L, void * obj){
     if(metaId != -1){
         xlua::GLogFormatted("lapi_xlua_pushcsobj_ptr %p  metaId %d key %d cacheRef %d", obj, metaId, key, cacheRef);
         lapi_xlua_pushcsobj_ptr(L, obj, metaId, key, 1, cacheRef);
+        return true;
     }else{
+        return false;
         //#TODO@benp throw error
     }
 }

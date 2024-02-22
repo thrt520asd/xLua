@@ -1,5 +1,7 @@
 #ifndef LUA_API_ADAPT
 #define LUA_API_ADAPT
+#include "stdint.h"
+
 typedef void* lua_State;
 typedef int (*lua_CFunction) (lua_State *L);
 #define LUA_TNONE		(-1)
@@ -56,6 +58,8 @@ void lapi_xlua_pushcsobj_ptr(lua_State*L, void* ptr, int meta_ref, int key, int 
 
 //lua_isnumber
 int lapi_lua_isnumber(lua_State*L, int idx);
+
+#define lapi_lua_isboolean(L,n)	(lapi_lua_type(L, (n)) == LUA_TBOOLEAN)
 
 //lua_isstring
 int lapi_lua_isstring(lua_State*L, int idx);
@@ -150,6 +154,28 @@ void lapi_lua_pushinteger(lua_State* L, long long d);
 
 // lua_pushnil
 void lapi_lua_pushnil(lua_State* L);
+
+// lua_pushint64
+void lapi_lua_pushint64_t(lua_State* L, int64_t n);
+
+// lua_pushuint64
+void lapi_lua_pushuint64(lua_State* L, uint64_t n);
+
+// luaL_error
+int lapi_luaL_error(lua_State* L, const char *errMsg);
+
+// lua_remove
+void lapi_lua_remove(lua_State* L, int idx);
+
+// lua_insert
+void lapi_lua_insert(lua_State* L, int idx);
+
+// lua_replace
+void lapi_lua_replace(lua_State* L, int idx);
+
+// lua_copy
+void lapi_lua_copy(lua_State* L, int fromidx, int toidx);
+
 
 void lapi_init(lapi_func_ptr* func_array);
 

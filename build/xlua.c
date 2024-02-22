@@ -1297,7 +1297,13 @@ static lapi_func_ptr funcs[] = {
 (lapi_func_ptr) &lua_pushnumber,//30
 (lapi_func_ptr) &lua_pushinteger, 
 (lapi_func_ptr) &lua_pushnil,
+(lapi_func_ptr) &lua_pushint64,
 (lapi_func_ptr) &lua_pushuint64,
+(lapi_func_ptr) &luaL_error,//35
+(lapi_func_ptr) &lua_remove,
+(lapi_func_ptr) &lua_insert,
+(lapi_func_ptr) &lua_replace,
+(lapi_func_ptr) &lua_copy,
 
 };
 

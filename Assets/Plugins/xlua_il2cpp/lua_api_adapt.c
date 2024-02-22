@@ -305,6 +305,71 @@ static lapi_lua_pushnilType lapi_lua_pushnil_ptr;
 void lapi_lua_pushnil(lua_State* L) {
     return lapi_lua_pushnil_ptr(L);
 }
+
+// lua_pushint64
+typedef void (*lapi_lua_pushint64Type)(lua_State* L, int64_t n);
+
+static lapi_lua_pushint64Type lapi_lua_pushint64_ptr;
+
+void lapi_lua_pushint64(lua_State* L, int64_t n) {
+    lapi_lua_pushint64_ptr(L, n);
+}
+
+// lua_pushuint64
+typedef void (*lapi_lua_pushuint64Type)(lua_State* L, uint64_t n);
+
+static lapi_lua_pushuint64Type lapi_lua_pushuint64_ptr;
+
+void lapi_lua_pushuint64(lua_State* L, uint64_t n) {
+    lapi_lua_pushuint64_ptr(L, n);
+}
+
+// luaL_error
+typedef int (*lapi_luaL_errorType)(lua_State* L, const char *errMsg, ...);
+
+static lapi_luaL_errorType lapi_luaL_error_ptr;
+
+int lapi_luaL_error(lua_State* L, const char *errMsg) {
+    return lapi_luaL_error_ptr(L, errMsg);
+}
+
+// lua_remove
+typedef void (*lapi_lua_removeType)(lua_State* L, int idx);
+
+static lapi_lua_removeType lapi_lua_remove_ptr;
+
+void lapi_lua_remove(lua_State* L, int idx) {
+    return lapi_lua_remove_ptr(L, idx);
+}
+
+// lua_insert
+typedef void (*lapi_lua_insertType)(lua_State* L, int idx);
+
+static lapi_lua_insertType lapi_lua_insert_ptr;
+
+void lapi_lua_insert(lua_State* L, int idx) {
+    return lapi_lua_insert_ptr(L, idx);
+}
+
+// lua_replace
+typedef void (*lapi_lua_replaceType)(lua_State* L, int idx);
+
+static lapi_lua_replaceType lapi_lua_replace_ptr;
+
+void lapi_lua_replace(lua_State* L, int idx) {
+    return lapi_lua_replace_ptr(L, idx);
+}
+
+
+// lua_copy
+typedef void (*lapi_lua_copyType)(lua_State* L,  int fromidx, int toidx);
+
+static lapi_lua_copyType lapi_lua_copy_ptr;
+
+void lapi_lua_copy(lua_State* L,  int fromidx, int toidx) {
+    return lapi_lua_copy_ptr(L, fromidx, toidx);
+}
+
 void lapi_init(lapi_func_ptr* func_array){
     lapi_lua_touserdata_ptr = (lapi_lua_touserdataType)func_array[0];
     lapi_lua_type_ptr = (lapi_lua_typeType)func_array[1];
@@ -339,7 +404,13 @@ void lapi_init(lapi_func_ptr* func_array){
     lapi_lua_pushnumber_ptr = (lapi_lua_pushnumberType)func_array[30];
     lapi_lua_pushinteger_ptr = (lapi_lua_pushintegerType)func_array[31];
     lapi_lua_pushnil_ptr = (lapi_lua_pushnilType)func_array[32];
-    lapi_lua_pushnil_ptr = (lapi_lua_pushnilType)func_array[33];
+    lapi_lua_pushint64_ptr = (lapi_lua_pushint64Type)func_array[33];
+    lapi_lua_pushuint64_ptr = (lapi_lua_pushuint64Type)func_array[34];
+    lapi_luaL_error_ptr = (lapi_luaL_errorType)func_array[35];
+    lapi_lua_remove_ptr = (lapi_lua_removeType)func_array[36];
+    lapi_lua_insert_ptr = (lapi_lua_insertType)func_array[37];
+    lapi_lua_replace_ptr = (lapi_lua_replaceType)func_array[38];
+    lapi_lua_copy_ptr = (lapi_lua_copyType)func_array[39];
 }
 
 EXTERN_C_END

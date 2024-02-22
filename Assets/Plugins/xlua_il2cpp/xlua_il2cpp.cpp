@@ -104,8 +104,8 @@ namespace xlua
 
 
 
-    static void throw_exception2lua(lua_State * L, const char* msg){
-        //#TODO@benp
+    static int throw_exception2lua(lua_State * L, const char* msg){
+        return lapi_luaL_error(L, msg);
     }
 
     static void ValueTypeFree(void* ptr)
@@ -238,6 +238,7 @@ namespace xlua
         try 
         {
             //#TODO@benp 
+
              bool checkArgument = *wrapDatas && *(wrapDatas + 1);
              while(*wrapDatas)
              {
@@ -247,7 +248,7 @@ namespace xlua
                  }
                  ++wrapDatas;
              }
-            // throw_exception2lua(info, "invalid arguments"); 
+            return throw_exception2lua(L, "invalid arguments"); 
         } 
         catch (Il2CppExceptionWrapper& exception)
         {
@@ -346,74 +347,6 @@ namespace xlua
         return (defaultValue && Class::IsValuetype(Class::FromIl2CppType(Method::GetParam(method, index), false))) ? Object::Unbox(defaultValue) : defaultValue;
     }
 
-    static void* CtorCallback(lua_State *L);
-
-
-    // todo 抄一遍异常处理
-
-    static void* CtorCallback(lua_State *L)
-    {
-        //LuaClassInfoHeader* classInfo = reinterpret_cast<LuaClassInfoHeader*>(GetLuaClsInfo(L));
-        //// or will crash in macos.
-        //if (*(classInfo->CtorWrapDatas) == nullptr)
-        //{
-        //    throw_exception2lua(L,"no valid constructor is found");
-        //    return nullptr;
-        //}
-        //
-        //void* Ptr = ObjectAllocate(classInfo->Class);
-        //
-        ////g_unityExports.SetNativePtr(L, Ptr, classInfo->TypeId);
-
-        //auto isValueType = Class::IsValuetype(classInfo->Class);
-        //
-        //try
-        //{
-        //    WrapData** wrapDatas = classInfo->CtorWrapDatas;
-        //    bool checkArgument = *wrapDatas && *(wrapDatas + 1);
-        //    while(*wrapDatas)
-        //    {
-        //        if ((*wrapDatas)->Wrap((*wrapDatas)->Method, (*wrapDatas)->MethodPointer, L, checkArgument, *wrapDatas, 1))
-        //        {
-        //            return Ptr;
-        //        }
-        //        ++wrapDatas;
-        //    }
-        //    
-
-        //    // if (isValueType && lua_gettop(L) == 0)
-        //    //     return Ptr;
-        //    // else
-        //    //     throw_exception2lua(L, "invalid arguments");
-        //    
-        //} 
-        //catch (Il2CppExceptionWrapper& exception)
-        //{
-        //    Il2CppClass* klass = il2cpp::vm::Object::GetClass(exception.ex);
-        //    const MethodInfo* toStringMethod = il2cpp::vm::Class::GetMethodFromName(klass, "ToString", 0);
-
-        //    Il2CppException* outException = NULL;
-        //    Il2CppString* result = (Il2CppString*)il2cpp::vm::Runtime::Invoke(toStringMethod, exception.ex, NULL, &outException);
-        //    if (outException != NULL)
-        //    {
-        //        throw_exception2lua(L, "unknow c# execption!");
-        //    }
-        //    else
-        //    {
-        //        const Il2CppChar* utf16 = il2cpp::utils::StringUtils::GetChars(result);
-        //        std::string str = il2cpp::utils::StringUtils::Utf16ToUtf8(utf16);
-        //        throw_exception2lua(L, str.c_str());
-        //    }
-        //}
-        //
-        //if (isValueType)
-        //{
-        //    ValueTypeFree(Ptr);
-        //}
-        
-        return nullptr;
-    }
-
 
     bool IsValueType(Il2CppClass *klass)
     {
@@ -465,94 +398,92 @@ namespace xlua
     //     return nullptr;
     // }
 
-    // static pesapi_value TryTranslatePrimitiveWithClass(pesapi_env env, Il2CppObject* obj, Il2CppClass *klass = nullptr)
-    // {
-    //     if (obj)
-    //     {
-    //         const Il2CppType *type = Class::GetType(klass ? klass : obj->klass);
-    //         int t = type->type;
-    //         if (t == IL2CPP_TYPE_STRING)
-    //         {
-    //             const Il2CppChar* utf16 = il2cpp::utils::StringUtils::GetChars((Il2CppString*)obj);
-    //             std::string str = il2cpp::utils::StringUtils::Utf16ToUtf8(utf16);
-    //             return pesapi_create_string_utf8(env, str.c_str(), str.size());
-    //         }
-    //         void* ptr = Object::Unbox(obj);
-    //         switch (t)
-    //         {
-    //             case IL2CPP_TYPE_I1:
-    //             {
-    //                 return pesapi_create_int32(env, (int32_t)(*((int8_t*)ptr)));
-    //             }
-    //             case IL2CPP_TYPE_BOOLEAN:
-    //             {
-    //                 return pesapi_create_boolean(env, (bool)(*((uint8_t*)ptr)));
-    //             }
-    //             case IL2CPP_TYPE_U1:
-    //             {
-    //                 return pesapi_create_uint32(env, (uint32_t)(*((uint8_t*)ptr)));
-    //             }
-    //             case IL2CPP_TYPE_I2:
-    //             {
-    //                 return pesapi_create_int32(env, (int32_t)(*((int16_t*)ptr)));
-    //             }
-    //             case IL2CPP_TYPE_U2:
-    //             {
-    //                 return pesapi_create_uint32(env, (uint32_t)(*((uint16_t*)ptr)));
-    //             }
-    //             case IL2CPP_TYPE_CHAR:
-    //             {
-    //                 return pesapi_create_int32(env, (int32_t)(*((Il2CppChar*)ptr)));
-    //             }
-    //     #if IL2CPP_SIZEOF_VOID_P == 4
-    //             case IL2CPP_TYPE_I:
-    //     #endif
-    //             case IL2CPP_TYPE_I4:
-    //             {
-    //                 return pesapi_create_int32(env, (int32_t)(*((int32_t*)ptr)));
-    //             }
-    //     #if IL2CPP_SIZEOF_VOID_P == 4
-    //             case IL2CPP_TYPE_U:
-    //     #endif
-    //             case IL2CPP_TYPE_U4:
-    //             {
-    //                 return pesapi_create_uint32(env, (uint32_t)(*((uint32_t*)ptr)));
-    //             }
-    //     #if IL2CPP_SIZEOF_VOID_P == 8
-    //             case IL2CPP_TYPE_I:
-    //     #endif
-    //             case IL2CPP_TYPE_I8:
-    //             {
-    //                 return pesapi_create_int64(env, *((int64_t*)ptr));
-    //             }
-    //     #if IL2CPP_SIZEOF_VOID_P == 8
-    //             case IL2CPP_TYPE_U:
-    //     #endif
-    //             case IL2CPP_TYPE_U8:
-    //             {
-    //                 return pesapi_create_uint64(env, *((uint64_t*)ptr));
-    //             }
-    //             case IL2CPP_TYPE_R4:
-    //             {
-    //                 return pesapi_create_double(env, (double)(*((float*)ptr)));
-    //             }
-    //             case IL2CPP_TYPE_R8:
-    //             {
-    //                 return pesapi_create_double(env, *((double*)ptr));
-    //             }
+    static void TryTranslatePrimitiveWithClass(lua_State* L, Il2CppObject* obj, Il2CppClass *klass = nullptr)
+    {
+        if (obj)
+        {
+            const Il2CppType *type = Class::GetType(klass ? klass : obj->klass);
+            int t = type->type;
+            if (t == IL2CPP_TYPE_STRING)
+            {
+                const Il2CppChar* utf16 = il2cpp::utils::StringUtils::GetChars((Il2CppString*)obj);
+                std::string str = il2cpp::utils::StringUtils::Utf16ToUtf8(utf16);
+                lapi_lua_pushstring(L, str.c_str());
+            }
+            void* ptr = Object::Unbox(obj);
+            switch (t)
+            {
+                case IL2CPP_TYPE_I1:
+                {
+                    return lapi_lua_pushinteger(L, (int32_t)(*((int8_t*)ptr)));
+                }
+                case IL2CPP_TYPE_BOOLEAN:
+                {
+                    return lapi_lua_pushboolean(L, (int)(*((uint8_t*)ptr)));
+                }
+                case IL2CPP_TYPE_U1:
+                {
+                    return lapi_lua_pushinteger(L, (uint32_t)(*((uint8_t*)ptr)));
+                }
+                case IL2CPP_TYPE_I2:
+                {
+                    return lapi_lua_pushinteger(L, (int32_t)(*((int16_t*)ptr)));
+                }
+                case IL2CPP_TYPE_U2:
+                {
+                    return lapi_lua_pushinteger(L, (uint32_t)(*((uint16_t*)ptr)));
+                }
+                case IL2CPP_TYPE_CHAR:
+                {
+                    return lapi_lua_pushinteger(L, (int32_t)(*((Il2CppChar*)ptr)));
+                }
+        #if IL2CPP_SIZEOF_VOID_P == 4
+                case IL2CPP_TYPE_I:
+        #endif
+                case IL2CPP_TYPE_I4:
+                {
+                    return lapi_lua_pushinteger(L, (int32_t)(*((int32_t*)ptr)));
+                }
+        #if IL2CPP_SIZEOF_VOID_P == 4
+                case IL2CPP_TYPE_U:
+        #endif
+                case IL2CPP_TYPE_U4:
+                {
+                    return lapi_lua_pushinteger(L, (uint32_t)(*((uint32_t*)ptr)));
+                }
+        #if IL2CPP_SIZEOF_VOID_P == 8
+                case IL2CPP_TYPE_I:
+        #endif
+                case IL2CPP_TYPE_I8:
+                {
+                    return lapi_lua_pushinteger(L, *((int64_t*)ptr));
+                }
+        #if IL2CPP_SIZEOF_VOID_P == 8
+                case IL2CPP_TYPE_U:
+        #endif
+                case IL2CPP_TYPE_U8:
+                {
+                    return lapi_lua_pushinteger(L, *((uint64_t*)ptr));
+                }
+                case IL2CPP_TYPE_R4:
+                {
+                    return lapi_lua_pushnumber(L, (double)(*((float*)ptr)));
+                }
+                case IL2CPP_TYPE_R8:
+                {
+                    return lapi_lua_pushnumber(L, *((double*)ptr));
+                }
                 
-    //             default:
-    //                 return nullptr;
-    //         }
-    //     }
-        
-    //     return nullptr;
-    // }
+                default:
+                    return ;
+            }
+        }
+    }
 
-    // pesapi_value TryTranslatePrimitive(pesapi_env env, Il2CppObject* obj)
-    // {
-    //     return TryTranslatePrimitiveWithClass(env, obj);
-    // }
+    void TryTranslatePrimitive(lua_State* L, Il2CppObject* obj)
+    {
+        return TryTranslatePrimitiveWithClass(L, obj);
+    }
 
     // pesapi_value TranslateValueType(pesapi_env env, Il2CppClass* targetClass, Il2CppObject* obj)
     // {
@@ -1864,8 +1795,7 @@ namespace xlua
     }
 
     int MethodCallbackLuaWrap(lua_State* L) {
-        auto name = lua_typename_stackIdx(L, lapi_lua_upvalueindex(1));
-        xlua::GLogFormatted(name);
+        
         if (lapi_lua_isuserdata(L, lapi_lua_upvalueindex(1))) {
             const void* pointer = lapi_lua_topointer(L, lapi_lua_upvalueindex(1));
             void* p1 = const_cast<void*>(pointer);
@@ -1874,7 +1804,6 @@ namespace xlua
                 return xlua::MethodCallback(L, wrapDatas);
             }
         }
-
 
         return 0;
     }
@@ -1958,10 +1887,22 @@ namespace xlua
 
                 auto isValueType = Class::IsValuetype(clsInfo->Class);
                 if(!isValueType){
-                    GetCppObjMapper()->TryPushObject(L, ptr);
-                    
-                    if (clsInfo->CtorWrapDatas) {
-                        return xlua::MethodCallback(L, clsInfo->CtorWrapDatas, -1);
+                    //-1 clsTable -2 param -3 obj
+                    if (GetCppObjMapper()->TryPushObject(L, ptr)) {
+                        //-1 obj -2 param
+                        lapi_lua_replace(L, 1);
+                        int top = lapi_lua_gettop(L);
+                        xlua::GLogFormatted("top %d", top);
+                        if (clsInfo->CtorWrapDatas) {
+                            //lapi_lua_pushvalue(L, -1);
+                            //#TODO@benp 构造函数失败  清除引用
+                            return xlua::MethodCallback(L, clsInfo->CtorWrapDatas, -1);
+                        }
+                    }
+                    else {
+                        //todo throw error
+                        throw_exception2lua(L, "push valu to lua failed");
+                        return 0;
                     }
                 }else{
                     //#TODO@benp copy value
@@ -2126,7 +2067,7 @@ namespace xlua
         g_unityExports.DelegateAllocate = &DelegateAllocate; 
         g_unityExports.ValueTypeDeallocate = &ValueTypeFree;
         // g_unityExports.MethodCallback = &MethodCallback;
-        g_unityExports.ConstructorCallback = &CtorCallback;
+        //g_unityExports.ConstructorCallback = &CtorCallback;
         g_unityExports.FieldGet = &GetFieldValue;
         g_unityExports.FieldSet = &SetFieldValue;
         g_unityExports.GetValueTypeFieldPtr = &GetValueTypeFieldPtr;

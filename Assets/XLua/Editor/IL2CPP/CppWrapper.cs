@@ -1,10 +1,18 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
 namespace XLua.IL2CPP.Editor.Generator{
 
 
     public static class CppWrapper{
-        static string content = 
-@"// Auto Gen
 
+
+        public static string Gen(CppWrappersInfo cppWrappersInfo){
+            
+            
+            return $@"// Auto Gen
 #if !__SNC__
 #ifndef __has_feature 
 #define __has_feature(x) 0 
@@ -18,34 +26,29 @@ typedef char16_t Il2CppChar;
 #else
 typedef uint16_t Il2CppChar;
 #endif
-${valueTypeInfos.map(CODE_SNIPPETS.defineValueType).join('\n')}
+{String.Join("\n", cppWrappersInfo.ValueTypeInfos.Select(s=>s.ToString()))}
 
-${wrapperInfos.map(genFuncWrapper).join('\n')}
+{String.Join("\n", cppWrappersInfo.WrapperInfos.Select(s=>WrapUtil.GenFuncWrapper(s)))}
 
-static WrapFuncInfo g_wrapFuncInfos[] = {
-    %s
-    {nullptr, nullptr}
-};
+static WrapFuncInfo g_wrapFuncInfos[] = {{
+    {String.Join("\n\t", cppWrappersInfo.WrapperInfos.Select(s => $@"{{""{s.Signature}"", (WrapFuncPtr)w_{s.Signature}}},"))}
+    {{nullptr, nullptr}}
+}};
 
-${bridgeInfos.map(genBridge).join('\n')}
+{String.Join("", cppWrappersInfo.BridgeInfos.Select(s=>""))};
+static BridgeFuncInfo g_bridgeFuncInfos[] = {{
+    {String.Join("\n\t", cppWrappersInfo.BridgeInfos.Select(s=>"{"+ $@"""{s.Signature}"", (MethodPointer)b_{s.Signature}" + "},"))}
+    {{nullptr, nullptr}}
+}};
 
-static BridgeFuncInfo g_bridgeFuncInfos[] = {
-    %s
-    {nullptr, nullptr}
-};
+{String.Join("\n", cppWrappersInfo.FieldWrapperInfos.Select(s=>WrapUtil.genFieldWrapper(s)))};
 
-${fieldWrapperInfos.map(genFieldWrapper).join('\n')}
-
-static FieldWrapFuncInfo g_fieldWrapFuncInfos[] = {
-    %s
-    {nullptr, nullptr, nullptr}    
-};";
-
-        public static string GenFunctionBridge(FileExporter.CppWrappersInfo cppWrappersInfo){
-                           
-            return content;      
+static FieldWrapFuncInfo g_fieldWrapFuncInfos[] = {{
+    {String.Join("\n\t", cppWrappersInfo.FieldWrapperInfos.Select(s=>$@"{{""{s.Signature}"", (FieldWrapFuncPtr)ifg_{s.Signature}, (FieldWrapFuncPtr)ifs_{s.Signature}}},"))}
+    {{nullptr, nullptr, nullptr}}
+}};
+            ";
         }
-
     }
 
 }

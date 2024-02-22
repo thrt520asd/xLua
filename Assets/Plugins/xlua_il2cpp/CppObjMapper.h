@@ -11,7 +11,7 @@ public:
     ~CppObjMapper();
     void SetTypeId(void *kclass, int32_t metaId);
     int GetTypeId(void *kclass);
-    void TryPushObject(lua_State
+    bool TryPushObject(lua_State
      *L, void *obj);
     void SetCacheRef(int32_t cache_ref);
 };
