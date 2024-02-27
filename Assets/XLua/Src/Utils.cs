@@ -128,7 +128,6 @@ namespace XLua
 				{
 				}
 			}
-
 			return allTypes;
 		}
 #endif

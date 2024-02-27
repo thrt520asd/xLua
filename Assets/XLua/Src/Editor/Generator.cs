@@ -18,6 +18,7 @@ using System.Reflection;
 using System.Text;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using UnityEngine.Analytics;
 
 namespace CSObjectWrapEditor
 {
@@ -1287,7 +1288,9 @@ namespace CSObjectWrapEditor
 
         public static Dictionary<Type, OptimizeFlag> OptimizeCfg = null;
 
-        public static Dictionary<Type, HashSet<string>> DoNotGen = null;
+        public static Dictionary<Type, HashSet<string>> DoNotGen = new Dictionary<Type, HashSet<string>>{
+            {typeof(UnityEngine.Light), new HashSet<string>(){"SetLightDirty", "shadowRadius", "shadowAngle"}},
+        };
 
         public static List<string> assemblyList = null;
 
@@ -1349,11 +1352,19 @@ namespace CSObjectWrapEditor
 #endif
         }
 
+        static List<MemberInfo> BlackMemberInfoList = new List<MemberInfo>(){
+            typeof(UnityEngine.Light),
+        };
+
         static void MergeCfg(MemberInfo test, Type cfg_type, Func<object> get_cfg)
         {
+            if(BlackMemberInfoList.Contains(test)){
+                return;
+            }
             if (isDefined(test, typeof(LuaCallCSharpAttribute)))
             {
                 object ccla = GetCustomAttribute(test, typeof(LuaCallCSharpAttribute));
+                
                 AddToList(LuaCallCSharp, get_cfg, ccla);
 #if !XLUA_GENERAL
 #pragma warning disable 618
@@ -1487,6 +1498,9 @@ namespace CSObjectWrapEditor
 
             foreach (var t in check_types)
             {
+                if(t == typeof(UnityEngine.Light)){
+                    continue;
+                }
                 MergeCfg(t, null, () => t);
 
                 if (!t.IsAbstract || !t.IsSealed) continue;

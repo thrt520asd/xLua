@@ -133,7 +133,10 @@ namespace XLua
         {
             interfaceBridgeCreators.Add(type, creator);
         }
-
+        static List<Type> IL2CPPTestType = new List<Type>(){
+            typeof(IL2CPPTest),
+            typeof(IL2CPPTestBase),
+        };
         Dictionary<Type, bool> loaded_types = new Dictionary<Type, bool>();
         public bool TryDelayWrapLoader(RealStatePtr L, Type type)
         {
@@ -166,13 +169,13 @@ namespace XLua
                 }
 #else
 #if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
+                if(IL2CPPTestType.Contains(type)){
                     XLua.IL2CPP.TypeRegister.Register(L,type, privateAccessibleFlags.Contains(type));
-                // if(type == typeof(IL2CPPTest)){
-
-                // }else{
-                //     Utils.ReflectionWrap(L, type, privateAccessibleFlags.Contains(type));    
-                // }
+                }else{
+                    Utils.ReflectionWrap(L, type, privateAccessibleFlags.Contains(type));    
+                }
 #else
+                
                 Utils.ReflectionWrap(L, type, privateAccessibleFlags.Contains(type));
 #endif
 #endif
@@ -1116,9 +1119,9 @@ namespace XLua
                     typeIdMap.Add(type, type_id);
                 }
                 #if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
-                if(type == typeof(IL2CPPTest) ){
+                // if(type == typeof(IL2CPPTest) ){
                     XLua.IL2CPP.TypeRegister.SetTypeMetaId(type, type_id);
-                }
+                // }
                 #endif
             }
             return type_id;

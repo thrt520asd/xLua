@@ -14,19 +14,6 @@ namespace xlua{
         bool IsGetter;
         bool IsSetter;
         std::vector<WrapData*> OverloadDatas;
-        //// 默认构造函数
-        //CSharpMethodInfo() {
-        //    a = 0;
-        //}
-        //// 拷贝构造函数
-        //CSharpMethodInfo(const CSharpMethodInfo& other) {
-        //    a = 1;
-        //}
-
-        //// 移动构造函数
-        //CSharpMethodInfo(CSharpMethodInfo&& other) noexcept {
-        //    a = 2;
-        //}
     };
 
     struct FieldWrapData
@@ -45,16 +32,24 @@ namespace xlua{
         FieldWrapData *Data;
     };
 
+    struct PropertyWrapData 
+    {
+        std::string Name;
+        bool IsStatic;
+        WrapData* GetWrapData;
+        WrapData* SetWrapData;
+    };
+
     struct LuaClassInfo:LuaClassInfoHeader
     {
         std::string Name;
         std::vector<WrapData*> Ctors;
         std::vector<CSharpMethodInfo> Methods;
         std::vector<CSharpFieldInfo> Fields;
+        std::vector<PropertyWrapData> Properties;
         std::map<std::string, CSharpMethodInfo*> MethodsMap;
         std::map<std::string, CSharpFieldInfo*>  FieldMap;
-        int a;
-
+        std::map<std::string, PropertyWrapData*>  PropertyMap;
     };
 
     struct LuaClassDefinition

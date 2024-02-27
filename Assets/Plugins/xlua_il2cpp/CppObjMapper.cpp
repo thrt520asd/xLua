@@ -30,7 +30,6 @@ int32_t CppObjMapper::GetTypeId(void* kclass){
     if(iter != ilclass2luaMetaId.end()){
         return iter->second;
     }
-
     return -1;
 }
 
@@ -38,6 +37,25 @@ int32_t CppObjMapper::GetTypeId(void* kclass){
 void CppObjMapper::SetCacheRef(int32_t cache_ref) {
     cacheRef = cache_ref;
 }
+
+void CppObjMapper::InitObjPoolMethod(Il2CppReflectionMethod* addObjMethod, Il2CppMethodPointer* addObjMethodPointer, Il2CppReflectionMethod* removeObjMethod, Il2CppMethodPointer* removeObjMethodPointer)
+{
+    addObjFunc = (AddObjFunc)addObjMethodPointer;
+    addObjReflectionMethod = addObjMethod;
+    removeObjFunc = (RemoveObjFunc)removeObjMethodPointer;
+    removeObjReflectionMethod = removeObjMethod;
+}
+
+int32_t CppObjMapper::AddToPool(Il2CppObject* obj ) {
+    int32_t idx = addObjFunc(obj, addObjReflectionMethod);
+    return idx;
+}
+
+Il2CppObject* CppObjMapper::RemoveFromPool(int index) {
+    auto obj = removeObjFunc(index, removeObjReflectionMethod);
+    return obj;
+}
+
 
 bool CppObjMapper::TryPushObject(lua_State *L, void * obj){
     auto iter = objCache.find(obj);
@@ -59,9 +77,12 @@ bool CppObjMapper::TryPushObject(lua_State *L, void * obj){
     objCache[obj] = key;
     void* kclass = *reinterpret_cast<void**>(obj);
     int32_t metaId = GetTypeId(kclass);
-    xlua::GLogFormatted("obj metaId %d", metaId);
-    //todo objPool 持有引用
+    
     if(metaId != -1){
+        //todo 释放引用
+        //C#侧保持引用
+        auto poolIdx = AddToPool((Il2CppObject*)obj);
+
         xlua::GLogFormatted("lapi_xlua_pushcsobj_ptr %p  metaId %d key %d cacheRef %d", obj, metaId, key, cacheRef);
         lapi_xlua_pushcsobj_ptr(L, obj, metaId, key, 1, cacheRef);
         return true;
@@ -69,6 +90,10 @@ bool CppObjMapper::TryPushObject(lua_State *L, void * obj){
         return false;
         //#TODO@benp throw error
     }
+}
+
+void CppObjMapper::FreeObj(Il2CppObject* obj) {
+    //todo free obj
 }
 
 CppObjMapper* GetCppObjMapper(){

@@ -99,7 +99,7 @@ static bool w_vi4(void* method, MethodPointer methodPointer, lua_State *L, bool 
     }
     
     //signature i4
-    int32_t p0 = lapi_xlua_tointeger(L, 1);
+    int32_t p0 = lapi_xlua_tointeger(L, 2);
     
     typedef void (*FuncToCall)(int32_t p0, const void* method);
     ((FuncToCall)methodPointer)( p0, method);
@@ -126,6 +126,26 @@ static bool w_vs(void* method, MethodPointer methodPointer, lua_State *L, bool c
     
     typedef void (*FuncToCall)(void* p0, const void* method);
     ((FuncToCall)methodPointer)( p0, method);
+    
+
+    
+    return true;
+}
+
+
+//Void InheritTest()
+static bool w_vt(void* method, MethodPointer methodPointer, lua_State *L, bool checkLuaArgument, WrapData* wrapData, int index = 1) {
+    
+    if(checkLuaArgument){
+        auto length = lapi_lua_gettop(L);
+        if (length != 1) return false;
+        
+    }
+    auto self = lapi_xlua_getcsobj_ptr(L, 1);
+    
+    
+    typedef void (*FuncToCall)(void*, const void* method);
+    ((FuncToCall)methodPointer)(self,  method);
     
 
     
@@ -207,6 +227,7 @@ static WrapFuncInfo g_wrapFuncInfos[] = {
 	{"i4ti4", (WrapFuncPtr)w_i4ti4},
 	{"vi4", (WrapFuncPtr)w_vi4},
 	{"vs", (WrapFuncPtr)w_vs},
+	{"vt", (WrapFuncPtr)w_vt},
 	{"vti4", (WrapFuncPtr)w_vti4},
 	{"vti4i4", (WrapFuncPtr)w_vti4i4},
 	{"vts", (WrapFuncPtr)w_vts},

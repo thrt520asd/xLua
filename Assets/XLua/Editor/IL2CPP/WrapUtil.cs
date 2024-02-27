@@ -57,7 +57,7 @@ namespace XLua.IL2CPP.Editor.Generator
 
         public static string GenFuncWrapper(SignatureInfo signatureInfo)
         {
-            var selfCnt = (signatureInfo.ThisSignature == "t" || signatureInfo.ThisSignature == "T") ? 1 : 0;
+            var selfCnt = (signatureInfo.ThisSignature == "t" || signatureInfo.ThisSignature == "T") ? 1 : 1;
             return $@"
 //{signatureInfo.CsName}
 static bool w_{signatureInfo.Signature}(void* method, MethodPointer methodPointer, lua_State *L, bool checkLuaArgument, WrapData* wrapData, int index = 1) {{

@@ -1,11 +1,18 @@
 #include "unordered_map"
 
+typedef int32_t(*AddObjFunc)(Il2CppObject* obj, void* method);
+typedef Il2CppObject* (*RemoveObjFunc)(int32_t objIndex, void* method);
+
 class CppObjMapper
 {
 private:
     std::unordered_map<void*, int32_t> objCache;
     std::unordered_map<void*, int32_t> ilclass2luaMetaId;
     int32_t cacheRef;
+    AddObjFunc addObjFunc;
+    RemoveObjFunc removeObjFunc;
+    Il2CppReflectionMethod* addObjReflectionMethod;
+    Il2CppReflectionMethod* removeObjReflectionMethod;
 public:
     CppObjMapper(/* args */);
     ~CppObjMapper();
@@ -13,7 +20,14 @@ public:
     int GetTypeId(void *kclass);
     bool TryPushObject(lua_State
      *L, void *obj);
+    void FreeObj(Il2CppObject* obj);
     void SetCacheRef(int32_t cache_ref);
+    void InitObjPoolMethod(Il2CppReflectionMethod* addObjMethod, Il2CppMethodPointer* addObjMethodPointer, Il2CppReflectionMethod* removeObjMethod, Il2CppMethodPointer* removeObjMethodPointer);
+
+    int AddToPool(Il2CppObject* obj);
+
+    Il2CppObject* RemoveFromPool(int index);
+    
 };
 
 CppObjMapper* GetCppObjMapper();

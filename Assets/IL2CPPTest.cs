@@ -3,19 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using XLua;
 
 public class IL2CPPTestBase{
-    IL2CPPTest test = null;
+    private string m_name = "";
     public IL2CPPTestBase(string name){
-
+        Debug.Log("IL2CPPTestBase constructor "+ name);
+        m_name = name;
     }
 
     public IL2CPPTestBase(){
 
     }
-    public class AnyClass {string name;}
 
-    
 
     public void InheritTest(){
         Debug.Log("InheritTest");
@@ -23,9 +23,12 @@ public class IL2CPPTestBase{
 
 }
 
+[LuaCallCSharp]
 public class IL2CPPTest :IL2CPPTestBase
 {
-
+    protected virtual int InheirtInt {
+        get;set;
+    }
     public int fieldInt  = 1;
     private int privateInt = 1;
     public static int staticInt = 1;
@@ -36,7 +39,6 @@ public class IL2CPPTest :IL2CPPTestBase
         get { Debug.Log("propertyInt get "); return propertyInt;}
         set { Debug.Log("propertyInt set "); propertyInt = value;}
     }
-
     private static int staticPropertyInt = 1; 
 
     public static int StaticPropertyInt {
@@ -54,9 +56,17 @@ public class IL2CPPTest :IL2CPPTestBase
         }
     }
 
+    // public int Item{
+    //     get{
+    //         return 1;
+    //     }
+    // }
+
     private int ctorInt = 1;
     public IL2CPPTest(string name) : base(name)
     {
+        
+        
     }
 
     public IL2CPPTest(int n) : base("name")
@@ -84,15 +94,4 @@ public class IL2CPPTest :IL2CPPTestBase
         Debug.Log("StaticPrint"+n);
     }
     
-}
-
-
-public class TestEntry{
-
-    public void Test(){
-        IL2CPPTest test = new IL2CPPTest(1);
-        
-        // IL2CPPTest test = new IL2CPPTest("111");
-    }
-
 }

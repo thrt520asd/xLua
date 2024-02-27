@@ -4,7 +4,7 @@
 #include "il2cpp-class-internals.h"
 #include "il2cpp-object-internals.h"
 #include <string>
-typedef int (*CSharpGetTypeId)(void*, lua_State *L, Il2CppReflectionType * type, void* method);
+typedef int (*CSharpGetTypeId)( lua_State *L, Il2CppReflectionType * type, void* method);
 namespace xlua{
 
 

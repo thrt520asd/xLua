@@ -65,6 +65,9 @@ namespace XLua.IL2CPP
         public static extern IntPtr AddMethod(IntPtr classInfo, string signature, IntPtr WrapFunc, string name, bool isStatic, bool isExtensionethod, bool isGetter, bool isSetter, IntPtr method, IntPtr methodPointer, int typeInfoNum);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern IntPtr AddProperty(IntPtr classInfo, string signature, IntPtr WrapFunc, string name, bool isStatic, bool isGetter, IntPtr method, IntPtr methodPointer, int typeInfoNum);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern bool AddField(IntPtr classInfo, IntPtr FieldWrap, string name, bool isStatic, IntPtr fieldInfo, int offset, IntPtr fieldTypeInfo);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -93,7 +96,9 @@ namespace XLua.IL2CPP
 		public static extern void HandleClsMetaTable(IntPtr L, int tabldIdx, IntPtr typeId);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-		public static extern void SetGetTypeFuncPointer(MethodBase methodInfo);
+		public static extern void SetCSharpAPI(MethodBase[] methodInfo);
+
+        
         //[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         //public static extern void SetObjectPool(IntPtr jsEnv, IntPtr objectPoolAddMethodInfo, IntPtr objectPoolAdd, IntPtr objectPoolRemoveMethodInfo, IntPtr objectPoolRemove, IntPtr objectPoolInstance);
 

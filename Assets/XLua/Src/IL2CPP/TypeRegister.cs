@@ -16,9 +16,27 @@ namespace XLua.IL2CPP
     public class TypeRegister
     {
 
-        public static int StaticGetTypeId(RealStatePtr L, Type t){
+        static ObjectPool objectPool = new ObjectPool();
+
+        public static int AddObj(object obj){
+            return objectPool.Add(obj);
+        }
+
+        public static object RemoveObj(int idx){
+            return objectPool.Remove(idx);
+        }
+
+        /// <summary>
+        /// call from native
+        /// </summary>
+        /// <param name="L"></param>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        public static int StaticGetTypeId(RealStatePtr L, Type t)
+        {
             var translator = ObjectTranslatorPool.Instance.Find(L);
-            if(t != null){
+            if (t != null)
+            {
                 return translator.GetTypeId(L, t);
             }
             return -1;
@@ -38,12 +56,14 @@ namespace XLua.IL2CPP
             return NativeAPI.FindWrapFunc(signature);
         }
 
-        public static void SetTypeMetaId(Type type, int metaId){
+        public static void SetTypeMetaId(Type type, int metaId)
+        {
             var typeId = NativeAPI.GetTypeId(type);
             NativeAPI.SetClassMetaId(typeId, metaId);
         }
 
-        public static void SetLuaCacheRef(int cacheRef){
+        public static void SetLuaCacheRef(int cacheRef)
+        {
             NativeAPI.SetLuaCacheRef(cacheRef);
         }
 
@@ -52,82 +72,85 @@ namespace XLua.IL2CPP
         {
             UnityEngine.Debug.Log($"Register {L} {type} {includeNonPublic} {throwIfMemberFail}");
             var translator = ObjectTranslatorPool.Instance.Find(L);
-            if(!setcache){
+            if (!setcache)
+            {
                 setcache = true;
                 NativeAPI.SetLuaCacheRef(translator.cacheRef);
-                var method =  typeof(TypeRegister).GetMethod("StaticGetTypeId", BindingFlags.Static| BindingFlags.Public);
-                if(method != null){
-                    NativeAPI.SetGetTypeFuncPointer(method);
-                    Debug.Log("SetGetTypeFuncPointer");
-                }
+                var StaticGetTypeIdMethod = typeof(TypeRegister).GetMethod("StaticGetTypeId", BindingFlags.Static | BindingFlags.Public);
+                var AddObjMethod = typeof(TypeRegister).GetMethod("AddObj", BindingFlags.Static | BindingFlags.Public);
+                var RemoveObjMethod = typeof(TypeRegister).GetMethod("RemoveObj", BindingFlags.Static | BindingFlags.Public);
+                
+                NativeAPI.SetCSharpAPI(new MethodBase[]{StaticGetTypeIdMethod, AddObjMethod, RemoveObjMethod});
             }
             BindingFlags flag = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public;
             if (includeNonPublic)
             {
                 flag = flag | BindingFlags.NonPublic;
             }
-            
+
             var cppClsDef = Register2Cpp(type, type.GetConstructors(flag), type.GetMethods(flag), type.GetProperties(flag), type.GetFields(flag), throwIfMemberFail);
-            
-            if(cppClsDef != IntPtr.Zero){
+
+            if (cppClsDef != IntPtr.Zero)
+            {
                 //push to lua
                 Register2Lua(type, 0, cppClsDef, translator, L);
             }
         }
 
-        private static void Register2Lua(Type type, int type_id, IntPtr typeId, ObjectTranslator translator, RealStatePtr L){
+        private static void Register2Lua(Type type, int type_id, IntPtr typeId, ObjectTranslator translator, RealStatePtr L)
+        {
             //todo hotfix 处理
             if (type == null)
-			{
-				if (type_id == -1) throw new Exception("Fatal: must provide a type of type_id");
-				LuaAPI.xlua_rawgeti(L, LuaIndexes.LUA_REGISTRYINDEX, type_id);
-			}
-			else
-			{
-				LuaAPI.luaL_getmetatable(L, type.FullName);
-				if (LuaAPI.lua_isnil(L, -1))
-				{
-					LuaAPI.lua_pop(L, 1);
-					LuaAPI.luaL_newmetatable(L, type.FullName);
-				}
-			}
+            {
+                if (type_id == -1) throw new Exception("Fatal: must provide a type of type_id");
+                LuaAPI.xlua_rawgeti(L, LuaIndexes.LUA_REGISTRYINDEX, type_id);
+            }
+            else
+            {
+                LuaAPI.luaL_getmetatable(L, type.FullName);
+                if (LuaAPI.lua_isnil(L, -1))
+                {
+                    LuaAPI.lua_pop(L, 1);
+                    LuaAPI.luaL_newmetatable(L, type.FullName);
+                }
+            }
 
             //xlua 标记
-			LuaAPI.lua_pushlightuserdata(L, LuaAPI.xlua_tag());
-			LuaAPI.lua_pushnumber(L, 1);
-			LuaAPI.lua_rawset(L, -3); // 1 objMeta 2 tag 3 1
-            
+            LuaAPI.lua_pushlightuserdata(L, LuaAPI.xlua_tag());
+            LuaAPI.lua_pushnumber(L, 1);
+            LuaAPI.lua_rawset(L, -3); // 1 objMeta 2 tag 3 1
+
             if ((type == null || !translator.HasCustomOp(type)) && type != typeof(decimal))
-			{
+            {
                 //#TODO@benp GC处理
-				LuaAPI.xlua_pushasciistring(L, "__gc");
-				LuaAPI.lua_pushstdcallcfunction(L, translator.metaFunctions.GcMeta);
-				LuaAPI.lua_rawset(L, -3);
-			}
+                LuaAPI.xlua_pushasciistring(L, "__gc");
+                LuaAPI.lua_pushstdcallcfunction(L, translator.metaFunctions.GcMeta);
+                LuaAPI.lua_rawset(L, -3);
+            }
 
             LuaAPI.xlua_pushasciistring(L, "__tostring");
-			LuaAPI.lua_pushstdcallcfunction(L, translator.metaFunctions.ToStringMeta);
-			LuaAPI.lua_rawset(L, -3);
+            LuaAPI.lua_pushstdcallcfunction(L, translator.metaFunctions.ToStringMeta);
+            LuaAPI.lua_rawset(L, -3);
 
             NativeAPI.HandleObjMetatable(L, -3, typeId);
-            
+
             LuaAPI.lua_createtable(L, 0, 0); // 1 objMeta 2 clsTable
-            
+
             LuaAPI.xlua_pushasciistring(L, "UnderlyingSystemType");
             translator.PushAny(L, type);
             LuaAPI.lua_rawset(L, -3);
 
             int cls_table = LuaAPI.lua_gettop(L);
 
-			Utils.SetCSTable(L, type, cls_table);
+            Utils.SetCSTable(L, type, cls_table);
             LuaAPI.lua_createtable(L, 0, 3); // // 1 objMeta 2 clsTable 3 clsMeta
-			int meta_table = LuaAPI.lua_gettop(L);
-            
+            int meta_table = LuaAPI.lua_gettop(L);
+
             NativeAPI.HandleClsMetaTable(L, meta_table, typeId);
 
             LuaAPI.lua_pushvalue(L, meta_table); // 1 objMeta 2 clsTable 3 clsMeta 4 clsMeta
-			LuaAPI.lua_setmetatable(L, cls_table); //  setmetatable(clsTable, clsMeta[4])  1 objMeta 2 clsTable 3 clsMeta
-            LuaAPI.lua_pop(L,3);
+            LuaAPI.lua_setmetatable(L, cls_table); //  setmetatable(clsTable, clsMeta[4])  1 objMeta 2 clsTable 3 clsMeta
+            LuaAPI.lua_pop(L, 3);
         }
 
         /// <summary>
@@ -147,7 +170,7 @@ namespace XLua.IL2CPP
                 bool isDelegate = typeof(MulticastDelegate).IsAssignableFrom(type) && type != typeof(MulticastDelegate);
                 var superTypeId = (isDelegate || type == typeof(object) || type.BaseType == null) ? IntPtr.Zero : NativeAPI.GetTypeId(type.BaseType);
                 var typeId = NativeAPI.GetTypeId(type);
-                UnityEngine.Debug.Log("typeId"+typeId);
+                UnityEngine.Debug.Log("typeId" + typeId);
                 //create C++ struct 
                 typeInfo = NativeAPI.CreateCSharpTypeInfo(type.ToString(), typeId, superTypeId, typeId, type.IsValueType, isDelegate, isDelegate ? TypeUtils.GetMethodSignature(type.GetMethod("Invoke"), true) : "");
                 if (typeInfo == IntPtr.Zero)
@@ -156,7 +179,8 @@ namespace XLua.IL2CPP
                     throw new Exception(string.Format("create TypeInfo for {0} fail", type));
                 }
 
-                if(!isDelegate){
+                if (!isDelegate)
+                {
 
                     //constructor
                     if (ctors != null && ctors.Length > 0 && (!type.IsArray || type == typeof(System.Array)))
@@ -167,7 +191,7 @@ namespace XLua.IL2CPP
                             List<Type> usedTypes = TypeUtils.GetUsedTypes(ctor);
                             var signature = TypeUtils.GetMethodSignature(ctor);
 
-                            var wrapper = GetWrapperFunc(ctor,signature);
+                            var wrapper = GetWrapperFunc(ctor, signature);
                             if (wrapper == IntPtr.Zero)
                             {
                                 UnityEngine.Debug.LogWarning(string.Format("wrapper{1} is null for {0}", type, signature));
@@ -188,11 +212,11 @@ namespace XLua.IL2CPP
                                 continue;
                             }
                             var wrapData = NativeAPI.AddConstructor(
-                                typeInfo, 
+                                typeInfo,
                                 signature,
-                                wrapper, 
-                                methodInfoPointer, 
-                                methodPointer, 
+                                wrapper,
+                                methodInfoPointer,
+                                methodPointer,
                                 usedTypes.Count
                             );
                             if (wrapData == IntPtr.Zero)
@@ -222,15 +246,15 @@ namespace XLua.IL2CPP
                         if (method == null) return;
                         List<Type> usedTypes = TypeUtils.GetUsedTypes(method, isExtensionMethod);
                         var signature = TypeUtils.GetMethodSignature(method, false, isExtensionMethod);
-                        UnityEngine.Debug.Log(string.Format("add method {0}, usedTypes count: {1}", method, usedTypes.Count));
+                        UnityEngine.Debug.Log(string.Format("add method {0}, usedTypeCount:{1} name: {2} isGetter{3} isSetter{4}", method, usedTypes.Count, name, isGetter, isSetter));
 
-                        var wrapper = GetWrapperFunc( method, signature);
+                        var wrapper = GetWrapperFunc(method, signature);
                         if (wrapper == IntPtr.Zero)
                         {
                             UnityEngine.Debug.LogWarning(string.Format("wrapper is null for {0}:{1}, signature:{2}", type, method, TypeUtils.GetMethodSignature(method, false, isExtensionMethod)));
                             return;
                         }
-                         
+
                         var methodInfoPointer = NativeAPI.GetMethodInfoPointer(method);
                         var methodPointer = NativeAPI.GetMethodPointer(method);
                         if (methodInfoPointer == IntPtr.Zero)
@@ -244,16 +268,16 @@ namespace XLua.IL2CPP
                             return;
                         }
                         var wrapData = NativeAPI.AddMethod(
-                            typeInfo, 
+                            typeInfo,
                             signature,
                             wrapper,
-                            name, 
-                            !isExtensionMethod && method.IsStatic, 
-                            isExtensionMethod, 
-                            isGetter, 
-                            isSetter, 
-                            methodInfoPointer, 
-                            methodPointer, 
+                            name,
+                            !isExtensionMethod && method.IsStatic,
+                            isExtensionMethod,
+                            isGetter,
+                            isSetter,
+                            methodInfoPointer,
+                            methodPointer,
                             usedTypes.Count
                         );
                         if (wrapData == IntPtr.Zero)
@@ -264,9 +288,9 @@ namespace XLua.IL2CPP
                             }
                             else
                             {
-    #if WARNING_IF_MEMBERFAIL
+#if WARNING_IF_MEMBERFAIL
                                 UnityEngine.Debug.LogWarning(string.Format("add method for {0}:{1} fail, signature:{2}", type, method, TypeUtils.GetMethodSignature(method, false, isExtensionMethod)));
-    #endif
+#endif
                                 return;
                             }
                         }
@@ -283,19 +307,81 @@ namespace XLua.IL2CPP
                         foreach (var method in methods)
                         {
                             if (method.IsAbstract) continue;
+                            if (method.IsSpecialName) continue;
                             AddMethodToType(method.Name, method as MethodInfo, false, false, false);
                         }
                     }
-					
+
                     //extension method
-					var extensionMethods = Utils.GetExtensionMethodsOf(type);
-					if (extensionMethods != null)
+                    var extensionMethods = Utils.GetExtensionMethodsOf(type);
+                    if (extensionMethods != null)
                     {
                         foreach (var method in extensionMethods)
                         {
                             AddMethodToType(method.Name, method as MethodInfo, false, false, true);
                         }
                     }
+
+                    // add method delegate
+                    Action<string, MethodInfo, bool> AddPropertyToType = (string name, MethodInfo method, bool isGetter) =>
+                    {
+                        method = TypeUtils.HandleMaybeGenericMethod(method);
+                        if (method == null) return;
+                        List<Type> usedTypes = TypeUtils.GetUsedTypes(method, false);
+                        var signature = TypeUtils.GetMethodSignature(method, false, false);
+                        UnityEngine.Debug.Log(string.Format("add property {0}, usedTypeCount:{1} name: {2} isGetter{3} ", name, usedTypes.Count, name, isGetter));
+
+                        var wrapper = GetWrapperFunc(method, signature);
+                        if (wrapper == IntPtr.Zero)
+                        {
+                            UnityEngine.Debug.LogWarning(string.Format("wrapper is null for {0}:{1}, signature:{2}", type, method, TypeUtils.GetMethodSignature(method, false, false)));
+                            return;
+                        }
+
+                        var methodInfoPointer = NativeAPI.GetMethodInfoPointer(method);
+                        var methodPointer = NativeAPI.GetMethodPointer(method);
+                        if (methodInfoPointer == IntPtr.Zero)
+                        {
+                            UnityEngine.Debug.LogWarning(string.Format("cannot get method info for {0}:{1}, signature:{2}", type, method, TypeUtils.GetMethodSignature(method, false, false)));
+                            return;
+                        }
+                        if (methodPointer == IntPtr.Zero)
+                        {
+                            UnityEngine.Debug.LogWarning(string.Format("cannot get method pointer for {0}:{1}, signature:{2}", type, method, TypeUtils.GetMethodSignature(method, false, false)));
+                            return;
+                        }
+                        var wrapData = NativeAPI.AddProperty(
+                            typeInfo,
+                            signature,
+                            wrapper,
+                            name,
+                            method.IsStatic,
+                            isGetter,
+                            methodInfoPointer,
+                            methodPointer,
+                            usedTypes.Count
+                        );
+                        if (wrapData == IntPtr.Zero)
+                        {
+                            if (throwIfMemberFail)
+                            {
+                                throw new Exception(string.Format("AddProperty for {0}:{1} fail, signature:{2}", type, method, TypeUtils.GetMethodSignature(method, false, false)));
+                            }
+                            else
+                            {
+#if WARNING_IF_MEMBERFAIL
+                                UnityEngine.Debug.LogWarning(string.Format("AddProperty for {0}:{1} fail, signature:{2}", type, method, TypeUtils.GetMethodSignature(method, false, false)));
+#endif
+                                return;
+                            }
+                        }
+                        for (int i = 0; i < usedTypes.Count; ++i)
+                        {
+                            var usedTypeId = NativeAPI.GetTypeId(usedTypes[i]);
+                            UnityEngine.Debug.Log(string.Format("set used type for method {0}: {1}={2}, typeId:{3}", method, i, usedTypes[i], usedTypeId));
+                            NativeAPI.SetTypeInfo(wrapData, i, usedTypeId);
+                        }
+                    };
 
                     if (properties != null)
                     {
@@ -304,12 +390,12 @@ namespace XLua.IL2CPP
                             var getter = prop.GetGetMethod();
                             if (getter != null && !getter.IsGenericMethodDefinition && !getter.IsAbstract)
                             {
-                                AddMethodToType(prop.Name, getter, true, false, false);
+                                AddPropertyToType(prop.Name, getter, true);
                             }
                             var setter = prop.GetSetMethod();
                             if (setter != null && !setter.IsGenericMethodDefinition && !setter.IsAbstract)
                             {
-                                AddMethodToType(prop.Name, setter, false, true, false);
+                                AddPropertyToType(prop.Name, setter, false);
                             }
                         }
                     }
@@ -320,8 +406,8 @@ namespace XLua.IL2CPP
                         {
                             string signature = (field.IsStatic ? "" : "t") + TypeUtils.GetTypeSignature(field.FieldType);
                             var name = field.Name;
-                            
-                            var wrapper = GetFieldWrapper( name, field.IsStatic, signature);
+
+                            var wrapper = GetFieldWrapper(name, field.IsStatic, signature);
                             if (wrapper == IntPtr.Zero)
                             {
                                 UnityEngine.Debug.LogWarning(string.Format("wrapper is null for {0}:{1}, signature:{2}", type, name, signature));
@@ -329,12 +415,12 @@ namespace XLua.IL2CPP
                             }
 
                             if (!NativeAPI.AddField(
-                                typeInfo, 
-                                wrapper, 
+                                typeInfo,
+                                wrapper,
                                 name,
-                                field.IsStatic, 
-                                NativeAPI.GetFieldInfoPointer(field), 
-                                NativeAPI.GetFieldOffset(field, type.IsValueType), 
+                                field.IsStatic,
+                                NativeAPI.GetFieldInfoPointer(field),
+                                NativeAPI.GetFieldOffset(field, type.IsValueType),
                                 NativeAPI.GetTypeId(field.FieldType))
                             )
                             {
@@ -351,13 +437,17 @@ namespace XLua.IL2CPP
                         }
                     }
                 }
-                if(NativeAPI.RegisterLuaClass(typeInfo)){
+                if (NativeAPI.RegisterLuaClass(typeInfo))
+                {
                     return typeId;
-                }else{
+                }
+                else
+                {
                     throw new Exception(string.Format("Register for {0} fail", type));
                 }
             }
-            catch (Exception e){
+            catch (Exception e)
+            {
                 UnityEngine.Debug.Log("Register 2 CPP Excepitoni " + e.ToString());
                 NativeAPI.ReleaseCSharpTypeInfo(typeInfo);
                 throw e;

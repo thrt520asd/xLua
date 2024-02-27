@@ -44,7 +44,7 @@ namespace xlua
 
     int LuaClassRegister::CSharpRegister(lua_State *L, Il2CppReflectionType* reflectionType) {
         if (cSharpGetTypeMethodPtr) {
-             int typeId = cSharpGetTypeMethodPtr(nullptr, L, reflectionType, cSharpGetTypeMethod);
+             int typeId = cSharpGetTypeMethodPtr(L, reflectionType, cSharpGetTypeMethod);
              return typeId;
         }
         else {
@@ -66,14 +66,19 @@ namespace xlua
         if(iter == clsId2ClsDef.end()){
             
             for(auto& method: luaClsInfo->Methods){
-
                 method.OverloadDatas.push_back(nullptr);
-                luaClsInfo->MethodsMap[method.Name] = &method;
+                
+               luaClsInfo->MethodsMap[method.Name] = &method;
             }
 
             for(auto& field: luaClsInfo->Fields){
                 luaClsInfo->FieldMap[field.Name] = &field;
             }
+
+            for (auto& propertyInfo : luaClsInfo->Properties) {
+                luaClsInfo->PropertyMap[propertyInfo.Name] = &propertyInfo;
+            }
+
             luaClsInfo->Ctors.push_back(nullptr);
             luaClsInfo->CtorWrapDatas = luaClsInfo->Ctors.data();
             clsId2ClsDef[luaClsInfo->TypeId] = luaClsInfo;

@@ -233,6 +233,39 @@ namespace xlua
         g_typeofTypedValue = il2cpp_codegen_class_from_type(type->type);
     }
 
+    static int PropertyCallback(lua_State* L, WrapData* wrapDatas, int index = 1) {
+        try
+        {
+            //#TODO@benp 
+            bool checkArgument = false;
+            if (wrapDatas->Wrap(wrapDatas->Method, wrapDatas->MethodPointer, L, checkArgument, wrapDatas, index)) {
+                return 1;
+            }
+            else {
+
+                return throw_exception2lua(L, "invalid arguments");
+            }
+        }
+        catch (Il2CppExceptionWrapper& exception)
+        {
+            Il2CppClass* klass = il2cpp::vm::Object::GetClass(exception.ex);
+            const MethodInfo* toStringMethod = il2cpp::vm::Class::GetMethodFromName(klass, "ToString", 0);
+
+            Il2CppException* outException = NULL;
+            Il2CppString* result = (Il2CppString*)il2cpp::vm::Runtime::Invoke(toStringMethod, exception.ex, NULL, &outException);
+            if (outException != NULL)
+            {
+                throw_exception2lua(L, "unknow c# execption!");
+            }
+            else
+            {
+                const Il2CppChar* utf16 = il2cpp::utils::StringUtils::GetChars(result);
+                std::string str = il2cpp::utils::StringUtils::Utf16ToUtf8(utf16);
+                throw_exception2lua(L, str.c_str());
+            }
+        }
+        return 0;
+    }
 
     static int MethodCallback(lua_State *L, WrapData** wrapDatas, int index = 1) {
         try 
@@ -1668,6 +1701,53 @@ namespace xlua
         return data;
     }
 
+    WrapData* AddProperty(LuaClassInfo* classInfo, Il2CppString* signatureIlstring, WrapFuncPtr WrapFunc, Il2CppString* nameIlstring, bool isStatic, bool isGetter, void* method, MethodPointer methodPointer, int typeInfoNum)
+    {
+          if (!WrapFunc) return nullptr;
+        int allocSize = sizeof(WrapData) + sizeof(void*) * typeInfoNum;
+        WrapData* data = (WrapData*)malloc(allocSize);
+        memset(data, 0, allocSize);
+        data->Method = static_cast<MethodType*>(method);
+        data->MethodPointer = methodPointer;
+        data->Wrap = WrapFunc;
+        data->IsStatic = isStatic;
+        data->IsExtensionMethod = false;
+        std::string str = ilstring2stdstring(signatureIlstring);
+        const char* signature = str.c_str();
+        SetParamArrayFlagAndOptionalNum(data, signature);
+
+        std::string nameStr = ilstring2stdstring(nameIlstring);
+        const char* name = nameStr.c_str();
+
+        for (int i = 0; i < classInfo->Properties.size(); ++i)
+        {
+            auto propertyInfo = &classInfo->Properties[i];
+            if (propertyInfo->Name == name) {
+                if (isGetter) {
+                    propertyInfo->GetWrapData = data;
+                }
+                else {
+                    propertyInfo->SetWrapData = data;
+                }
+                return data ;
+            }
+        }
+
+        PropertyWrapData propertyInfo;
+        propertyInfo.Name = name;
+        propertyInfo.IsStatic = isStatic;
+        propertyInfo.GetWrapData = nullptr;
+        propertyInfo.SetWrapData = nullptr;
+        if (isGetter) {
+            propertyInfo.GetWrapData = data;
+        }
+        else {
+            propertyInfo.SetWrapData = data;
+        }
+        classInfo->Properties.push_back(std::move(propertyInfo));
+
+        return data;
+    }
     
     bool AddField(LuaClassInfo* classInfo, FieldWrapFuncInfo* wrapFuncInfo, Il2CppString* nameIlstring, bool is_static, void* fieldInfo, int offset, void* fieldTypeInfo)
     {
@@ -1754,8 +1834,10 @@ namespace xlua
         if (lapi_lua_isuserdata(L, 1)) {
             void* ptr = lapi_xlua_getcsobj_ptr(L, 1);
             if (ptr) {
+                
                 void* kclass = *reinterpret_cast<void**>(ptr);
                 auto clsInfo = xlua::GetLuaClsInfoByTypeId(kclass);
+                xlua:GLogFormatted("GetLuaClsInfo ptr %p kclass %p clsInfo %p", ptr, kclass, clsInfo);
                 return clsInfo;
             }
         }
@@ -1766,6 +1848,7 @@ namespace xlua
         if (lapi_lua_isuserdata(L, lapi_lua_upvalueindex(1))) {
             const void* ptr = lapi_lua_topointer(L, lapi_lua_upvalueindex(1));
             xlua::LuaClassInfo* clsInfo = xlua::GetLuaClsInfoByTypeId(ptr);
+            xlua:GLogFormatted("GetLuaClsInfoByClsMeta ptr %p clsInfo %p", ptr, clsInfo);
             return clsInfo;
         }
         return nullptr;
@@ -1778,6 +1861,16 @@ namespace xlua
         if(clsInfo){
              if (lapi_lua_isstring(L, 2)) {
                 const char* key = lapi_lua_tolstring(L, 2); 
+
+                auto propertyIter = clsInfo->PropertyMap.find(key);//#TODO@benp 这里会有char* => string的隐式转换
+                if (propertyIter != clsInfo->PropertyMap.end()) {
+                    auto propertyInfo = propertyIter->second;
+                    if (propertyInfo->IsStatic && propertyInfo->SetWrapData) {
+                        lapi_lua_replace(L, 2);
+                        return xlua::PropertyCallback(L, propertyInfo->SetWrapData, 1);
+                    }
+                }
+
                 auto fieldIter = clsInfo->FieldMap.find(key);//#TODO@benp 这里会有char* => string的隐式转换
                 if (fieldIter != clsInfo->FieldMap.end())
                 {
@@ -1854,6 +1947,14 @@ namespace xlua
                     return 0;
                 }
 
+                auto propertyIter = clsInfo->PropertyMap.find(key);//#TODO@benp 这里会有char* => string的隐式转换
+                if (propertyIter != clsInfo->PropertyMap.end()) {
+                    auto propertyInfo = propertyIter->second;
+                    if (propertyInfo->IsStatic && propertyInfo->GetWrapData) {
+                        return xlua::PropertyCallback(L, propertyInfo->GetWrapData, 1);
+                    }
+                }
+
                 auto fieldIter = clsInfo->FieldMap.find(key);//#TODO@benp 这里会有char* => string的隐式转换
                 if(fieldIter != clsInfo->FieldMap.end())
                 {
@@ -1891,12 +1992,17 @@ namespace xlua
                     if (GetCppObjMapper()->TryPushObject(L, ptr)) {
                         //-1 obj -2 param
                         lapi_lua_replace(L, 1);
-                        int top = lapi_lua_gettop(L);
-                        xlua::GLogFormatted("top %d", top);
+                        
                         if (clsInfo->CtorWrapDatas) {
                             //lapi_lua_pushvalue(L, -1);
                             //#TODO@benp 构造函数失败  清除引用
-                            return xlua::MethodCallback(L, clsInfo->CtorWrapDatas, -1);
+                            if (xlua::MethodCallback(L, clsInfo->CtorWrapDatas, -1)) {
+                                lapi_lua_settop(L, 1);
+                                return 1;
+                            }
+                            else {
+                                return 0;
+                            }
                         }
                     }
                     else {
@@ -1950,11 +2056,21 @@ namespace xlua
     int ObjSetCallBack(lua_State *L){
         xlua::GLogFormatted("ObjSetCallBack");
         auto clsInfo = xlua::GetLuaClsInfo(L);
-        if (clsInfo) {
+        while (clsInfo) {
             //find method or field
             if (lapi_lua_isstring(L, 2)) {
 
                 const char* key = lapi_lua_tolstring(L, 2); //#TODO@benp 这里会有char* => string的隐式转换
+
+                auto propertyInfoIter = clsInfo->PropertyMap.find(key);
+                if (propertyInfoIter != clsInfo->PropertyMap.end()) {
+                    auto propertyInfo = propertyInfoIter->second;
+                    if (!propertyInfo->IsStatic && propertyInfo->SetWrapData) {
+                        lapi_lua_replace(L, 2);
+                        xlua::PropertyCallback(L, propertyInfo->SetWrapData, 1);
+                        return 0;
+                    }
+                }
 
                 auto fieldIter = clsInfo->FieldMap.find(key);//#TODO@benp 这里会有char* => string的隐式转换
                 if (fieldIter != clsInfo->FieldMap.end())
@@ -1967,15 +2083,30 @@ namespace xlua
                     }
                     return 0;
                 }
-            }
-            else if (lapi_lua_isnumber(L, 2)) {
-                //#TODO@benp 数组处理
+
             }
 
+            if (lapi_lua_isnumber(L, 2)) {
+                auto propertyIter = clsInfo->PropertyMap.find("Item");//#TODO@benp 这里会有char* => string的隐式转换
+                if (propertyIter != clsInfo->PropertyMap.end())
+                {
+                    // find method 
+                    auto propertyInfo = propertyIter->second;
+                    if (!propertyInfo->IsStatic && propertyInfo->SetWrapData) {
+                        PropertyCallback(L, propertyInfo->SetWrapData);
+                        return 0;
+                    }
+                }
+            }
+
+            if(clsInfo->SuperTypeId){
+                clsInfo = GetLuaClassRegister()->GetOrLoadLuaClsInfoByTypeId((Il2CppClass*)clsInfo->SuperTypeId, L);
+            }else{
+                clsInfo = nullptr;
+            }
         }
-        else {
-            //todo throw error
-        }
+
+        throw_exception2lua(L, "obj invalid for ObjSetCallBack");
         return 0;
     }
 
@@ -1986,10 +2117,10 @@ namespace xlua
     /// 3 luaDef=> method or field
     /// 4 push result
     int ObjGetCallBack(lua_State *L){
-        xlua::GLogFormatted("ObjGetCallBack");
         //#TODO@benp 校验 可以通过xluatag or getDef的形式
         //method
         //todo 考虑不使用closure 优势1 减少闭包的内存 2 减少对Lua堆栈的操作 后续测试确定
+        xlua::GLogFormatted("ObjGetCallBack");
         if (!lapi_lua_isnil(L, lapi_lua_upvalueindex(2))) {
             lapi_lua_pushvalue(L, 2);
             lapi_lua_gettable(L, lapi_lua_upvalueindex(2));
@@ -2012,6 +2143,7 @@ namespace xlua
                 {
                     // find method 
                     auto method = iter->second;
+                    
                     if(!method->IsSetter && !method->IsGetter && !method->IsStatic){
                         xlua::WrapData** p = method->OverloadDatas.data();
                         lapi_lua_pushlightuserdata(L, p);
@@ -2026,9 +2158,22 @@ namespace xlua
                         lapi_lua_pop(L,1);
                         return 1;
                     }
+
                     //找不到就退出不允许重复的key
                     return 0;
                 }
+
+                auto propertyInfoIter = clsInfo->PropertyMap.find(key);//#TODO@benp 这里会有char* => string的隐式转换
+
+                if (propertyInfoIter != clsInfo->PropertyMap.end() )
+                {
+                    // find method  
+                    auto propertyInfo = propertyInfoIter->second;
+                    if (!propertyInfo->IsStatic && propertyInfo->GetWrapData) {
+                        return xlua::PropertyCallback(L, propertyInfo->GetWrapData, 1);
+                    }
+                }
+
 
                 auto fieldIter = clsInfo->FieldMap.find(key);//#TODO@benp 这里会有char* => string的隐式转换
                 if(fieldIter != clsInfo->FieldMap.end())
@@ -2043,8 +2188,18 @@ namespace xlua
                     return 0;
                 }
             }
-            else if(lapi_lua_isnumber(L, 2)) {
-                //#TODO@benp 数组处理
+
+            if (lapi_lua_isnumber(L, 2)) {
+                auto propertyIter = clsInfo->PropertyMap.find("Item");//#TODO@benp 这里会有char* => string的隐式转换
+                if (propertyIter != clsInfo->PropertyMap.end())
+                {
+                    // find method 
+                    auto propertyInfo = propertyIter->second;
+                    if (!propertyInfo->IsStatic && propertyInfo->GetWrapData) {
+                        PropertyCallback(L, propertyInfo->GetWrapData);
+                        return 1;
+                    }
+                }
             }
             if(clsInfo->SuperTypeId){
                 clsInfo = GetLuaClassRegister()->GetOrLoadLuaClsInfoByTypeId((Il2CppClass*)clsInfo->SuperTypeId, L);
@@ -2052,14 +2207,25 @@ namespace xlua
                 clsInfo = nullptr;
             }
         }
-        
         return 0;
     }
 
-    void SetGetTypeFuncPointer(Il2CppReflectionMethod* method){
-        auto methodPointer = xlua::GetMethodPointer(method);
-        auto methodInfo = xlua::GetMethodInfoPointer(method);
+    void SetCSharpAPI(Il2CppArray* methodArray){
+        
+        auto getTypeIdMethod = il2cpp_array_addr(methodArray,  Il2CppReflectionMethod*, 0);
+        auto methodPointer = xlua::GetMethodPointer(*getTypeIdMethod);
+        auto methodInfo = xlua::GetMethodInfoPointer(*getTypeIdMethod);
         xlua::GetLuaClassRegister()->SetGetTypeIdFuncPtr((CSharpGetTypeId)methodPointer, (void*)methodInfo);
+        
+        auto addObjMethod = il2cpp_array_addr(methodArray, Il2CppReflectionMethod*, 1);
+        auto addObjMethodPointer = xlua::GetMethodPointer(*addObjMethod);
+        auto addObjMethodInfo = xlua::GetMethodInfoPointer(*addObjMethod);
+
+        auto removeObjMethod = il2cpp_array_addr(methodArray, Il2CppReflectionMethod*, 2);
+        auto removeObjMethodPointer = xlua::GetMethodPointer(*removeObjMethod);
+        auto removeObjMethodInfo = xlua::GetMethodInfoPointer(*removeObjMethod);
+        GetCppObjMapper()->InitObjPoolMethod((Il2CppReflectionMethod*)addObjMethod, (Il2CppMethodPointer*)addObjMethodPointer, (Il2CppReflectionMethod*)removeObjMethod, (Il2CppMethodPointer*)removeObjMethodPointer);
+        
     }
     xlua::UnityExports* GetUnityExports()
     {
@@ -2108,7 +2274,7 @@ void InitialXLua_IL2CPP(lapi_func_ptr* func_array)
 {
     InternalCalls::Add("XLua.IL2CPP.NativeAPI::GetMethodPointer(System.Reflection.MethodBase)", (Il2CppMethodPointer)xlua::GetMethodPointer);
     InternalCalls::Add("XLua.IL2CPP.NativeAPI::GetMethodInfoPointer(System.Reflection.MethodBase)", (Il2CppMethodPointer)xlua::GetMethodInfoPointer);
-    InternalCalls::Add("XLua.IL2CPP.NativeAPI::SetGetTypeFuncPointer(System.Reflection.MethodBase)", (Il2CppMethodPointer)xlua::SetGetTypeFuncPointer);
+    InternalCalls::Add("XLua.IL2CPP.NativeAPI::SetCSharpAPI(System.Reflection.MethodBase[])", (Il2CppMethodPointer)xlua::SetCSharpAPI);
     InternalCalls::Add("XLua.IL2CPP.NativeAPI::GetObjectPointer(System.Object)", (Il2CppMethodPointer)xlua::GetObjectPointer);
     InternalCalls::Add("XLua.IL2CPP.NativeAPI::GetTypeId(System.Type)", (Il2CppMethodPointer)xlua::GetTypeId);
     InternalCalls::Add("XLua.IL2CPP.NativeAPI::TypeIdToType(System.IntPtr)", (Il2CppMethodPointer)xlua::TypeIdToType);
@@ -2123,6 +2289,8 @@ void InitialXLua_IL2CPP(lapi_func_ptr* func_array)
     InternalCalls::Add("XLua.IL2CPP.NativeAPI::AddField(System.IntPtr,System.IntPtr,System.String,System.Boolean,System.IntPtr,System.Int32,System.IntPtr)", (Il2CppMethodPointer)xlua::AddField);
 
     InternalCalls::Add("XLua.IL2CPP.NativeAPI::AddMethod(System.IntPtr,System.String,System.IntPtr,System.String,System.Boolean,System.Boolean,System.Boolean,System.Boolean,System.IntPtr,System.IntPtr,System.Int32)", (Il2CppMethodPointer)xlua::AddMethod);
+    InternalCalls::Add("XLua.IL2CPP.NativeAPI::AddProperty(System.IntPtr,System.String,System.IntPtr,System.String,System.Boolean,System.Boolean,System.IntPtr,System.IntPtr,System.Int32)", (Il2CppMethodPointer)xlua::AddProperty);
+    
     lapi_init(func_array);
     
 }
