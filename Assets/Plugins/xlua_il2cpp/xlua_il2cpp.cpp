@@ -59,6 +59,7 @@ namespace xlua
 
     int32_t GetFieldOffset(Il2CppReflectionField* field, bool isInValueType)
     {
+        //return (int32_t)Field::GetOffset(field->field);
         return (int32_t)Field::GetOffset(field->field) - (Class::IsValuetype(Field::GetParent(field->field)) ? sizeof(RuntimeObject) : 0);
     }
 
@@ -273,6 +274,7 @@ namespace xlua
             //#TODO@benp 
 
              bool checkArgument = *wrapDatas && *(wrapDatas + 1);
+             checkArgument = false;
              while(*wrapDatas)
              {
                  if ((*wrapDatas)->Wrap((*wrapDatas)->Method, (*wrapDatas)->MethodPointer, L, checkArgument, *wrapDatas, index))
@@ -1602,12 +1604,12 @@ namespace xlua
     {
         const Il2CppChar* utf16 = il2cpp::utils::StringUtils::GetChars(name);
         std::string str = il2cpp::utils::StringUtils::Utf16ToUtf8(utf16);
-        xlua::GLogFormatted(str.c_str());
+        // xlua::GLogFormatted(str.c_str());
         MethodPointer delegateBridge = nullptr;
         
         LuaClassInfo* ret = new LuaClassInfo();
         ret->Name = str;
-        ret->TypeId = type_id;
+        ret->TypeId = (Il2CppClass*)type_id;
         ret->SuperTypeId = super_type_id;
         ret->Class = static_cast<TypeIdType*>(klass);
         ret->IsValueType = isValueType;
@@ -1781,6 +1783,24 @@ namespace xlua
         data->TypeInfos[index] = typeInfo;
     }
 
+    void* GetCSharpStructPointer(lua_State* L, int index){
+        auto css = lapi_xlua_tocss(L, index);
+        if(css && css->fake_id == -1){
+            return &css->data[0];
+        }
+        return nullptr;
+    }
+
+    void* GetCSharpStructPointerWithOffset(lua_State* L, int index, int offset) {
+        auto css = lapi_xlua_tocss(L, index);
+        if (css && css->fake_id == -1) {
+            char* data = &css->data[0];
+            data -= offset;
+            return data;
+        }
+        return nullptr;
+    }
+
     #include "FunctionBridge.Gen.h"
 
 
@@ -1790,7 +1810,7 @@ namespace xlua
     {
         std::string str = ilstring2stdstring(ilstring);
         const char* signature = str.c_str();
-        xlua::GLogFormatted("FindBridgeFunc ilstring %s",signature);
+        // xlua::GLogFormatted("FindBridgeFunc ilstring %s",signature);
         auto begin = &g_bridgeFuncInfos[0];
         auto end = &g_bridgeFuncInfos[sizeof(g_bridgeFuncInfos) / sizeof(BridgeFuncInfo) - 1];
         auto first = std::lower_bound(begin, end, signature, [](const BridgeFuncInfo& x, const char* signature) {return strcmp(x.Signature, signature) < 0;});
@@ -1808,7 +1828,7 @@ namespace xlua
         auto end = &g_wrapFuncInfos[sizeof(g_wrapFuncInfos) / sizeof(WrapFuncInfo) - 1];
         auto first = std::lower_bound(begin, end, signature, [](const WrapFuncInfo& x, const char* signature) {return strcmp(x.Signature, signature) < 0;});
         if (first != end && strcmp(first->Signature, signature) == 0) {
-            xlua::GLogFormatted("FindWrapFunc %s",signature);
+            // xlua::GLogFormatted("FindWrapFunc %s",signature);
             return first->Method;
         }
         return nullptr;
@@ -1818,7 +1838,7 @@ namespace xlua
     {
         std::string str = ilstring2stdstring(ilstring);
         const char* signature = str.c_str();
-        xlua::GLogFormatted("FindFieldWrapFuncInfo %s",signature);
+        // xlua::GLogFormatted("FindFieldWrapFuncInfo %s",signature);
         auto begin = &g_fieldWrapFuncInfos[0];
         auto end = &g_fieldWrapFuncInfos[sizeof(g_fieldWrapFuncInfos) / sizeof(FieldWrapFuncInfo) - 1];
         auto first = std::lower_bound(begin, end, signature, [](const FieldWrapFuncInfo& x, const char* signature) {return strcmp(x.Signature, signature) < 0;});
@@ -1837,7 +1857,15 @@ namespace xlua
                 
                 void* kclass = *reinterpret_cast<void**>(ptr);
                 auto clsInfo = xlua::GetLuaClsInfoByTypeId(kclass);
-                xlua:GLogFormatted("GetLuaClsInfo ptr %p kclass %p clsInfo %p", ptr, kclass, clsInfo);
+                // xlua:GLogFormatted("GetLuaClsInfo ptr %p kclass %p clsInfo %p", ptr, kclass, clsInfo);
+                return clsInfo;
+            }
+
+            CSharpStructInLua* css = lapi_xlua_tocss(L, 1);
+            if(css){
+                void * kclass = css->typeId;
+                auto clsInfo = xlua::GetLuaClsInfoByTypeId(kclass);
+                //xlua:GLogFormatted("GetLuaClsInfo css %p kclass %p clsInfo %p", css, kclass, clsInfo);
                 return clsInfo;
             }
         }
@@ -1848,7 +1876,7 @@ namespace xlua
         if (lapi_lua_isuserdata(L, lapi_lua_upvalueindex(1))) {
             const void* ptr = lapi_lua_topointer(L, lapi_lua_upvalueindex(1));
             xlua::LuaClassInfo* clsInfo = xlua::GetLuaClsInfoByTypeId(ptr);
-            xlua:GLogFormatted("GetLuaClsInfoByClsMeta ptr %p clsInfo %p", ptr, clsInfo);
+            // xlua:GLogFormatted("GetLuaClsInfoByClsMeta ptr %p clsInfo %p", ptr, clsInfo);
             return clsInfo;
         }
         return nullptr;
@@ -1972,51 +2000,66 @@ namespace xlua
     }
 
     int ClsConstructorCallBack(lua_State *L){
-        //xlua::GLogFormatted("ClsConstructorCallBack Begin" );
         auto clsInfo = GetLuaClsInfoByClsMeta(L);
-        //int type = lapi_lua_type(L,lapi_lua_upvalueindex(1));
         
-        /*if (type == LUA_TLIGHTUSERDATA) {
-            const void * ptr = lapi_lua_topointer(L, lapi_lua_upvalueindex(1));
-            
-            xlua::GLogFormatted("light user data %p", ptr);
-            xlua::LuaClassInfo* clsInfo = xlua::GetLuaClsInfoByTypeId(ptr);*/
-            if(clsInfo){
-                //xlua::GLogFormatted("find LuaClassDefinition %s", clsInfo->Name.c_str());
+        if(clsInfo){
+            auto isValueType = Class::IsValuetype(clsInfo->Class);
 
+            if(!isValueType){
                 void* ptr = xlua::ObjectAllocate(clsInfo->Class);
-
-                auto isValueType = Class::IsValuetype(clsInfo->Class);
-                if(!isValueType){
-                    //-1 clsTable -2 param -3 obj
-                    if (GetCppObjMapper()->TryPushObject(L, ptr)) {
-                        //-1 obj -2 param
-                        lapi_lua_replace(L, 1);
-                        
-                        if (clsInfo->CtorWrapDatas) {
-                            //lapi_lua_pushvalue(L, -1);
-                            //#TODO@benp 构造函数失败  清除引用
-                            if (xlua::MethodCallback(L, clsInfo->CtorWrapDatas, -1)) {
-                                lapi_lua_settop(L, 1);
-                                return 1;
-                            }
-                            else {
-                                return 0;
-                            }
+                //-1 clsTable -2 param -top obj
+                if (GetCppObjMapper()->TryPushObject(L, ptr)) {
+                    //-1 obj -2 param
+                    lapi_lua_replace(L, 1);
+                    //参数索引整体+1
+                    for (int i = lapi_lua_gettop(L); i >= 2; i--)
+                    {
+                        lapi_lua_copy(L, i, i+1);
+                    }
+                    
+                    if (clsInfo->CtorWrapDatas) {
+                        //#TODO@benp 构造函数失败  清除引用
+                        if (xlua::MethodCallback(L, clsInfo->CtorWrapDatas, -1)) {
+                            lapi_lua_settop(L, 1);
+                            return 1;
+                        }
+                        else {
+                            return 0;
                         }
                     }
+                }
+                else {
+                    //todo throw error
+                    throw_exception2lua(L, "push valu to lua failed");
+                    return 0;
+                }
+            }else{
+                auto klass = clsInfo->TypeId;
+                
+                 auto size = klass->native_size > 0 ? klass->native_size : (klass->instance_size - sizeof(Il2CppObject));
+                //auto size = klass->instance_size;
+                int32_t typeId = GetLuaClassRegister()->GetTypeIdByIl2cppClass(L, klass);
+                CSharpStructInLua* css = lapi_xlua_createstruct_pointer(L, size, typeId, (void*)klass);
+                
+                if (clsInfo->CtorWrapDatas) {
+                    //-1 obj -2 param
+                    lapi_lua_replace(L, 1);
+                    //参数索引整体+1
+                    for (int i = lapi_lua_gettop(L); i >= 2; i--)
+                    {
+                        lapi_lua_copy(L, i, i+1);
+                    }
+                    if (xlua::MethodCallback(L, clsInfo->CtorWrapDatas, -1)) {
+                        lapi_lua_settop(L, 1);
+                        return 1;
+                    }
                     else {
-                        //todo throw error
-                        throw_exception2lua(L, "push valu to lua failed");
                         return 0;
                     }
-                }else{
-                    //#TODO@benp copy value
-
                 }
-                return 1;
             }
-        //}
+            return 1;
+        }
         return 0;
     }
 
@@ -2054,7 +2097,7 @@ namespace xlua
     /// 3 luaDef=> method or field
     /// 4 push result
     int ObjSetCallBack(lua_State *L){
-        xlua::GLogFormatted("ObjSetCallBack");
+        // xlua::GLogFormatted("ObjSetCallBack");
         auto clsInfo = xlua::GetLuaClsInfo(L);
         while (clsInfo) {
             //find method or field
@@ -2120,7 +2163,7 @@ namespace xlua
         //#TODO@benp 校验 可以通过xluatag or getDef的形式
         //method
         //todo 考虑不使用closure 优势1 减少闭包的内存 2 减少对Lua堆栈的操作 后续测试确定
-        xlua::GLogFormatted("ObjGetCallBack");
+        // xlua::GLogFormatted("ObjGetCallBack");
         if (!lapi_lua_isnil(L, lapi_lua_upvalueindex(2))) {
             lapi_lua_pushvalue(L, 2);
             lapi_lua_gettable(L, lapi_lua_upvalueindex(2));
@@ -2215,7 +2258,7 @@ namespace xlua
         auto getTypeIdMethod = il2cpp_array_addr(methodArray,  Il2CppReflectionMethod*, 0);
         auto methodPointer = xlua::GetMethodPointer(*getTypeIdMethod);
         auto methodInfo = xlua::GetMethodInfoPointer(*getTypeIdMethod);
-        xlua::GetLuaClassRegister()->SetGetTypeIdFuncPtr((CSharpGetTypeId)methodPointer, (void*)methodInfo);
+        xlua::GetLuaClassRegister()->SetGetTypeIdFuncPtr((CSharpGetTypeIdFunc)methodPointer, (void*)methodInfo);
         
         auto addObjMethod = il2cpp_array_addr(methodArray, Il2CppReflectionMethod*, 1);
         auto addObjMethodPointer = xlua::GetMethodPointer(*addObjMethod);
@@ -2226,6 +2269,21 @@ namespace xlua
         auto removeObjMethodInfo = xlua::GetMethodInfoPointer(*removeObjMethod);
         GetCppObjMapper()->InitObjPoolMethod((Il2CppReflectionMethod*)addObjMethod, (Il2CppMethodPointer*)addObjMethodPointer, (Il2CppReflectionMethod*)removeObjMethod, (Il2CppMethodPointer*)removeObjMethodPointer);
         
+    }
+
+    int LuaGCCallBack(lua_State *L){
+         if(lapi_lua_isuserdata(L, lapi_lua_upvalueindex(1))){
+            Il2CppClass* klass = static_cast<Il2CppClass*>(lapi_lua_touserdata(L, lapi_lua_upvalueindex(1)));
+            if(!klass->valuetype){
+                CSharpObject* obj = (CSharpObject*)lapi_lua_touserdata(L, 1);
+                if(obj && obj->poolIdx != -1){
+                    auto ptr = GetCppObjMapper()->RemoveFromPool(obj->poolIdx);
+                    xlua::GLogFormatted("RemoveFromPool idx[%d] return %p", obj->poolIdx, ptr);
+                    obj->poolIdx = -1;
+                }
+            }
+         }
+        return 0;
     }
     xlua::UnityExports* GetUnityExports()
     {
@@ -2280,7 +2338,7 @@ void InitialXLua_IL2CPP(lapi_func_ptr* func_array)
     InternalCalls::Add("XLua.IL2CPP.NativeAPI::TypeIdToType(System.IntPtr)", (Il2CppMethodPointer)xlua::TypeIdToType);
     InternalCalls::Add("XLua.IL2CPP.NativeAPI::GetFieldOffset(System.Reflection.FieldInfo,System.Boolean)", (Il2CppMethodPointer)xlua::GetFieldOffset);
     InternalCalls::Add("XLua.IL2CPP.NativeAPI::GetFieldInfoPointer(System.Reflection.FieldInfo)", (Il2CppMethodPointer)xlua::GetFieldInfoPointer);
-    InternalCalls::Add("XLua.IL2CPP.NativeAPI::GetUnityExports()", (Il2CppMethodPointer)xlua::GetUnityExports);
+    // InternalCalls::Add("XLua.IL2CPP.NativeAPI::GetUnityExports()", (Il2CppMethodPointer)xlua::GetUnityExports);
     InternalCalls::Add("XLua.IL2CPP.NativeAPI::CreateCSharpTypeInfo(System.String,System.IntPtr,System.IntPtr,System.IntPtr,System.Boolean,System.Boolean,System.String)", (Il2CppMethodPointer)xlua::CreateCSharpTypeInfo);
     InternalCalls::Add("XLua.IL2CPP.NativeAPI::SetTypeInfo(System.IntPtr,System.Int32,System.IntPtr)", (Il2CppMethodPointer)xlua::SetTypeInfo);
     InternalCalls::Add("XLua.IL2CPP.NativeAPI::FindWrapFunc(System.String)", (Il2CppMethodPointer)xlua::FindWrapFunc);
@@ -2326,7 +2384,7 @@ static void dumpstack (lua_State *L) {
 
 
 
-void HandleObjMetatable(lua_State *L, int metatable_idx, void* typeId){
+void HandleObjMetatable(lua_State *L, int metatable_idx, Il2CppClass* typeId){
     lapi_lua_pushstring(L, "__index");
     lapi_lua_pushlightuserdata(L, typeId);
     lapi_lua_createtable(L, 0,0);
@@ -2339,11 +2397,18 @@ void HandleObjMetatable(lua_State *L, int metatable_idx, void* typeId){
     lapi_lua_createtable(L, 0,0);
     lapi_lua_pushcclosure(L, xlua::ObjSetCallBack, 2);
     lapi_lua_settable(L, metatable_idx);
-    //#TODO@benp gc
+
+    if(!typeId->valuetype){ //只有引用类型的需要GC
+        lapi_lua_pushstring(L, "__gc");
+        lapi_lua_pushlightuserdata(L, typeId);
+        lapi_lua_pushcclosure(L, xlua::LuaGCCallBack, 1);
+        lapi_lua_settable(L, metatable_idx);
+    }
+
     //#TODO@benp tostring
 }
 
-void HandleClsMetaTable(lua_State *L, int clstable_idx, void* typeId){
+void HandleClsMetaTable(lua_State *L, int clstable_idx, Il2CppClass* typeId){
     lapi_lua_pushstring(L, "__call");
     lapi_lua_pushlightuserdata(L, typeId);
     lapi_lua_pushcclosure(L, xlua::ClsConstructorCallBack, 1);
@@ -2358,6 +2423,7 @@ void HandleClsMetaTable(lua_State *L, int clstable_idx, void* typeId){
     lapi_lua_pushlightuserdata(L, typeId);
     lapi_lua_pushcclosure(L, xlua::ClsSetCallBack, 1);
     lapi_lua_settable(L, clstable_idx);
+    
 }
 
 
@@ -2378,7 +2444,8 @@ void SetLuaCacheRef(int cache_ref){
 }
 
 void SetClassMetaId(void * ilclass, int metaId){
-    GetCppObjMapper()->SetTypeId(ilclass, metaId);
+    xlua::GetLuaClassRegister()->SetTypeId(ilclass, metaId);
+    // GetCppObjMapper()->SetTypeId(ilclass, metaId);
 }
 
 

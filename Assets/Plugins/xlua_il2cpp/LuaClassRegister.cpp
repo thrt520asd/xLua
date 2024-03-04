@@ -30,19 +30,31 @@ namespace xlua
     LuaClassInfo* LuaClassRegister::GetOrLoadLuaClsInfoByTypeId(const Il2CppClass *klass, lua_State *L){
         auto clsInfo = GetLuaClsInfoByTypeId(klass);
         if(!clsInfo){
+            
             auto type = il2cpp::vm::Reflection::GetTypeObject(&klass->byval_arg);
             if(type){
                 // call C# to register 
-                if (CSharpRegister(L, type)) {
-                    clsInfo = GetLuaClsInfoByTypeId(klass);
-                }
+                CSharpGetTypeId(L, type);
+                clsInfo = GetLuaClsInfoByTypeId(klass);
             }
         }
         return clsInfo;
 
     }
 
-    int LuaClassRegister::CSharpRegister(lua_State *L, Il2CppReflectionType* reflectionType) {
+    int32_t LuaClassRegister::GetTypeIdByIl2cppClass(lua_State *L, const Il2CppClass *klass){   
+        auto metaId = GetClassMetaId((void*)klass);
+        if(metaId == -1){
+            auto reflectType = il2cpp::vm::Reflection::GetTypeObject(&klass->byval_arg);
+            if(reflectType){
+                return CSharpGetTypeId(L, reflectType);
+            }
+        }
+        return metaId;
+    }
+    
+
+    int LuaClassRegister::CSharpGetTypeId(lua_State *L, Il2CppReflectionType* reflectionType) {
         if (cSharpGetTypeMethodPtr) {
              int typeId = cSharpGetTypeMethodPtr(L, reflectionType, cSharpGetTypeMethod);
              return typeId;
@@ -50,10 +62,10 @@ namespace xlua
         else {
             xlua::GLogFormatted("[error] cSharpGetTypeMethodPtr hasn't register");
         }
-        return 0;
+        return -1;
     }
 
-    void LuaClassRegister::SetGetTypeIdFuncPtr(CSharpGetTypeId methodPtr, void* method) {
+    void LuaClassRegister::SetGetTypeIdFuncPtr(CSharpGetTypeIdFunc methodPtr, void* method) {
         cSharpGetTypeMethodPtr = methodPtr;
         cSharpGetTypeMethod = method;
     }
@@ -94,6 +106,24 @@ namespace xlua
         //#TODO@benp 清理
     }
 
+    void LuaClassRegister::SetTypeId(void* kclass, int32_t metaId){
+        auto result = ilclass2luaMetaId.insert({kclass, metaId});
+        if(result.second){
+            xlua::GLogFormatted("set type id insert success %p $d", kclass, metaId);
+        }else{
+            xlua::GLogFormatted("set type id insert success %p $d", kclass, metaId);
+
+        }
+    }
+
+    int32_t LuaClassRegister::GetClassMetaId(void* kclass){
+        auto iter = ilclass2luaMetaId.find(kclass);
+        if(iter != ilclass2luaMetaId.end()){
+            return iter->second;
+        }
+        return -1;
+    }
+
 
     LuaClassRegister* GetLuaClassRegister()
     {
@@ -116,6 +146,8 @@ namespace xlua
     {
         return xlua::GetLuaClassRegister()->GetLuaClsInfoByTypeId(typeId);
     }
+
+    
 
 } 
 

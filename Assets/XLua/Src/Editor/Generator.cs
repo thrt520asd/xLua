@@ -1301,11 +1301,16 @@ namespace CSObjectWrapEditor
             object obj = get();
             if (obj is Type)
             {
-                list.Add(obj as Type);
+                if(!BlackMemberInfoList.Contains((obj as Type).FullName)){
+
+                    list.Add(obj as Type);
+                }
             }
             else if (obj is IEnumerable<Type>)
             {
-                list.AddRange(obj as IEnumerable<Type>);
+                
+
+                list.AddRange((obj as IEnumerable<Type>).Where(o => !BlackMemberInfoList.Contains((o as Type).FullName)));
             }
             else
             {
@@ -1352,20 +1357,18 @@ namespace CSObjectWrapEditor
 #endif
         }
 
-        static List<MemberInfo> BlackMemberInfoList = new List<MemberInfo>(){
-            typeof(UnityEngine.Light),
+        static List<string> BlackMemberInfoList = new List<string>(){
+            "UnityEngine.Light",
         };
 
         static void MergeCfg(MemberInfo test, Type cfg_type, Func<object> get_cfg)
         {
-            if(BlackMemberInfoList.Contains(test)){
-                return;
-            }
             if (isDefined(test, typeof(LuaCallCSharpAttribute)))
             {
                 object ccla = GetCustomAttribute(test, typeof(LuaCallCSharpAttribute));
                 
                 AddToList(LuaCallCSharp, get_cfg, ccla);
+                
 #if !XLUA_GENERAL
 #pragma warning disable 618
                 if (ccla != null && (((ccla as LuaCallCSharpAttribute).Flag & GenFlag.GCOptimize) != 0))

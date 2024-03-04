@@ -82,7 +82,9 @@ namespace XLuaTest
         {
             if (luaUpdate != null)
             {
+                UnityEngine.Profiling.Profiler.BeginSample("luaUpdate");
                 luaUpdate();
+                UnityEngine.Profiling.Profiler.EndSample();
             }
             if (Time.time - LuaBehaviour.lastGCTime > GCInterval)
             {

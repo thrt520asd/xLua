@@ -6,50 +6,48 @@
 
 local speed = 10
 local lightCpnt = nil
+local cls = CS.IL2CPPTest
+local obj = nil
 function start()
-    local cls = CS.IL2CPPTest
-    local meta = getmetatable(cls)
-    local f = meta.__call
-    local up1 = debug.getupvalue(f, 1)
-    print(up1)
-    local obj = cls()
-end
-
-function start1()
-    local a = CS.UnityEngine.UI.Button.allSelectables
-    print(a)
-    local a = CS.UnityEngine.UI.Button
-    print(a)
-	print("lua start...")
-	print("injected object", lightObject)
-	lightCpnt= lightObject:GetComponent(typeof(CS.UnityEngine.Light))
-	print(type(lightObject.GetComponent))
     
+-- local a = CS.UnityEngine.UI.Button.allSelectables
+--     print(a)
+--     local a = CS.UnityEngine.UI.Button
+--     print(a)
+-- 	print("lua start...")
+-- 	print("injected object", lightObject)
+-- 	lightCpnt= lightObject:GetComponent(typeof(CS.UnityEngine.Light))
+-- 	print(type(lightObject.GetComponent))
+--     lightCpnt.transform.position.x = 1
 
-    local metatable = getmetatable(lightObject)
-    print(metatable)
-    for k, v in pairs(metatable) do
-        print("objMetaTable", k,v)
-    end
-    local clsTbl = CS.UnityEngine.GameObject
-    print("clsTbl", clsTbl)
-    for k, v in pairs(clsTbl) do
-        print("cls", k,v)
-    end
-    local clsMetatable = getmetatable(CS.UnityEngine.GameObject)
-    print("clsMetatable", clsMetatable)
-    for k, v in pairs(clsMetatable) do
-        print("clsMetatable", k,v)
-    end
+--     local metatable = getmetatable(lightObject)
+--     print(metatable)
+--     for k, v in pairs(metatable) do
+--         print("objMetaTable", k,v)
+--     end
+--     local clsTbl = CS.UnityEngine.GameObject
+--     print("clsTbl", clsTbl)
+--     for k, v in pairs(clsTbl) do
+--         print("cls", k,v)
+--     end
+--     local clsMetatable = getmetatable(CS.UnityEngine.GameObject)
+--     print("clsMetatable", clsMetatable)
+--     for k, v in pairs(clsMetatable) do
+--         print("clsMetatable", k,v)
+--     end
 
-    local clsMetatableTransform = getmetatable(CS.UnityEngine.Transform)
-    print("clsMetatableTransform", clsMetatableTransform)
-    for k, v in pairs(clsMetatableTransform) do
-        print("clsMetatableTransform", k,v)
-    end
+--     local clsMetatableTransform = getmetatable(CS.UnityEngine.Transform)
+--     print("clsMetatableTransform", clsMetatableTransform)
+--     for k, v in pairs(clsMetatableTransform) do
+--         print("clsMetatableTransform", k,v)
+--     end
+    obj = cls("2")
 end
 
 function update()
+    for i = 1, 10000 do
+        obj:MethodInvoke()
+    end
 	--local r = CS.UnityEngine.Vector3.up * CS.UnityEngine.Time.deltaTime * speed
 	--self.transform:Rotate(r)
 	--lightCpnt.color = CS.UnityEngine.Color(CS.UnityEngine.Mathf.Sin(CS.UnityEngine.Time.time) / 2 + 0.5, 0, 0, 1)

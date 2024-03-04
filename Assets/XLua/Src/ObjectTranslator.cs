@@ -27,6 +27,7 @@ namespace XLua
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Numerics;
 
     class ReferenceEqualsComparer : IEqualityComparer<object>
     {
@@ -136,6 +137,7 @@ namespace XLua
         static List<Type> IL2CPPTestType = new List<Type>(){
             typeof(IL2CPPTest),
             typeof(IL2CPPTestBase),
+            typeof(UnityEngine.Vector3),
         };
         Dictionary<Type, bool> loaded_types = new Dictionary<Type, bool>();
         public bool TryDelayWrapLoader(RealStatePtr L, Type type)
@@ -149,6 +151,11 @@ namespace XLua
 
             Action<RealStatePtr> loader;
             int top = LuaAPI.lua_gettop(L);
+            #if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
+            if(IL2CPPTestType.Contains(type)){
+                XLua.IL2CPP.TypeRegister.Register(L,type, privateAccessibleFlags.Contains(type));
+            }else 
+            #endif
             if (delayWrap.TryGetValue(type, out loader))
             {
                 delayWrap.Remove(type);
@@ -168,16 +175,8 @@ namespace XLua
                     Utils.ReflectionWrap(L, type, privateAccessibleFlags.Contains(type));
                 }
 #else
-#if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
-                if(IL2CPPTestType.Contains(type)){
-                    XLua.IL2CPP.TypeRegister.Register(L,type, privateAccessibleFlags.Contains(type));
-                }else{
-                    Utils.ReflectionWrap(L, type, privateAccessibleFlags.Contains(type));    
-                }
-#else
-                
+
                 Utils.ReflectionWrap(L, type, privateAccessibleFlags.Contains(type));
-#endif
 #endif
 #if NOT_GEN_WARNING
                 if (!typeof(Delegate).IsAssignableFrom(type))

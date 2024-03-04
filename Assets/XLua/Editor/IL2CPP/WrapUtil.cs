@@ -6,6 +6,8 @@ using System.Text;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityScript.Steps;
+using UnityEngine.Timeline;
 namespace XLua.IL2CPP.Editor.Generator
 {
     public class WrapUtil
@@ -39,7 +41,7 @@ namespace XLua.IL2CPP.Editor.Generator
             }
             if (signature[0] == 'P')
             {
-                t = $"{SToCPPType(signature.Substring(1))}";
+                t = $"{SToCPPType(signature.Substring(1))}*";
             }
             return t;
         }
@@ -54,10 +56,14 @@ namespace XLua.IL2CPP.Editor.Generator
                 return signature;
             }
         }
-
+        /// <summary>
+        /// 函数的lua栈 1 closure 2 param1 3 param2
+        /// </summary>
+        /// <param name="signatureInfo"></param>
+        /// <returns></returns>
         public static string GenFuncWrapper(SignatureInfo signatureInfo)
         {
-            var selfCnt = (signatureInfo.ThisSignature == "t" || signatureInfo.ThisSignature == "T") ? 1 : 1;
+            var selfCnt = needThis(signatureInfo.ThisSignature) ? 1 : 0;
             return $@"
 //{signatureInfo.CsName}
 static bool w_{signatureInfo.Signature}(void* method, MethodPointer methodPointer, lua_State *L, bool checkLuaArgument, WrapData* wrapData, int index = 1) {{
@@ -68,10 +74,10 @@ static bool w_{signatureInfo.Signature}(void* method, MethodPointer methodPointe
         {String.Join("\n\t\t", signatureInfo.ParameterSignatures.Select<string, string>((s, index) => WrapUtil.CheckLuaArgument(s, index+selfCnt+1)))}
     }}
     {WrapUtil.GetThis(signatureInfo.ThisSignature)}
-    {String.Join("\n\t", signatureInfo.ParameterSignatures.Select((s, index) => WrapUtil.LuaValToCSVal(s, "p" + index, GetParamIndex(signatureInfo.ThisSignature, index + 1))))}
+    {String.Join("\n\t", signatureInfo.ParameterSignatures.Select((s, index) => WrapUtil.LuaValToCSVal(s, "p" + index, GetParamIndex(signatureInfo.ThisSignature, index + 1+selfCnt), IsStatic(signatureInfo.ThisSignature))))}
     
-    typedef {WrapUtil.SToCPPType(signatureInfo.ReturnSignature)} (*FuncToCall)({(WrapUtil.needThis(signatureInfo) ? "void*, " : "")}{String.Join("", signatureInfo.ParameterSignatures.Select((s, i) => $"{WrapUtil.SToCPPType(s)} p{i}, "))}const void* method);
-    {(signatureInfo.ReturnSignature != "v" ? $"{WrapUtil.SToCPPType(signatureInfo.ReturnSignature)} ret = " : "")}((FuncToCall)methodPointer)({(WrapUtil.needThis(signatureInfo) ? "self, " : "")} {String.Join("", signatureInfo.ParameterSignatures.Select((s, i) => $"p{i}, "))}method);
+    typedef {WrapUtil.SToCPPType(signatureInfo.ReturnSignature)} (*FuncToCall)({(WrapUtil.needThis(signatureInfo.ThisSignature) ? "void*, " : "")}{String.Join("", signatureInfo.ParameterSignatures.Select((s, i) => $"{WrapUtil.SToCPPType(s)} p{i}, "))}const void* method);
+    {(signatureInfo.ReturnSignature != "v" ? $"{WrapUtil.SToCPPType(signatureInfo.ReturnSignature)} ret = " : "")}((FuncToCall)methodPointer)({(WrapUtil.needThis(signatureInfo.ThisSignature) ? "self, " : "")} {String.Join("", signatureInfo.ParameterSignatures.Select((s, i) => $"p{i}, "))}method);
     {String.Join("", signatureInfo.ParameterSignatures.Select((s, i) => WrapUtil.refSetback(s, i, signatureInfo)))}
 
     {(signatureInfo.ReturnSignature != "v" ? WrapUtil.ReturnToLua(signatureInfo.ReturnSignature) : "")}
@@ -125,7 +131,7 @@ static bool w_{signatureInfo.Signature}(void* method, MethodPointer methodPointe
 
         private static string GenObjArgsLenCheck(string thisSignature, List<string> parameterSignatures){
             var requireNum = 0;
-            var selfCnt = (thisSignature == "t" || thisSignature == "T") ? 1 : 0;
+            var selfCnt = needThis(thisSignature) ? 1 : 0;
             for (; requireNum < parameterSignatures.Count && parameterSignatures[requireNum][0] != 'V' && parameterSignatures[requireNum][0] != 'D'; ++requireNum) { }
             return requireNum != parameterSignatures.Count ? $"length < {requireNum + selfCnt}" : $"length != {parameterSignatures.Count + selfCnt}";
         }
@@ -228,23 +234,27 @@ static bool w_{signatureInfo.Signature}(void* method, MethodPointer methodPointe
             }
         }
 
-        public static string GetThis(string signature)
+        public static string GetThis(string signature, bool field = false)
         {
             if (signature == "t")
             {
-                return "auto self = lapi_xlua_getcsobj_ptr(L, 1);";
+                return $"auto self = GetCppObjMapper()->ToCppObj{(field?"_Field":"")}(L, 1);";
+                // return "auto self = lapi_xlua_getcsobj_ptr(L, 1);";
             }
             else if (signature == "T")
             {
-                return "auto self = lapi_xlua_getcsobj_ptr(L, 1);";
+                return $"auto self = GetCppObjMapper()->ToCppObj{(field?"_Field":"")}(L, 1);";
+                // return "auto self = lapi_xlua_getcsobj_ptr(L, 1);";
             }
-            else
-            {
-                return "";
+            else if (signature == "s" ){
+                return $"auto self = GetCppObjMapper()->ToCppObj{(field?"_Field":"")}(L, 1);";
+                // return $"auto self = (void*)GetCSharpStructPointer(L, 1);";
             }
+            
+            return "";
         }
 
-        public static string LuaValToCSVal(string signature, string CSName, int index)
+        public static string LuaValToCSVal(string signature, string CSName, int index, bool isStatic = false)
         {
             if (signature == TypeUtils.TypeSignatures.String)
             {
@@ -254,11 +264,6 @@ $@"// string s
     auto {CSName} = il2cpp::vm::String::New(str{index});
 ";
             }
-    //         else if (PrimitiveSignatureCppTypeMap.ContainsKey(signature)){
-    //             //#TODO@benp 
-    //             return $@"//Primitive{signature}
-    // ";
-    //         }
             else if (signature == "Ps")
             { //string ref
                 return
@@ -272,23 +277,51 @@ $@"// string ref Ps
             else if (signature == "O" || signature == "o" || signature == "a")
             { //object
                 return $@"// object
-    void* {CSName} = LuaValueToCSRef(L, {index}, TI{CSName});";
+    void* {CSName} = lapi_xlua_getcsobj_ptr(L, {index});";
             }
             else if (signature == "Po" || signature == "PO" || signature == "Pa")
             {
                 return $@"// object ref Po/PO
     void* u${CSName} = nullptr; // object ref
     void** ${CSName} = &u${CSName};
-    u${CSName} = LuaValueToCSRef(L, {index}, TI${CSName});
-        ";
+    u${CSName} = lapi_xlua_getcsobj_ptr(L, {index});";
             }
             else if ((signature.StartsWith(TypeUtils.TypeSignatures.StructPrefix) || signature.StartsWith(TypeUtils.TypeSignatures.NullableStructPrefix)) && signature.EndsWith("_"))
             {
-                //#TODO@benp struct
+                if(isStatic){
+                    return $@"//LuaValToCSVal struct
+    {signature} {CSName} = *({signature}*)GetCSharpStructPointer(L, {index});
+                ";
+                }else{
+
+                return $@"//LuaValToCSVal struct 指针偏移sizeof(RunTimeObject)
+    {signature} {CSName} = *({signature}*)GetCSharpStructPointerWithOffset(L, {index}, sizeof(RuntimeObject));
+                ";
+                }
             }
             else if ((signature.StartsWith('P' + TypeUtils.TypeSignatures.StructPrefix) || signature.StartsWith('P' + TypeUtils.TypeSignatures.NullableStructPrefix)) && signature.EndsWith("_"))
-            { //valuetype ref
+            { 
+                var realS = signature.Substring(1);
+                if(isStatic){
+                return $@"//LuaValToCSVal Pstruct todo 容错保护
+    {realS}* {CSName} = ({realS}*)GetCSharpStructPointer(L, {index});
+    if(!{CSName}){{
+        {realS} u{CSName};
+        memset(&u{CSName}, 0, sizeof({realS}));
+        {CSName} = &u{CSName};
+    }}
+                ";
+                }else{
 
+                return $@"//LuaValToCSVal Pstruct todo 容错保护
+    {realS}* {CSName} = ({realS}*)GetCSharpStructPointerWithOffset(L, {index}, sizeof(RuntimeObject));
+    if(!{CSName}){{
+        {realS} u{CSName};
+        memset(&u{CSName}, 0, sizeof({realS}));
+        {CSName} = &u{CSName};
+    }}
+                ";
+                }
             }
             else if (signature[0] == 'P' && signature != "Pv")
             {
@@ -339,10 +372,12 @@ $@"// string ref Ps
 
             return "nullptr";
         }
-
-        public static bool needThis(SignatureInfo wrapperInfo)
+        public static bool IsStatic(string thisSignature){
+            return !(thisSignature == "t" || thisSignature == "T" || thisSignature == "s");
+        }
+        public static bool needThis(string thisSignature)
         {
-            return wrapperInfo.ThisSignature == "t" || wrapperInfo.ThisSignature == "T";
+            return thisSignature == "t" || thisSignature == "T" || thisSignature == "s";
         }
         public static string CSValToLuaVal(string signature, string CSName)
         {
@@ -350,7 +385,7 @@ $@"// string ref Ps
             {
                 if (signature == "b")
                 { // bool
-                    return $"lapi_lua_pushboolean(L, {CSName})";
+                    return $"lapi_lua_pushboolean(L, {CSName});";
                 }
                 else if (signature == "u1" || signature == "i1"
                 || signature == "u2" || signature == "i2"
@@ -384,8 +419,7 @@ $@"// string ref Ps
             }
             else if (signature.StartsWith(TypeUtils.TypeSignatures.StructPrefix) && signature.EndsWith("_"))
             {
-                //#TODO@benp struct
-                // return `CopyValueType(isolate, context, TI${CSName[0] == '*' ? CSName.substring(1) : CSName}, ${CSName[0] == '*' ? CSName.substring(1) : `&${CSName}`}, sizeof(${CSName}))`
+                return $"GetCppObjMapper()->TryPushStruct(L, TI{CSName}), &{CSName}, sizeof({CSName}))";
             }
             return "";
         }
@@ -418,7 +452,7 @@ $@"// string ref Ps
             {   
                 if (signature == "b")
                 { // bool
-                    return $"lapi_lua_pushboolean(L, ret)";
+                    return $"lapi_lua_pushboolean(L, ret);";
                 }
                 else if (signature == "u1" || signature == "i1"
                 || signature == "u2" || signature == "i2"
@@ -441,6 +475,7 @@ $@"// string ref Ps
             }
             else if (signature.StartsWith(TypeUtils.TypeSignatures.StructPrefix) && signature.EndsWith("_"))
             {
+                return $"GetCppObjMapper()->TryPushStruct(L, TIret, &ret, sizeof({signature}));";
                 // return "info.GetReturnValue().Set(CopyValueType(isolate, context, TIret, &ret, sizeof(ret)));";
             }
             else if (signature == "o")
@@ -484,15 +519,18 @@ $@"// string ref Ps
         {
             var signature = fieldWrapperInfo.ReturnSignature;
             if ((signature.StartsWith(TypeUtils.TypeSignatures.StructPrefix) || signature.StartsWith(TypeUtils.TypeSignatures.NullableStructPrefix)) && signature.EndsWith("_"))
-            { //valuetype
-              //#TODO@benp struct
-                return "//todo struct";
+            { 
+                //valuetype
+                return $@"{SToCPPType(fieldWrapperInfo.ReturnSignature)} ret;
+    xlua:GetFieldValue({(needThis(fieldWrapperInfo.ThisSignature) ? "self, " : "nullptr, ")}(FieldInfo*)fieldInfo, offset, &ret);
+    {ReturnToLua(fieldWrapperInfo.ReturnSignature)}            
+                ";          
             }
             else
             {
                 return $@"{SToCPPType(fieldWrapperInfo.ReturnSignature)} ret;
 
-    xlua:GetFieldValue({(needThis(fieldWrapperInfo) ? "self, " : "nullptr, ")}(FieldInfo*)fieldInfo, offset, &ret);
+    xlua:GetFieldValue({(needThis(fieldWrapperInfo.ThisSignature) ? "self, " : "nullptr, ")}(FieldInfo*)fieldInfo, offset, &ret);
     
     {ReturnToLua(fieldWrapperInfo.ReturnSignature)}";
             }
@@ -503,17 +541,17 @@ $@"// string ref Ps
             return $@"
 static void ifg_{fieldWrapperInfo.Signature}(lua_State* L, void* fieldInfo, size_t offset, void* TIret) {{
     
-    {(needThis(fieldWrapperInfo) ? "auto self = lapi_xlua_getcsobj_ptr(L, 1);" : "")}
+    {(needThis(fieldWrapperInfo.ThisSignature) ? GetThis(fieldWrapperInfo.ThisSignature, true) : "")}
 
     {genGetField(fieldWrapperInfo)}
 }}
 
 static void ifs_{fieldWrapperInfo.Signature}(lua_State* L, void* fieldInfo, size_t offset, void* TIp) {{
     
-    {(needThis(fieldWrapperInfo) ? GetThis(fieldWrapperInfo.ThisSignature) : "")}
+    {(needThis(fieldWrapperInfo.ThisSignature) ? GetThis(fieldWrapperInfo.ThisSignature, true) : "")}
 
     {LuaValToCSVal(fieldWrapperInfo.ReturnSignature, "p", 3)}
-    xlua:SetFieldValue({(needThis(fieldWrapperInfo) ? "self, " : "nullptr, ")}(FieldInfo*)fieldInfo, offset, {(list.IndexOf(fieldWrapperInfo.Signature) != -1 ? "p" : "&p")});
+    xlua:SetFieldValue({(needThis(fieldWrapperInfo.ThisSignature) ? "self, " : "nullptr, ")}(FieldInfo*)fieldInfo, offset, {(list.IndexOf(fieldWrapperInfo.Signature) != -1 ? "p" : "&p")});
 }}";
         }
     }

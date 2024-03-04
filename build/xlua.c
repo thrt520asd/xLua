@@ -7,7 +7,7 @@
 */
 
 #define LUA_LIB
-
+#define IL2CPP_ENABLE //#TODO@benp 外部传入
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
@@ -826,6 +826,9 @@ LUALIB_API int xlua_csharp_error(lua_State* L)
 typedef struct {
 	int fake_id;
     unsigned int len;
+    #ifdef IL2CPP_ENABLE
+    void* typeId;
+    #endif
 	char data[1];
 } CSharpStruct;
 
@@ -1235,13 +1238,13 @@ int lapi_lua_upvalueindex(index){
 
 typedef struct {
 	int poolIdx;
-	intptr_t pointer;
+	void* pointer;
 } CSharpObject;
 
 
-LUA_API void xlua_pushcsobj_ptr(lua_State* L, intptr_t ptr, int meta_ref, int key, int need_cache, int cache_ref){
+LUA_API void xlua_pushcsobj_ptr(lua_State* L, void* ptr, int meta_ref, int key, int need_cache, int cache_ref, int poolIdx){
     CSharpObject* pointer = (CSharpObject*)lua_newuserdata(L, sizeof(CSharpObject));
-	pointer->poolIdx = key;
+	pointer->poolIdx = poolIdx;
 	pointer->pointer = ptr; 
 	
 	if (need_cache) cacheud(L, key, cache_ref);
@@ -1251,10 +1254,43 @@ LUA_API void xlua_pushcsobj_ptr(lua_State* L, intptr_t ptr, int meta_ref, int ke
 	lua_setmetatable(L, -2);
 }
 
+
 LUA_API void* xlua_getcsobj_ptr(lua_State* L,int index){
     CSharpObject* pointer = (CSharpObject*)lua_touserdata(L, index);
     if(pointer && pointer->poolIdx > -1){
         return pointer->pointer;
+    }
+	return NULL;
+}
+
+LUA_API CSharpStruct* xlua_createstruct_pointer(lua_State *L, unsigned int size, int meta_ref, void * typePointer) {
+	CSharpStruct *css = (CSharpStruct *)lua_newuserdata(L, size + sizeof(int) + sizeof(unsigned int) + sizeof(void*));
+	css->fake_id = -1;
+	css->len = size;
+    css->typeId = typePointer;
+    memset(&css->data[0], 0, size);
+    lua_rawgeti(L, LUA_REGISTRYINDEX, meta_ref);
+	lua_setmetatable(L, -2);
+	return css;
+}
+
+LUA_API CSharpStruct* xlua_pushstruct_pointer(lua_State *L, unsigned int size, void* pointer, int meta_ref, void * typePointer) {
+	CSharpStruct *css = (CSharpStruct *)lua_newuserdata(L, size + sizeof(int) + sizeof(unsigned int) + sizeof(void*));
+	css->fake_id = -1;
+    css->typeId = typePointer;
+	css->len = size;
+    memcpy(&(css->data[0]), pointer, size);
+    lua_rawgeti(L, LUA_REGISTRYINDEX, meta_ref);
+	lua_setmetatable(L, -2);
+	return css;
+}
+
+LUA_API CSharpStruct* xlua_tocss(lua_State *L, int index) {
+    if(lua_isuserdata(L, index) && is_cs_data(L, index)){
+        CSharpStruct *css = (CSharpStruct*)lua_touserdata(L, index);
+        if(css->fake_id == -1){
+            return css;
+        }
     }
 	return NULL;
 }
@@ -1304,6 +1340,9 @@ static lapi_func_ptr funcs[] = {
 (lapi_func_ptr) &lua_insert,
 (lapi_func_ptr) &lua_replace,
 (lapi_func_ptr) &lua_copy,
+(lapi_func_ptr) &xlua_createstruct_pointer,//40
+(lapi_func_ptr) &xlua_pushstruct_pointer,
+(lapi_func_ptr) &xlua_tocss,
 
 };
 

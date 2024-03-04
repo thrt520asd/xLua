@@ -52,20 +52,7 @@ namespace xlua{
         std::map<std::string, PropertyWrapData*>  PropertyMap;
     };
 
-    struct LuaClassDefinition
-    {
-        const void* TypeId;
-        const void* SuperTypeId;
-        const char* Name;
-        WrapData** CtorWrapDatas;
-        
-        std::vector<WrapData*> Ctors;
-        // std::map<std::string, WrapData*> MethodsMap;
-        // std::map<std::string, CSharpFieldInfo>  FieldMap;
-        LuaClassInfo *clsInfo;
-    };
-
-        /// @brief UnityLog
+    /// @brief UnityLog
     typedef void(*LogCallback)(const char* value);
     
     void SetLogHandler(LogCallback log);

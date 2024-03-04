@@ -4,6 +4,21 @@
 
 typedef void* lua_State;
 typedef int (*lua_CFunction) (lua_State *L);
+// lua中的C#Struct
+typedef struct {
+	int fake_id;
+    unsigned int len;
+    void* typeId;
+	char data[1];
+} CSharpStructInLua;
+
+// lua中的C#object
+typedef struct {
+	int poolIdx;
+	void* pointer;
+} CSharpObject;
+
+
 #define LUA_TNONE		(-1)
 
 #define LUA_TNIL		0
@@ -54,7 +69,7 @@ int lapi_lua_gettop(lua_State*L);
 int lapi_lua_upvalueindex(int idx);
 
 //xlua_pushcsobj_ptr
-void lapi_xlua_pushcsobj_ptr(lua_State*L, void* ptr, int meta_ref, int key, int need_cache, int cache_ref);
+void lapi_xlua_pushcsobj_ptr(lua_State*L, void* ptr, int meta_ref, int key, int need_cache, int cache_ref, int poolIdx);
 
 //lua_isnumber
 int lapi_lua_isnumber(lua_State*L, int idx);
@@ -176,6 +191,14 @@ void lapi_lua_replace(lua_State* L, int idx);
 // lua_copy
 void lapi_lua_copy(lua_State* L, int fromidx, int toidx);
 
+// xlua_createstruct_pointer
+CSharpStructInLua* lapi_xlua_createstruct_pointer(lua_State* L, unsigned int size, int meta_ref, void* typePointer);
+
+// xlua_pushstruct_pointer
+CSharpStructInLua* lapi_xlua_pushstruct_pointer(lua_State* L, unsigned int size, void* piointer, int meta_ref, void* typePointer);
+
+// xlua_tocss
+CSharpStructInLua* lapi_xlua_tocss(lua_State* L, int index);
 
 void lapi_init(lapi_func_ptr* func_array);
 

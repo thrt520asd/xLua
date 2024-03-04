@@ -128,14 +128,14 @@ namespace XLua.IL2CPP
                 LuaAPI.lua_rawset(L, -3);
             }
 
-            LuaAPI.xlua_pushasciistring(L, "__tostring");
-            LuaAPI.lua_pushstdcallcfunction(L, translator.metaFunctions.ToStringMeta);
-            LuaAPI.lua_rawset(L, -3);
+            // LuaAPI.xlua_pushasciistring(L, "__tostring");
+            // LuaAPI.lua_pushstdcallcfunction(L, translator.metaFunctions.ToStringMeta);
+            // LuaAPI.lua_rawset(L, -3);
 
             NativeAPI.HandleObjMetatable(L, -3, typeId);
 
             LuaAPI.lua_createtable(L, 0, 0); // 1 objMeta 2 clsTable
-
+            //#TODO@benp 支持UnderlyingSystemType
             LuaAPI.xlua_pushasciistring(L, "UnderlyingSystemType");
             translator.PushAny(L, type);
             LuaAPI.lua_rawset(L, -3);

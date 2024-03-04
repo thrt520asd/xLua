@@ -193,6 +193,15 @@ clsTable{
 	*luaClassInfo,
 }
 objUserData = {csObjPointer, typeId}
+
+stuct 
+C# => lua 
+C# 构造struct copyvalue2lua(memcpy 2 userData)
+lua => C#
+luaUd copyvalue2C#(memcpy 2 struct) 没有装箱拆箱问题
+gc问题交给C#和lua的gc机制管理 无需特殊处理 不需存池 
+不清楚puerTS为什么设计缓存
+另一种思路设计缓存 
 ====================================核心代码END====================================
 需要锁吗，不需要 对lua的访问有C#的锁来保证
 lua中所有的对象都是table，使用table来桥接C#的行为

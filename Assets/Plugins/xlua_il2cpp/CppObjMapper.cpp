@@ -4,6 +4,7 @@
 #include "lua_api_adapt.h"
 #include "xlua_il2cpp_def.h"
 #include "CppObjMapper.h"
+#include "LuaClassRegister.h"
 #include <vm/Exception.h>
 
 CppObjMapper::CppObjMapper(/* args */)
@@ -13,24 +14,6 @@ CppObjMapper::CppObjMapper(/* args */)
 CppObjMapper::~CppObjMapper()
 {
     
-}
-
-void CppObjMapper::SetTypeId(void* kclass, int32_t metaId){
-    auto result = ilclass2luaMetaId.insert({kclass, metaId});
-    if(result.second){
-        xlua::GLogFormatted("set type id insert success %p $d", kclass, metaId);
-    }else{
-        xlua::GLogFormatted("set type id insert success %p $d", kclass, metaId);
-
-    }
-}
-
-int32_t CppObjMapper::GetTypeId(void* kclass){
-    auto iter = ilclass2luaMetaId.find(kclass);
-    if(iter != ilclass2luaMetaId.end()){
-        return iter->second;
-    }
-    return -1;
 }
 
 
@@ -56,6 +39,59 @@ Il2CppObject* CppObjMapper::RemoveFromPool(int index) {
     return obj;
 }
 
+void* GetCSharpStructPointerWithOffset(lua_State* L, int index, int offset) {
+    auto css = lapi_xlua_tocss(L, index);
+    if (css && css->fake_id == -1) {
+        char* data = &css->data[0];
+        data -= offset;
+        return data;
+    }
+    return nullptr;
+}
+
+void* GetCSharpStructPointer(lua_State* L, int index) {
+    auto css = lapi_xlua_tocss(L, index);
+    if (css && css->fake_id == -1) {
+        return &css->data[0];
+    }
+    return nullptr;
+}
+
+
+/// 包含引用类型和值类型 引用类型返回指针，结构体返回存在userData内指针
+void* CppObjMapper::ToCppObj(lua_State *L, int index){
+    auto ptr = lapi_xlua_getcsobj_ptr(L, index);
+    if(ptr){
+        return ptr;
+    }
+   
+    return GetCSharpStructPointerWithOffset(L, index, sizeof(RuntimeObject));
+}
+
+/// 包含引用类型和值类型 引用类型返回指针，结构体返回存在userData内指针
+void* CppObjMapper::ToCppObj_Field(lua_State* L, int index) {
+    auto ptr = lapi_xlua_getcsobj_ptr(L, index);
+    if (ptr) {
+        return ptr;
+    }
+
+    return GetCSharpStructPointer(L, index);
+}
+
+
+
+bool CppObjMapper::TryPushStruct(lua_State *L, void* typeId, void* pointer, unsigned int size){
+    int32_t metaId = xlua::GetLuaClassRegister()->GetTypeIdByIl2cppClass(L, (Il2CppClass*)typeId);
+    xlua::GLogFormatted("CppObjMapper::TryPushStruct %p size %d  metaId %d  ", pointer, size, metaId);
+    if (metaId != -1){
+        lapi_xlua_pushstruct_pointer(L, size, pointer, metaId, typeId);
+        return true;
+    }else{
+        //#TODO@benp throw exception
+    }
+
+    return false;
+}
 
 bool CppObjMapper::TryPushObject(lua_State *L, void * obj){
     auto iter = objCache.find(obj);
@@ -76,15 +112,13 @@ bool CppObjMapper::TryPushObject(lua_State *L, void * obj){
     int32_t key = objCache.size();
     objCache[obj] = key;
     void* kclass = *reinterpret_cast<void**>(obj);
-    int32_t metaId = GetTypeId(kclass);
+    int32_t metaId = xlua::GetLuaClassRegister()->GetTypeIdByIl2cppClass(L, (Il2CppClass*)kclass);
     
     if(metaId != -1){
-        //todo 释放引用
-        //C#侧保持引用
         auto poolIdx = AddToPool((Il2CppObject*)obj);
 
         xlua::GLogFormatted("lapi_xlua_pushcsobj_ptr %p  metaId %d key %d cacheRef %d", obj, metaId, key, cacheRef);
-        lapi_xlua_pushcsobj_ptr(L, obj, metaId, key, 1, cacheRef);
+        lapi_xlua_pushcsobj_ptr(L, obj, metaId, key, 1, cacheRef, poolIdx);
         return true;
     }else{
         return false;

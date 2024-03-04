@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Diagnostics;
 
 namespace XLua.IL2CPP
 {
@@ -271,20 +272,29 @@ namespace XLua.IL2CPP
 
         public static string GetThisSignature(MethodBase methodBase, bool isExtensionMethod = false)
         {
-            if (methodBase is ConstructorInfo)
+            // if (methodBase is ConstructorInfo)
+            // {
+            //     UnityEngine.Debug.Log(111);
+            // }
+            // else 
+            HashSet<object> set = new HashSet<object>(); 
+            string s = "";
+            if (methodBase is MethodInfo)
             {
-                return "t";
-            }
-            else if (methodBase is MethodInfo)
-            {
+
                 bool isDelegate = typeof(MulticastDelegate).IsAssignableFrom(methodBase.DeclaringType);
                 var methodInfo = methodBase as MethodInfo;
                 if ((!isDelegate && !methodInfo.IsStatic) || isExtensionMethod)
                 {
-                    return methodBase.DeclaringType == typeof(object) ? "T" : "t";
+                    if(methodBase.DeclaringType.IsValueType){
+                        s = "s";
+                    }else{
+                        s = methodBase.DeclaringType == typeof(object) ? "T" : "t";
+                    }
                 }
             }
-            return "";
+            UnityEngine.Debug.Log($"GetThisSignature {methodBase} {s} ");
+            return s;
         }
         public static string GetMethodSignature(MethodBase methodBase, bool isDelegateInvoke = false, bool isExtensionMethod = false)
         {

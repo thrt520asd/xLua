@@ -487,7 +487,6 @@ namespace XLua
                 fqn = ((fqn and fqn .. '.') or '') .. key
                 print('metatable:__index', key, debug.traceback())
                 local obj = import_type(fqn)
-                print(3333, obj)
                 if obj == nil then
                     -- It might be an assembly, so we load it too.
                     obj = { ['.fqn'] = fqn }

@@ -93,7 +93,7 @@ struct WrapData
 
 struct LuaClassInfoHeader
 {
-    const void* TypeId;
+    const Il2CppClass* TypeId;
     const void* SuperTypeId;
     TypeIdType* Class;
     bool IsValueType;

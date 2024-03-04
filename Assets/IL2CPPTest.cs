@@ -20,6 +20,8 @@ public class IL2CPPTestBase{
     public void InheritTest(){
         Debug.Log("InheritTest");
     }
+    
+    public int baseInt = 1;
 
 }
 
@@ -74,6 +76,14 @@ public class IL2CPPTest :IL2CPPTestBase
         ctorInt = n;
     }
 
+    public IL2CPPTest() : base("NoArgument")
+    {
+
+    }
+
+    ~IL2CPPTest(){
+        Debug.Log("IL2CPPTest Dispose");
+    }
     
 
     public void Print(string str)
@@ -83,6 +93,10 @@ public class IL2CPPTest :IL2CPPTestBase
 
     public void Print(int n){
         Debug.Log("Print"+n);
+    }
+    
+    public void MethodInvoke(){
+
     }
 
     public static void StaticPrint(string str)
@@ -95,3 +109,38 @@ public class IL2CPPTest :IL2CPPTestBase
     }
     
 }
+
+public struct Il2CppTestStruct{
+    public int field1;
+    public int field2;
+
+    public static int staticField;
+
+    public Il2CppTestStruct(int n, int m){
+        Debug.Log("Il2CppTestStruct constructor 1");
+        field1 = n;
+        field2 = m;
+    }
+
+    public Il2CppTestStruct(int n)
+    {
+        Debug.Log("Il2CppTestStruct constructor 2");
+        field1 = n;
+        field2 = -1;
+    }
+
+    public int AddField1(int n ){
+        field1 += n;
+        return field1;
+    }
+
+    public static Il2CppTestStruct StaticGetStruct(){
+        return new Il2CppTestStruct(1);
+    }
+
+    public static int staticField1 = 0;
+    public static int StaticPropertyInt{get;set;}
+    
+    public static Il2CppTestStruct StaticStruct;
+}
+

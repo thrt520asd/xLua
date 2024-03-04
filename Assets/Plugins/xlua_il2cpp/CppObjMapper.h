@@ -17,9 +17,8 @@ public:
     CppObjMapper(/* args */);
     ~CppObjMapper();
     void SetTypeId(void *kclass, int32_t metaId);
-    int GetTypeId(void *kclass);
-    bool TryPushObject(lua_State
-     *L, void *obj);
+    int GetClassMetaId(void *kclass);
+    bool TryPushObject(lua_State*L, void *obj);
     void FreeObj(Il2CppObject* obj);
     void SetCacheRef(int32_t cache_ref);
     void InitObjPoolMethod(Il2CppReflectionMethod* addObjMethod, Il2CppMethodPointer* addObjMethodPointer, Il2CppReflectionMethod* removeObjMethod, Il2CppMethodPointer* removeObjMethodPointer);
@@ -27,7 +26,12 @@ public:
     int AddToPool(Il2CppObject* obj);
 
     Il2CppObject* RemoveFromPool(int index);
-    
+
+    void *ToCppObj(lua_State *L, int index);
+
+    void* ToCppObj_Field(lua_State* L, int index);
+
+    bool TryPushStruct(lua_State *L, void *typeId, void *pointer, unsigned int size);
 };
 
 CppObjMapper* GetCppObjMapper();

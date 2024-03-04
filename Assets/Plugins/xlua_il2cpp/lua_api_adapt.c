@@ -36,12 +36,12 @@ int lapi_lua_upvalueindex(int idx){
 }
 
 //xlua_pushcsobj_ptr
-typedef void (*lapi_xlua_pushcsobj_ptrType)(lua_State*L, void* ptr, int meta_ref, int key, int need_cache, int cache_ref);
+typedef void (*lapi_xlua_pushcsobj_ptrType)(lua_State*L, void* ptr, int meta_ref, int key, int need_cache, int cache_ref, int poolIdx);
 
 static lapi_xlua_pushcsobj_ptrType lapi_xlua_pushcsobj_ptr_ptr;
 
-void lapi_xlua_pushcsobj_ptr(lua_State*L, void* ptr, int meta_ref, int key, int need_cache, int cache_ref){
-    return lapi_xlua_pushcsobj_ptr_ptr(L, ptr, meta_ref, key, need_cache, cache_ref);
+void lapi_xlua_pushcsobj_ptr(lua_State*L, void* ptr, int meta_ref, int key, int need_cache, int cache_ref, int poolIdx){
+    return lapi_xlua_pushcsobj_ptr_ptr(L, ptr, meta_ref, key, need_cache, cache_ref, poolIdx);
 }
 
 
@@ -370,6 +370,33 @@ void lapi_lua_copy(lua_State* L,  int fromidx, int toidx) {
     return lapi_lua_copy_ptr(L, fromidx, toidx);
 }
 
+// xlua_createstruct_pointer
+typedef CSharpStructInLua* (*lapi_xlua_createstruct_pointerType)(lua_State* L, unsigned int size, int meta_ref, void * typePointer);
+
+static lapi_xlua_createstruct_pointerType lapi_xlua_createstruct_pointer_ptr;
+
+CSharpStructInLua* lapi_xlua_createstruct_pointer(lua_State* L, unsigned int size, int meta_ref, void* typePointer) {
+    return lapi_xlua_createstruct_pointer_ptr(L, size, meta_ref, typePointer);
+}
+
+// xlua_pushstruct_pointer
+typedef CSharpStructInLua* (*lapi_xlua_pushstruct_pointerType)(lua_State* L, unsigned int size, void* pointer, int meta_ref, void* typePointer);
+
+static lapi_xlua_pushstruct_pointerType lapi_xlua_pushstruct_pointer_ptr;
+
+CSharpStructInLua* lapi_xlua_pushstruct_pointer(lua_State* L, unsigned int size, void* pointer, int meta_ref, void* typePointer) {
+    return lapi_xlua_pushstruct_pointer_ptr(L, size, pointer, meta_ref, typePointer);
+}
+
+// xlua_tocss
+typedef CSharpStructInLua* (*lapi_xlua_tocssType)(lua_State* L, int index);
+
+static lapi_xlua_tocssType lapi_xlua_tocss_ptr;
+
+CSharpStructInLua* lapi_xlua_tocss(lua_State* L, int index) {
+    return lapi_xlua_tocss_ptr(L, index);
+}
+
 void lapi_init(lapi_func_ptr* func_array){
     lapi_lua_touserdata_ptr = (lapi_lua_touserdataType)func_array[0];
     lapi_lua_type_ptr = (lapi_lua_typeType)func_array[1];
@@ -411,6 +438,9 @@ void lapi_init(lapi_func_ptr* func_array){
     lapi_lua_insert_ptr = (lapi_lua_insertType)func_array[37];
     lapi_lua_replace_ptr = (lapi_lua_replaceType)func_array[38];
     lapi_lua_copy_ptr = (lapi_lua_copyType)func_array[39];
+    lapi_xlua_createstruct_pointer_ptr = (lapi_xlua_createstruct_pointerType)func_array[40];
+    lapi_xlua_pushstruct_pointer_ptr = (lapi_xlua_pushstruct_pointerType)func_array[41];
+    lapi_xlua_tocss_ptr = (lapi_xlua_tocssType)func_array[42];
 }
 
 EXTERN_C_END
