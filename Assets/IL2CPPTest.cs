@@ -28,6 +28,8 @@ public class IL2CPPTestBase{
 [LuaCallCSharp]
 public class IL2CPPTest :IL2CPPTestBase
 {
+    public Il2CppTestStruct il2CppTestStruct;
+
     protected virtual int InheirtInt {
         get;set;
     }
@@ -58,6 +60,7 @@ public class IL2CPPTest :IL2CPPTestBase
         }
     }
 
+
     // public int Item{
     //     get{
     //         return 1;
@@ -67,7 +70,6 @@ public class IL2CPPTest :IL2CPPTestBase
     private int ctorInt = 1;
     public IL2CPPTest(string name) : base(name)
     {
-        
         
     }
 
@@ -115,6 +117,7 @@ public struct Il2CppTestStruct{
     public int field2;
 
     public static int staticField;
+
 
     public Il2CppTestStruct(int n, int m){
         Debug.Log("Il2CppTestStruct constructor 1");

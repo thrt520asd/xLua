@@ -1,5 +1,19 @@
-#include "il2cpp-config.h"
+/// luastack model 
+/// clsMethod 1 params ...
+/// clsProperty 1 clsTbl 2 key 3 params ...
+/// clsField 1 clsTbl 2 key 3 params ...
+/// clsConstructor 1 obj 2params
+/// objMethod 1 obj 2 params ...
+/// objProperty 1 obj 2 key 3 params ...
+/// objField 1 obj 2 key 3 params ...
+/// objIndexer 1 obj 2 param1(key) 3 param2(value)
+//#TODO@benp 资源释放 malloc new
+//#TODO@benp gc delegate tostring 函数参数默认值
+//#TODO@benp 继承实现
+//#TODO@benp 静态变量初始化 IL2CPP_RUNTIME_CLASS_INIT
+//#TODO@benp klass 2 runtimeType
 
+#include "il2cpp-config.h"
 #include "codegen/il2cpp-codegen.h"
 #include "il2cpp-api.h"
 #include "il2cpp-class-internals.h"
@@ -24,12 +38,10 @@
 #include "LuaClassRegister.h"
 #include "CppObjMapper.h"
 static_assert(IL2CPP_GC_BOEHM, "Only BOEHM GC supported!");
-//#TODO@benp 资源释放 malloc new
-//#TODO@benp gc delegate tostring 函数参数默认值
-//#TODO@benp 继承实现
-//#TODO@benp 静态变量初始化 IL2CPP_RUNTIME_CLASS_INIT
-//#TODO@benp klass 2 runtimeType
+
 using namespace il2cpp::vm;
+
+
 
 namespace xlua
 {
@@ -234,12 +246,11 @@ namespace xlua
         g_typeofTypedValue = il2cpp_codegen_class_from_type(type->type);
     }
 
-    static int PropertyCallback(lua_State* L, WrapData* wrapDatas, int index = 1) {
+    static int PropertyCallback(lua_State* L, WrapData* wrapDatas, int offset = 3) {
         try
         {
-            //#TODO@benp 
             bool checkArgument = false;
-            if (wrapDatas->Wrap(wrapDatas->Method, wrapDatas->MethodPointer, L, checkArgument, wrapDatas, index)) {
+            if (wrapDatas->Wrap(wrapDatas->Method, wrapDatas->MethodPointer, L, checkArgument, wrapDatas, offset)) {
                 return 1;
             }
             else {
@@ -268,16 +279,14 @@ namespace xlua
         return 0;
     }
 
-    static int MethodCallback(lua_State *L, WrapData** wrapDatas, int index = 1) {
+    static int MethodCallback(lua_State *L, WrapData** wrapDatas, int paramOffset) {
         try 
         {
-            //#TODO@benp 
-
              bool checkArgument = *wrapDatas && *(wrapDatas + 1);
              checkArgument = false;
              while(*wrapDatas)
              {
-                 if ((*wrapDatas)->Wrap((*wrapDatas)->Method, (*wrapDatas)->MethodPointer, L, checkArgument, *wrapDatas, index))
+                 if ((*wrapDatas)->Wrap((*wrapDatas)->Method, (*wrapDatas)->MethodPointer, L, checkArgument, *wrapDatas, paramOffset))
                  {
                      return 1;
                  }
@@ -1783,17 +1792,17 @@ namespace xlua
         data->TypeInfos[index] = typeInfo;
     }
 
-    void* GetCSharpStructPointer(lua_State* L, int index){
+    void* GetCSharpStructPointer(lua_State* L, int index, void* typeId){
         auto css = lapi_xlua_tocss(L, index);
-        if(css && css->fake_id == -1){
+        if(css && css->fake_id == -1 && (typeId == css->typeId) ){
             return &css->data[0];
         }
         return nullptr;
     }
 
-    void* GetCSharpStructPointerWithOffset(lua_State* L, int index, int offset) {
+    void* GetCSharpStructPointerWithOffset(lua_State* L, int index, int offset, void* typeId) {
         auto css = lapi_xlua_tocss(L, index);
-        if (css && css->fake_id == -1) {
+        if (css && css->fake_id == -1 &&  typeId == css->typeId) {
             char* data = &css->data[0];
             data -= offset;
             return data;
@@ -1894,8 +1903,8 @@ namespace xlua
                 if (propertyIter != clsInfo->PropertyMap.end()) {
                     auto propertyInfo = propertyIter->second;
                     if (propertyInfo->IsStatic && propertyInfo->SetWrapData) {
-                        lapi_lua_replace(L, 2);
-                        return xlua::PropertyCallback(L, propertyInfo->SetWrapData, 1);
+                        // -1 cls -2 key -3 params
+                        return xlua::PropertyCallback(L, propertyInfo->SetWrapData, 3);
                     }
                 }
 
@@ -1915,14 +1924,15 @@ namespace xlua
         return 0;
     }
 
-    int MethodCallbackLuaWrap(lua_State* L) {
+    // luaStack 1 c#obj 2 param1 3param2
+    int MethodCallbackLuaWrap(lua_State* L, int paramOffset = 0) {
         
         if (lapi_lua_isuserdata(L, lapi_lua_upvalueindex(1))) {
             const void* pointer = lapi_lua_topointer(L, lapi_lua_upvalueindex(1));
             void* p1 = const_cast<void*>(pointer);
             xlua::WrapData** wrapDatas = reinterpret_cast<xlua::WrapData**>(p1);
             if (wrapDatas) {
-                return xlua::MethodCallback(L, wrapDatas);
+                return xlua::MethodCallback(L, wrapDatas, paramOffset);
             }
         }
 
@@ -1960,7 +1970,8 @@ namespace xlua
                     if(method->IsStatic){
                         xlua::WrapData** p = method->OverloadDatas.data();
                         lapi_lua_pushlightuserdata(L, p);
-                        lapi_lua_pushcclosure(L, MethodCallbackLuaWrap, 1);
+                        // lapi_lua_pushcclosure(L, MethodCallbackLuaWrap, 1);
+                        lapi_lua_pushcclosure(L, [](lua_State* L){return MethodCallbackLuaWrap(L, 1);}, 1);
                         //cache method
                         lapi_lua_pushvalue(L, lapi_lua_upvalueindex(2)); //-1 table   -2closure 
                         if(lapi_lua_type(L, lapi_lua_gettop(L)) == LUA_TTABLE){
@@ -1979,7 +1990,7 @@ namespace xlua
                 if (propertyIter != clsInfo->PropertyMap.end()) {
                     auto propertyInfo = propertyIter->second;
                     if (propertyInfo->IsStatic && propertyInfo->GetWrapData) {
-                        return xlua::PropertyCallback(L, propertyInfo->GetWrapData, 1);
+                        return xlua::PropertyCallback(L, propertyInfo->GetWrapData, 3);
                     }
                 }
 
@@ -2011,15 +2022,11 @@ namespace xlua
                 if (GetCppObjMapper()->TryPushObject(L, ptr)) {
                     //-1 obj -2 param
                     lapi_lua_replace(L, 1);
-                    //参数索引整体+1
-                    for (int i = lapi_lua_gettop(L); i >= 2; i--)
-                    {
-                        lapi_lua_copy(L, i, i+1);
-                    }
+                    
                     
                     if (clsInfo->CtorWrapDatas) {
                         //#TODO@benp 构造函数失败  清除引用
-                        if (xlua::MethodCallback(L, clsInfo->CtorWrapDatas, -1)) {
+                        if (xlua::MethodCallback(L, clsInfo->CtorWrapDatas, 2)) {
                             lapi_lua_settop(L, 1);
                             return 1;
                         }
@@ -2034,8 +2041,8 @@ namespace xlua
                     return 0;
                 }
             }else{
-                auto klass = clsInfo->TypeId;
-                
+                 auto klass = clsInfo->TypeId;
+                 //auto size = Class::GetValueSize,((Il2CppClass*)klass, NULL);
                  auto size = klass->native_size > 0 ? klass->native_size : (klass->instance_size - sizeof(Il2CppObject));
                 //auto size = klass->instance_size;
                 int32_t typeId = GetLuaClassRegister()->GetTypeIdByIl2cppClass(L, klass);
@@ -2045,11 +2052,7 @@ namespace xlua
                     //-1 obj -2 param
                     lapi_lua_replace(L, 1);
                     //参数索引整体+1
-                    for (int i = lapi_lua_gettop(L); i >= 2; i--)
-                    {
-                        lapi_lua_copy(L, i, i+1);
-                    }
-                    if (xlua::MethodCallback(L, clsInfo->CtorWrapDatas, -1)) {
+                    if (MethodCallback(L, clsInfo->CtorWrapDatas, 2)) {
                         lapi_lua_settop(L, 1);
                         return 1;
                     }
@@ -2110,7 +2113,7 @@ namespace xlua
                     auto propertyInfo = propertyInfoIter->second;
                     if (!propertyInfo->IsStatic && propertyInfo->SetWrapData) {
                         lapi_lua_replace(L, 2);
-                        xlua::PropertyCallback(L, propertyInfo->SetWrapData, 1);
+                        xlua::PropertyCallback(L, propertyInfo->SetWrapData);
                         return 0;
                     }
                 }
@@ -2136,7 +2139,7 @@ namespace xlua
                     // find method 
                     auto propertyInfo = propertyIter->second;
                     if (!propertyInfo->IsStatic && propertyInfo->SetWrapData) {
-                        PropertyCallback(L, propertyInfo->SetWrapData);
+                        PropertyCallback(L, propertyInfo->SetWrapData, 2);
                         return 0;
                     }
                 }
@@ -2190,7 +2193,7 @@ namespace xlua
                     if(!method->IsSetter && !method->IsGetter && !method->IsStatic){
                         xlua::WrapData** p = method->OverloadDatas.data();
                         lapi_lua_pushlightuserdata(L, p);
-                        lapi_lua_pushcclosure(L, MethodCallbackLuaWrap, 1);
+                        lapi_lua_pushcclosure(L, [](lua_State* L){return MethodCallbackLuaWrap(L, 2);}, 1);
                         //cache method
                         lapi_lua_pushvalue(L, lapi_lua_upvalueindex(2)); //-1 table   -2closure 
                         if(lapi_lua_type(L, lapi_lua_gettop(L)) == LUA_TTABLE){
@@ -2213,7 +2216,7 @@ namespace xlua
                     // find method  
                     auto propertyInfo = propertyInfoIter->second;
                     if (!propertyInfo->IsStatic && propertyInfo->GetWrapData) {
-                        return xlua::PropertyCallback(L, propertyInfo->GetWrapData, 1);
+                        return xlua::PropertyCallback(L, propertyInfo->GetWrapData);
                     }
                 }
 
@@ -2239,7 +2242,7 @@ namespace xlua
                     // find method 
                     auto propertyInfo = propertyIter->second;
                     if (!propertyInfo->IsStatic && propertyInfo->GetWrapData) {
-                        PropertyCallback(L, propertyInfo->GetWrapData);
+                        PropertyCallback(L, propertyInfo->GetWrapData, 2);
                         return 1;
                     }
                 }

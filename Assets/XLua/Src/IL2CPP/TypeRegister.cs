@@ -170,7 +170,7 @@ namespace XLua.IL2CPP
                 bool isDelegate = typeof(MulticastDelegate).IsAssignableFrom(type) && type != typeof(MulticastDelegate);
                 var superTypeId = (isDelegate || type == typeof(object) || type.BaseType == null) ? IntPtr.Zero : NativeAPI.GetTypeId(type.BaseType);
                 var typeId = NativeAPI.GetTypeId(type);
-                UnityEngine.Debug.Log("typeId" + typeId);
+                // UnityEngine.Debug.Log("typeId" + typeId);
                 //create C++ struct 
                 typeInfo = NativeAPI.CreateCSharpTypeInfo(type.ToString(), typeId, superTypeId, typeId, type.IsValueType, isDelegate, isDelegate ? TypeUtils.GetMethodSignature(type.GetMethod("Invoke"), true) : "");
                 if (typeInfo == IntPtr.Zero)
@@ -246,7 +246,7 @@ namespace XLua.IL2CPP
                         if (method == null) return;
                         List<Type> usedTypes = TypeUtils.GetUsedTypes(method, isExtensionMethod);
                         var signature = TypeUtils.GetMethodSignature(method, false, isExtensionMethod);
-                        UnityEngine.Debug.Log(string.Format("add method {0}, usedTypeCount:{1} name: {2} isGetter{3} isSetter{4}", method, usedTypes.Count, name, isGetter, isSetter));
+                        // UnityEngine.Debug.Log(string.Format("add method {0}, usedTypeCount:{1} name: {2} isGetter{3} isSetter{4}", method, usedTypes.Count, name, isGetter, isSetter));
 
                         var wrapper = GetWrapperFunc(method, signature);
                         if (wrapper == IntPtr.Zero)
@@ -329,7 +329,7 @@ namespace XLua.IL2CPP
                         if (method == null) return;
                         List<Type> usedTypes = TypeUtils.GetUsedTypes(method, false);
                         var signature = TypeUtils.GetMethodSignature(method, false, false);
-                        UnityEngine.Debug.Log(string.Format("add property {0}, usedTypeCount:{1} name: {2} isGetter{3} ", name, usedTypes.Count, name, isGetter));
+                        // UnityEngine.Debug.Log(string.Format("add property {0}, usedTypeCount:{1} name: {2} isGetter{3} ", name, usedTypes.Count, name, isGetter));
 
                         var wrapper = GetWrapperFunc(method, signature);
                         if (wrapper == IntPtr.Zero)

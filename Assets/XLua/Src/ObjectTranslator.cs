@@ -137,6 +137,7 @@ namespace XLua
         static List<Type> IL2CPPTestType = new List<Type>(){
             typeof(IL2CPPTest),
             typeof(IL2CPPTestBase),
+            typeof(Il2CppTestStruct),
             typeof(UnityEngine.Vector3),
         };
         Dictionary<Type, bool> loaded_types = new Dictionary<Type, bool>();
