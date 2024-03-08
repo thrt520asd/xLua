@@ -1,12 +1,16 @@
 /// luastack model 
+/// paramOffset 第一个参数所在lua栈的位置 如果没有参数填最后一个参数的位置
 /// clsMethod 1 params ...
-/// clsProperty 1 clsTbl 2 key 3 params ...
+/// clsProperty get 1 clsTbl
+/// clsProperty set 1 clsTbl 2 params ...
 /// clsField 1 clsTbl 2 key 3 params ...
 /// clsConstructor 1 obj 2params
 /// objMethod 1 obj 2 params ...
-/// objProperty 1 obj 2 key 3 params ...
+/// objProperty get 1 obj
+/// objProperty set 1 obj 2 params ...
 /// objField 1 obj 2 key 3 params ...
 /// objIndexer 1 obj 2 param1(key) 3 param2(value)
+
 //#TODO@benp 资源释放 malloc new
 //#TODO@benp gc delegate tostring 函数参数默认值
 //#TODO@benp 继承实现
@@ -37,16 +41,13 @@
 #include "xlua_il2cpp_def.h"
 #include "LuaClassRegister.h"
 #include "CppObjMapper.h"
+#include "Converter.cpp"
 static_assert(IL2CPP_GC_BOEHM, "Only BOEHM GC supported!");
 
 using namespace il2cpp::vm;
 
-
-
 namespace xlua
 {
-
-    
     static xlua::UnityExports g_unityExports;
     intptr_t GetMethodPointer(Il2CppReflectionMethod* method)
     {
@@ -115,7 +116,13 @@ namespace xlua
         }
     }
 
-
+    void* GetCSharpStructPointer(lua_State* L, int index, void* typeId) {
+        auto css = lapi_xlua_tocss(L, index);
+        if (css && css->fake_id == -1 && (typeId ? true : typeId == css->typeId)) {
+            return &css->data[0];
+        }
+        return nullptr;
+    }
 
     static int throw_exception2lua(lua_State * L, const char* msg){
         return lapi_luaL_error(L, msg);
@@ -249,13 +256,13 @@ namespace xlua
     static int PropertyCallback(lua_State* L, WrapData* wrapDatas, int offset = 3) {
         try
         {
-            bool checkArgument = false;
+            bool checkArgument = true;
             if (wrapDatas->Wrap(wrapDatas->Method, wrapDatas->MethodPointer, L, checkArgument, wrapDatas, offset)) {
                 return 1;
             }
             else {
 
-                return throw_exception2lua(L, "invalid arguments");
+                return throw_exception2lua(L, "invalid arguments for PropertyCallback");
             }
         }
         catch (Il2CppExceptionWrapper& exception)
@@ -283,7 +290,6 @@ namespace xlua
         try 
         {
              bool checkArgument = *wrapDatas && *(wrapDatas + 1);
-             checkArgument = false;
              while(*wrapDatas)
              {
                  if ((*wrapDatas)->Wrap((*wrapDatas)->Method, (*wrapDatas)->MethodPointer, L, checkArgument, *wrapDatas, paramOffset))
@@ -554,7 +560,21 @@ namespace xlua
     //     }
     //     return nullptr;
     // }
+    Il2CppClass* GetLuaObjCls(lua_State *L, int index){
+        if(lapi_lua_isuserdata(L, index)){
+            void* ptr = lapi_xlua_getcsobj_ptr(L, index);
+            if(ptr){
+                auto obj = (Il2CppObject*) ptr;
+                return obj->klass;
+            }
 
+            CSharpStructInLua* css = lapi_xlua_tocss(L, index);
+            if(css){
+                return (Il2CppClass*)css->typeId;
+            }
+        }
+        return nullptr;
+    }
 
     union PrimitiveValueType
     {
@@ -571,261 +591,240 @@ namespace xlua
         double r8;
     };
 
-    // Il2CppObject* JsValueToCSRef(Il2CppClass *klass, pesapi_env env, pesapi_value jsval)
-    // {
-    //     if (klass == il2cpp_defaults.void_class) return nullptr;
+    Il2CppObject* LuaValueToCSRef(Il2CppClass *klass, lua_State* L, int index)
+    {
+        if (klass == il2cpp_defaults.void_class) return nullptr;
         
-    //     if (!klass)
-    //     {
-    //         klass = il2cpp_defaults.object_class;
-    //     }        
+        if (!klass)
+        {
+            klass = il2cpp_defaults.object_class;
+        }        
         
-    //     const Il2CppType *type = Class::GetType(klass);
-    //     int t = type->type;
+        const Il2CppType *type = Class::GetType(klass);
+        int t = type->type;
         
-    //     PrimitiveValueType data;
+        PrimitiveValueType data;
         
-    //     void* toBox = &data;
+        void* toBox = &data;
         
-    //     Il2CppObject* ret = nullptr;
+        Il2CppObject* ret = nullptr;
         
-    // handle_underlying:
-    //     switch (t)
-    //     {
-    //         case IL2CPP_TYPE_I1:
-    //         {
-    //             data.i1 = (int8_t)pesapi_get_value_int32(env, jsval);
-    //             break;
-    //         }
-    //         case IL2CPP_TYPE_BOOLEAN:
-    //         {
-    //             data.u1 = (uint8_t)pesapi_get_value_bool(env, jsval);
-    //         }
-    //         case IL2CPP_TYPE_U1:
-    //         {
-    //             data.u1 = (uint8_t)pesapi_get_value_uint32(env, jsval);
-    //             break;
-    //         }
-    //         case IL2CPP_TYPE_I2:
-    //         {
-    //             data.i2 = (int16_t)pesapi_get_value_int32(env, jsval);
-    //             break;
-    //         }
-    //         case IL2CPP_TYPE_U2:
-    //         {
-    //             data.u2 = (uint16_t)pesapi_get_value_uint32(env, jsval);
-    //             break;
-    //         }
-    //         case IL2CPP_TYPE_CHAR:
-    //         {
-    //             data.c = (Il2CppChar)pesapi_get_value_uint32(env, jsval);
-    //             break;
-    //         }
-    // #if IL2CPP_SIZEOF_VOID_P == 4
-    //         case IL2CPP_TYPE_I:
-    // #endif
-    //         case IL2CPP_TYPE_I4:
-    //         {
-    //             data.i4 = (int32_t)pesapi_get_value_int32(env, jsval);
-    //             break;
-    //         }
-    // #if IL2CPP_SIZEOF_VOID_P == 4
-    //         case IL2CPP_TYPE_U:
-    // #endif
-    //         case IL2CPP_TYPE_U4:
-    //         {
-    //             data.u4 = (uint32_t)pesapi_get_value_uint32(env, jsval);
-    //             break;
-    //         }
-    // #if IL2CPP_SIZEOF_VOID_P == 8
-    //         case IL2CPP_TYPE_I:
-    // #endif
-    //         case IL2CPP_TYPE_I8:
-    //         {
-    //             data.i8 = pesapi_get_value_int64(env, jsval);
-    //             break;
-    //         }
-    // #if IL2CPP_SIZEOF_VOID_P == 8
-    //         case IL2CPP_TYPE_U:
-    // #endif
-    //         case IL2CPP_TYPE_U8:
-    //         {
-    //             data.u8 = pesapi_get_value_uint64(env, jsval);
-    //             break;
-    //         }
-    //         case IL2CPP_TYPE_R4:
-    //         {
-    //             data.r4 = (float)pesapi_get_value_double(env, jsval);
-    //             break;
-    //         }
-    //         case IL2CPP_TYPE_R8:
-    //         {
-    //             data.r8 = pesapi_get_value_double(env, jsval);
-    //             break;
-    //         }
-    //         case IL2CPP_TYPE_STRING:
-    //         {
-    //             size_t bufsize = 0;
-    //             auto str = pesapi_get_value_string_utf8(env, jsval, nullptr, &bufsize);
-    //             if (str)
-    //             {
-    //                 return (Il2CppObject*)il2cpp::vm::String::NewWrapper(str);
-    //             }
-    //             std::vector<char> buff;
-    //             buff.resize(bufsize + 1);
-    //             str = pesapi_get_value_string_utf8(env, jsval, buff.data(), &bufsize);
-    //             if (str)
-    //             {
-    //                 buff[bufsize] = '\0';
-    //                 return (Il2CppObject*)il2cpp::vm::String::NewWrapper(str);
-    //             }
-    //             return nullptr;
-    //         }
-    //         case IL2CPP_TYPE_SZARRAY:
-    //         case IL2CPP_TYPE_CLASS:
-    //         case IL2CPP_TYPE_OBJECT:
-    //         case IL2CPP_TYPE_ARRAY:
-    //         case IL2CPP_TYPE_FNPTR:
-    //         case IL2CPP_TYPE_PTR:
-    //         {
-    //             if (pesapi_is_function(env, jsval))
-    //             {
-    //                 if (IsDelegate(klass))
-    //                 {
-    //                     return (Il2CppObject*)g_unityExports.FunctionToDelegate(env, jsval, klass, true);
-    //                 }
-    //                 return nullptr;
-    //             }
-    //             auto ptr = pesapi_get_native_object_ptr(env, jsval);
-    //             if (!ptr)
-    //             {
-    //                 if ((klass == g_typeofArrayBuffer || klass == il2cpp_defaults.object_class) && pesapi_is_binary(env, jsval)) 
-    //                 {
-    //                     RuntimeObject* ret = il2cpp::vm::Object::New(g_typeofArrayBuffer);
+    handle_underlying:
+        switch (t)
+        {
+            case IL2CPP_TYPE_I1:
+            {
+                data.i1 = (int8_t)lapi_lua_tonumber(L, index);
+                break;
+            }
+            case IL2CPP_TYPE_BOOLEAN:
+            {
+                data.u1 = (uint8_t)lapi_lua_toboolean(L, index);
+            }
+            case IL2CPP_TYPE_U1:
+            {
+                data.u1 = (uint8_t)lapi_lua_tonumber(L, index);
+                break;
+            }
+            case IL2CPP_TYPE_I2:
+            {
+                data.i2 = (int16_t)lapi_lua_tonumber(L, index);
+                break;
+            }
+            case IL2CPP_TYPE_U2:
+            {
+                data.u2 = (uint16_t)lapi_lua_tonumber(L, index);
+                break;
+            }
+            case IL2CPP_TYPE_CHAR:
+            {
+                data.c = (Il2CppChar)lapi_lua_tonumber(L, index);
+                break;
+            }
+    #if IL2CPP_SIZEOF_VOID_P == 4
+            case IL2CPP_TYPE_I:
+    #endif
+            case IL2CPP_TYPE_I4:
+            {
+                data.i4 = (int32_t)lapi_lua_tonumber(L, index);
+                break;
+            }
+    #if IL2CPP_SIZEOF_VOID_P == 4
+            case IL2CPP_TYPE_U:
+    #endif
+            case IL2CPP_TYPE_U4:
+            {
+                data.u4 = (uint32_t)lapi_lua_tonumber(L, index);
+                break;
+            }
+    #if IL2CPP_SIZEOF_VOID_P == 8
+            case IL2CPP_TYPE_I:
+    #endif
+            case IL2CPP_TYPE_I8:
+            {
+                data.i8 = (L, index);
+                break;
+            }
+    #if IL2CPP_SIZEOF_VOID_P == 8
+            case IL2CPP_TYPE_U:
+    #endif
+            case IL2CPP_TYPE_U8:
+            {
+                data.u8 = lapi_lua_toint64(L, index);
+                break;
+            }
+            case IL2CPP_TYPE_R4:
+            {
+                data.r4 = (float)lapi_lua_tonumber(L, index);
+                break;
+            }
+            case IL2CPP_TYPE_R8:
+            {
+                data.r8 = lapi_lua_tonumber(L, index);
+                break;
+            }
+            case IL2CPP_TYPE_STRING:
+            {
+                auto str = lapi_lua_tolstring(L, index);
+                if (str)
+                {
+                    return (Il2CppObject*)il2cpp::vm::String::NewWrapper(str);
+                }
+                return nullptr;
+            }
+            case IL2CPP_TYPE_SZARRAY:
+            case IL2CPP_TYPE_CLASS:
+            case IL2CPP_TYPE_OBJECT:
+            case IL2CPP_TYPE_ARRAY:
+            case IL2CPP_TYPE_FNPTR:
+            case IL2CPP_TYPE_PTR:
+            {
+                // todo delegate
+                // if (pesapi_is_function(env, jsval))
+                // {
+                //     if (IsDelegate(klass))
+                //     {
+                //         return (Il2CppObject*)g_unityExports.FunctionToDelegate(env, jsval, klass, true);
+                //     }
+                //     return nullptr;
+                // }
+                
+                auto ptr = GetCppObjMapper()->ToCppObj(L, index);;
+                if (!ptr)
+                {
+                    // if ((klass == g_typeofArrayBuffer || klass == il2cpp_defaults.object_class) && pesapi_is_binary(env, jsval)) 
+                    // {
+                    //     RuntimeObject* ret = il2cpp::vm::Object::New(g_typeofArrayBuffer);
 
-    //                     const MethodInfo* ctor = il2cpp_class_get_method_from_name(g_typeofArrayBuffer, ".ctor", 3);
-    //                     typedef void (*NativeCtorPtr)(Il2CppObject* ___this, void*, int, int, const MethodInfo* method);
+                    //     const MethodInfo* ctor = il2cpp_class_get_method_from_name(g_typeofArrayBuffer, ".ctor", 3);
+                    //     typedef void (*NativeCtorPtr)(Il2CppObject* ___this, void*, int, int, const MethodInfo* method);
                         
-    //                     void* data;
-    //                     size_t length;
-    //                     data = pesapi_get_value_binary(env, jsval, &length);
-    //                     ((NativeCtorPtr)ctor->methodPointer)(ret, data, length, 0, ctor);   
-    //                     return ret;
-    //                 }
-    //                 if ((klass == g_typeofPersistentObjectInfo || klass == il2cpp_defaults.object_class) && pesapi_is_object(env, jsval))
-    //                 {
-    //                     Il2CppClass* persistentObjectInfoClass = g_typeofPersistentObjectInfo;
+                    //     void* data;
+                    //     size_t length;
+                    //     data = pesapi_get_value_binary(env, jsval, &length);
+                    //     ((NativeCtorPtr)ctor->methodPointer)(ret, data, length, 0, ctor);   
+                    //     return ret;
+                    // }
+                    // if ((klass == g_typeofPersistentObjectInfo || klass == il2cpp_defaults.object_class) && pesapi_is_object(env, jsval))
+                    // {
+                    //     Il2CppClass* persistentObjectInfoClass = g_typeofPersistentObjectInfo;
                         
-    //                     RuntimeObject* ret = (RuntimeObject*)g_unityExports.GetRuntimeObjectFromPersistentObject(env, jsval);
-    //                     if (ret == nullptr) 
-    //                     {
-    //                         ret = il2cpp::vm::Object::New(persistentObjectInfoClass);
+                    //     RuntimeObject* ret = (RuntimeObject*)g_unityExports.GetRuntimeObjectFromPersistentObject(env, jsval);
+                    //     if (ret == nullptr) 
+                    //     {
+                    //         ret = il2cpp::vm::Object::New(persistentObjectInfoClass);
 
-    //                         const MethodInfo* ctor = il2cpp_class_get_method_from_name(persistentObjectInfoClass, ".ctor", 0);
-    //                         typedef void (*NativeCtorPtr)(Il2CppObject* ___this, const MethodInfo* method);
-    //                         ((NativeCtorPtr)ctor->methodPointer)(ret, ctor);
+                    //         const MethodInfo* ctor = il2cpp_class_get_method_from_name(persistentObjectInfoClass, ".ctor", 0);
+                    //         typedef void (*NativeCtorPtr)(Il2CppObject* ___this, const MethodInfo* method);
+                    //         ((NativeCtorPtr)ctor->methodPointer)(ret, ctor);
                             
-    //                         PersistentObjectInfo* objectInfo = reinterpret_cast<PersistentObjectInfo*>(ret + 1);
-    //                         g_unityExports.SetPersistentObject(env, jsval, objectInfo);
-    //                         g_unityExports.SetRuntimeObjectToPersistentObject(env, jsval, ret);
-    //                     }
-    //                     return ret;
-    //                 }
-    //                 if (klass == il2cpp_defaults.object_class)
-    //                 {
-    //                     if (pesapi_is_string(env, jsval))
-    //                     {
-    //                         t = IL2CPP_TYPE_STRING;
-    //                         klass = il2cpp_defaults.string_class;
-    //                     }
-    //                     else if (pesapi_is_double(env, jsval))
-    //                     {
-    //                         t = IL2CPP_TYPE_R8;
-    //                         klass = il2cpp_defaults.double_class;
-    //                     }
-    //                     else if (pesapi_is_int32(env, jsval))
-    //                     {
-    //                         t = IL2CPP_TYPE_I4;
-    //                         klass = il2cpp_defaults.int32_class;
-    //                     }
-    //                     else if (pesapi_is_uint32(env, jsval))
-    //                     {
-    //                         t = IL2CPP_TYPE_U4;
-    //                         klass = il2cpp_defaults.uint32_class;
-    //                     }
-    //                     else if (pesapi_is_int64(env, jsval))
-    //                     {
-    //                         t = IL2CPP_TYPE_I8;
-    //                         klass = il2cpp_defaults.int64_class;
-    //                     }
-    //                     else if (pesapi_is_uint64(env, jsval))
-    //                     {
-    //                         t = IL2CPP_TYPE_U8;
-    //                         klass = il2cpp_defaults.uint64_class;
-    //                     }
-    //                     else if (pesapi_is_boolean(env, jsval))
-    //                     {
-    //                         t = IL2CPP_TYPE_BOOLEAN;
-    //                         klass = il2cpp_defaults.boolean_class;
-    //                     }
-    //                     else
-    //                     {
-    //                         goto return_nothing;
-    //                     }
-    //                     goto handle_underlying;
-    //                 }
-    //             return_nothing:
-    //                 return nullptr;
-    //             }
-    //             auto objClass = (Il2CppClass *)pesapi_get_native_object_typeid(env, jsval);
-    //             if (klass == il2cpp_defaults.object_class && g_typeofTypedValue && Class::IsAssignableFrom(g_typeofTypedValue, objClass))
-    //             {
-    //                 const MethodInfo* get_Target = il2cpp_class_get_method_from_name(objClass, "get_Target", 0);
-    //                 if (get_Target)
-    //                 {
-    //                     typedef Il2CppObject* (*NativeFuncPtr)(void* ___this, const MethodInfo* method);
-    //                     return ((NativeFuncPtr)get_Target->methodPointer)(ptr, get_Target);
-    //                 }
-    //             }
-    //             if (Class::IsAssignableFrom(klass, objClass))
-    //             {
-    //                 return Class::IsValuetype(objClass) ? Object::Box(objClass, ptr) : (Il2CppObject*)ptr;
-    //             }
-    //             return nullptr;
-    //         }
-    //         case IL2CPP_TYPE_VALUETYPE:
-    //             /* note that 't' and 'type->type' can be different */
-    //             if (type->type == IL2CPP_TYPE_VALUETYPE && Type::IsEnum(type))
-    //             {
-    //                 t = Class::GetEnumBaseType(Type::GetClass(type))->type;
-    //                 goto handle_underlying;
-    //             }
-    //             else
-    //             {
-    //                 auto objClass = (Il2CppClass *)pesapi_get_native_object_typeid(env, jsval);
-    //                 if (!Class::IsAssignableFrom(klass, objClass))
-    //                 {
-    //                     return nullptr;
-    //                 }
-    //                 toBox = pesapi_get_native_object_ptr(env, jsval);
-    //                 if (!toBox)
-    //                 {
-    //                     std::string message = "expect ValueType: ";
-    //                     message += klass->name;
-    //                     message += ", by got null";
-    //                     Exception::Raise(Exception::GetInvalidOperationException(message.c_str()));
-    //                     return nullptr;
-    //                 }
-    //             }
-    //             break;
-    //         case IL2CPP_TYPE_GENERICINST:
-    //             t = GenericClass::GetTypeDefinition(type->data.generic_class)->byval_arg.type;
-    //             goto handle_underlying;
-    //         default:
-    //             IL2CPP_ASSERT(0);
-    //     }
-    //     return Object::Box(klass, toBox);
-    // }
+                    //         PersistentObjectInfo* objectInfo = reinterpret_cast<PersistentObjectInfo*>(ret + 1);
+                    //         g_unityExports.SetPersistentObject(env, jsval, objectInfo);
+                    //         g_unityExports.SetRuntimeObjectToPersistentObject(env, jsval, ret);
+                    //     }
+                    //     return ret;
+                    // }
+                    if (klass == il2cpp_defaults.object_class)
+                    {
+                        if (lapi_lua_isstring(L, index))
+                        {
+                            t = IL2CPP_TYPE_STRING;
+                            klass = il2cpp_defaults.string_class;
+                        }
+                        else if (lapi_lua_isnumber(L, index))
+                        {
+                            t = IL2CPP_TYPE_R8;
+                            klass = il2cpp_defaults.double_class;
+                        }
+                        else if (lapi_lua_isinteger(L, index))
+                        {
+                            t = IL2CPP_TYPE_I4;
+                            klass = il2cpp_defaults.int32_class;
+                        }
+                        else if (lapi_lua_isint64(L, index))
+                        {
+                            t = IL2CPP_TYPE_I8;
+                            klass = il2cpp_defaults.int64_class;
+                        }
+                        else if (lapi_lua_isuint64(L, index))
+                        {
+                            t = IL2CPP_TYPE_U8;
+                            klass = il2cpp_defaults.uint64_class;
+                        }
+                        else if (lapi_lua_isboolean(L, index))
+                        {
+                            t = IL2CPP_TYPE_BOOLEAN;
+                            klass = il2cpp_defaults.boolean_class;
+                        }
+                        else
+                        {
+                            goto return_nothing;
+                        }
+                        goto handle_underlying;
+                    }
+                return_nothing:
+                    return nullptr;
+                }
+                auto objClass = GetLuaObjCls(L, index);
+                if (Class::IsAssignableFrom(klass, objClass))
+                {
+                    return Class::IsValuetype(objClass) ? Object::Box(objClass, ptr) : (Il2CppObject*)ptr;
+                }
+                return nullptr;
+            }
+            case IL2CPP_TYPE_VALUETYPE:
+                /* note that 't' and 'type->type' can be different */
+                if (type->type == IL2CPP_TYPE_VALUETYPE && Type::IsEnum(type))
+                {
+                    t = Class::GetEnumBaseType(Type::GetClass(type))->type;
+                    goto handle_underlying;
+                }
+                else
+                {
+                    auto objClass = GetLuaObjCls(L, index);
+                    if (!Class::IsAssignableFrom(klass, objClass))
+                    {
+                        return nullptr;
+                    }
+                    toBox = GetCSharpStructPointer(L, index, nullptr);
+                    if (!toBox)
+                    {
+                        std::string message = "expect ValueType: ";
+                        message += klass->name;
+                        message += ", by got null";
+                        Exception::Raise(Exception::GetInvalidOperationException(message.c_str()));
+                        return nullptr;
+                    }
+                }
+                break;
+            case IL2CPP_TYPE_GENERICINST:
+                t = GenericClass::GetTypeDefinition(type->data.generic_class)->byval_arg.type;
+                goto handle_underlying;
+            default:
+                IL2CPP_ASSERT(0);
+        }
+        return Object::Box(klass, toBox);
+    }
 
     // pesapi_value CSRefToJsValue(pesapi_env env, Il2CppClass *targetClass, Il2CppObject* obj)
     // {
@@ -1627,6 +1626,10 @@ namespace xlua
         return ret;
     }
 
+    void* LuaStr2CSharpString(lua_State*L, int index){
+        const char* str = lapi_lua_tolstring(L, index);
+        return String::NewWrapper(str);
+    }
 
     void ReleaseCSharpTypeInfo(LuaClassInfo* classInfo)
     {
@@ -1792,22 +1795,34 @@ namespace xlua
         data->TypeInfos[index] = typeInfo;
     }
 
-    void* GetCSharpStructPointer(lua_State* L, int index, void* typeId){
-        auto css = lapi_xlua_tocss(L, index);
-        if(css && css->fake_id == -1 && (typeId == css->typeId) ){
-            return &css->data[0];
-        }
-        return nullptr;
-    }
+
 
     void* GetCSharpStructPointerWithOffset(lua_State* L, int index, int offset, void* typeId) {
         auto css = lapi_xlua_tocss(L, index);
-        if (css && css->fake_id == -1 &&  typeId == css->typeId) {
+        if (css && css->fake_id == -1 && (typeId ? true : typeId == css->typeId)) {
             char* data = &css->data[0];
             data -= offset;
             return data;
         }
         return nullptr;
+    }
+
+    bool CheckIsStruct(lua_State* L, int index, void* typeId){
+        auto css = lapi_xlua_tocss(L, index);
+
+        return css && css->typeId == typeId;
+    }
+
+    bool CheckIsClass(lua_State* L, int index, void* typeId){
+        auto ptr = lapi_xlua_getcsobj_ptr(L, index);
+        if(ptr){
+            void* kclass = *reinterpret_cast<void**>(ptr);
+            if(Class::IsAssignableFrom((Il2CppClass*)typeId, (Il2CppClass*)kclass)){
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     #include "FunctionBridge.Gen.h"
@@ -1903,8 +1918,10 @@ namespace xlua
                 if (propertyIter != clsInfo->PropertyMap.end()) {
                     auto propertyInfo = propertyIter->second;
                     if (propertyInfo->IsStatic && propertyInfo->SetWrapData) {
-                        // -1 cls -2 key -3 params
-                        return xlua::PropertyCallback(L, propertyInfo->SetWrapData, 3);
+                        // -1 cls -2 key -3 param
+                        lapi_lua_replace(L, 2);
+                        // -1 cls -2 param
+                        return xlua::PropertyCallback(L, propertyInfo->SetWrapData, 2);
                     }
                 }
 
@@ -1925,7 +1942,7 @@ namespace xlua
     }
 
     // luaStack 1 c#obj 2 param1 3param2
-    int MethodCallbackLuaWrap(lua_State* L, int paramOffset = 0) {
+    int MethodCallbackLuaWrap(lua_State* L, int paramOffset = 2) {
         
         if (lapi_lua_isuserdata(L, lapi_lua_upvalueindex(1))) {
             const void* pointer = lapi_lua_topointer(L, lapi_lua_upvalueindex(1));
@@ -1990,7 +2007,8 @@ namespace xlua
                 if (propertyIter != clsInfo->PropertyMap.end()) {
                     auto propertyInfo = propertyIter->second;
                     if (propertyInfo->IsStatic && propertyInfo->GetWrapData) {
-                        return xlua::PropertyCallback(L, propertyInfo->GetWrapData, 3);
+                        lapi_lua_pop(L, 1);
+                        return xlua::PropertyCallback(L, propertyInfo->GetWrapData, 2);
                     }
                 }
 
@@ -2051,7 +2069,6 @@ namespace xlua
                 if (clsInfo->CtorWrapDatas) {
                     //-1 obj -2 param
                     lapi_lua_replace(L, 1);
-                    //参数索引整体+1
                     if (MethodCallback(L, clsInfo->CtorWrapDatas, 2)) {
                         lapi_lua_settop(L, 1);
                         return 1;
@@ -2112,8 +2129,11 @@ namespace xlua
                 if (propertyInfoIter != clsInfo->PropertyMap.end()) {
                     auto propertyInfo = propertyInfoIter->second;
                     if (!propertyInfo->IsStatic && propertyInfo->SetWrapData) {
-                        lapi_lua_replace(L, 2);
-                        xlua::PropertyCallback(L, propertyInfo->SetWrapData);
+                        //-1 obj -2 key -3 param
+                        lapi_lua_pop(L, 1);
+                        //-1 obj -2 param
+                        xlua::PropertyCallback(L, propertyInfo->SetWrapData, 2);
+
                         return 0;
                     }
                 }
@@ -2216,7 +2236,10 @@ namespace xlua
                     // find method  
                     auto propertyInfo = propertyInfoIter->second;
                     if (!propertyInfo->IsStatic && propertyInfo->GetWrapData) {
-                        return xlua::PropertyCallback(L, propertyInfo->GetWrapData);
+                        // -1 obj -2 key
+                        lapi_lua_pop(L, 1);
+                        // -1 obj
+                        return xlua::PropertyCallback(L, propertyInfo->GetWrapData, 2);
                     }
                 }
 
@@ -2288,8 +2311,79 @@ namespace xlua
          }
         return 0;
     }
+
+    template <typename T>
+    struct OptionalParameter
+    {
+        static T GetPrimitive(lua_State* L, int index, const void* methodInfo, WrapData* wrapData, int paramIndex)
+        {
+            if (lapi_lua_gettop(L) >= index)
+            {
+                return converter::Converter<T>::toCpp(context, index);
+            }
+            else
+            {
+                if (wrapData->IsExtensionMethod) ++paramIndex;
+                auto pret = (T*)GetDefaultValuePtr((MethodInfo*)methodInfo, paramIndex);
+                if (pret)
+                {
+                    return *pret;
+                }
+                return {};
+            }
+            
+        }
+        static T GetValueType(lua_State* L, int index, const void* methodInfo, WrapData* wrapData, int paramIndex)
+        {
+            if (lapi_lua_gettop(L) >= index)
+            {
+                return GetCSharpStructPointer(L, index);
+            }
+            else
+            {
+                if (wrapData->IsExtensionMethod) ++paramIndex;
+                auto pret = (T*)GetDefaultValuePtr((MethodInfo*)methodInfo, paramIndex);
+                if (pret) 
+                {
+                    return *pret;
+                }
+                T ret;
+                memset(&ret, 0, sizeof(T));
+                return ret;
+            }
+        }
+        
+        //todo 需要深入研究下模板
+        static void* GetString(lua_State* L, int index, const void* methodInfo, WrapData* wrapData, int paramIndex)
+        {
+            if (lapi_lua_gettop(L) >= index)
+            {
+                return LuaStr2CSharpString(L, index);
+            }
+            else
+            {
+                if (wrapData->IsExtensionMethod) ++paramIndex;
+                return xlua::GetDefaultValuePtr((MethodInfo*)methodInfo, paramIndex);
+            }
+        }
+        
+        static void* GetRefType(lua_State* L, int index, const void* methodInfo, WrapData* wrapData, int paramIndex, const void* typeId)
+        {
+            if (lapi_lua_gettop(L) >= index)
+            {
+                return LuaValueToCSRef(L, typeId, index);
+            }
+            else
+            {
+                if (wrapData->IsExtensionMethod) ++index;
+                return GetDefaultValuePtr((MethodInfo*)methodInfo, index);
+            }
+        }
+    };
     xlua::UnityExports* GetUnityExports()
     {
+        //void* a = OptionalParameter<void*>::GetString(nullptr, 0, nullptr, nullptr, 0);
+        //int32_t i32 = converter::Converter<int32_t>::toCpp(nullptr, 1);
         g_unityExports.ObjectAllocate = &ObjectAllocate;
         g_unityExports.DelegateAllocate = &DelegateAllocate; 
         g_unityExports.ValueTypeDeallocate = &ValueTypeFree;
@@ -2316,9 +2410,6 @@ namespace xlua
         g_unityExports.GetArrayElementTypeId = Class::GetElementClass;
         g_unityExports.GetArrayLength = Array::GetLength;
         g_unityExports.GetDefaultValuePtr = GetDefaultValuePtr;
-        // g_unityExports.ReflectionWrapper = ReflectionWrapper;
-        // g_unityExports.ReflectionGetFieldWrapper = ReflectionGetFieldWrapper;
-        // g_unityExports.ReflectionSetFieldWrapper = ReflectionSetFieldWrapper;
         g_unityExports.SizeOfRuntimeObject = sizeof(RuntimeObject);
         return &g_unityExports;
     }
@@ -2331,7 +2422,13 @@ extern "C" {
 #endif
 
 
-void InitialXLua_IL2CPP(lapi_func_ptr* func_array)
+int InitXluaIl2Cpp(lua_State* L){
+    
+    return 0;
+}
+
+
+void InitialXLua_IL2CPP(lapi_func_ptr* func_array, lua_State* L)
 {
     InternalCalls::Add("XLua.IL2CPP.NativeAPI::GetMethodPointer(System.Reflection.MethodBase)", (Il2CppMethodPointer)xlua::GetMethodPointer);
     InternalCalls::Add("XLua.IL2CPP.NativeAPI::GetMethodInfoPointer(System.Reflection.MethodBase)", (Il2CppMethodPointer)xlua::GetMethodInfoPointer);
@@ -2341,7 +2438,6 @@ void InitialXLua_IL2CPP(lapi_func_ptr* func_array)
     InternalCalls::Add("XLua.IL2CPP.NativeAPI::TypeIdToType(System.IntPtr)", (Il2CppMethodPointer)xlua::TypeIdToType);
     InternalCalls::Add("XLua.IL2CPP.NativeAPI::GetFieldOffset(System.Reflection.FieldInfo,System.Boolean)", (Il2CppMethodPointer)xlua::GetFieldOffset);
     InternalCalls::Add("XLua.IL2CPP.NativeAPI::GetFieldInfoPointer(System.Reflection.FieldInfo)", (Il2CppMethodPointer)xlua::GetFieldInfoPointer);
-    // InternalCalls::Add("XLua.IL2CPP.NativeAPI::GetUnityExports()", (Il2CppMethodPointer)xlua::GetUnityExports);
     InternalCalls::Add("XLua.IL2CPP.NativeAPI::CreateCSharpTypeInfo(System.String,System.IntPtr,System.IntPtr,System.IntPtr,System.Boolean,System.Boolean,System.String)", (Il2CppMethodPointer)xlua::CreateCSharpTypeInfo);
     InternalCalls::Add("XLua.IL2CPP.NativeAPI::SetTypeInfo(System.IntPtr,System.Int32,System.IntPtr)", (Il2CppMethodPointer)xlua::SetTypeInfo);
     InternalCalls::Add("XLua.IL2CPP.NativeAPI::FindWrapFunc(System.String)", (Il2CppMethodPointer)xlua::FindWrapFunc);
@@ -2412,6 +2508,7 @@ void HandleObjMetatable(lua_State *L, int metatable_idx, Il2CppClass* typeId){
 }
 
 void HandleClsMetaTable(lua_State *L, int clstable_idx, Il2CppClass* typeId){
+    //#TODO@benp 采用非闭包
     lapi_lua_pushstring(L, "__call");
     lapi_lua_pushlightuserdata(L, typeId);
     lapi_lua_pushcclosure(L, xlua::ClsConstructorCallBack, 1);
@@ -2426,7 +2523,10 @@ void HandleClsMetaTable(lua_State *L, int clstable_idx, Il2CppClass* typeId){
     lapi_lua_pushlightuserdata(L, typeId);
     lapi_lua_pushcclosure(L, xlua::ClsSetCallBack, 1);
     lapi_lua_settable(L, clstable_idx);
-    
+
+    lapi_lua_pushstring(L, "UnderlyingSystemType");
+    lapi_lua_pushlightuserdata(L, typeId);
+    lapi_lua_settable(L, clstable_idx);
 }
 
 

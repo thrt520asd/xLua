@@ -81,7 +81,7 @@ namespace XLua
                 rawL = LuaAPI.luaL_newstate();
 #if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
                 XLua.IL2CPP.NativeAPI.SetLogCallback(XLua.IL2CPP.NativeAPI.Log);
-                XLua.IL2CPP.NativeAPI.InitialXLua_IL2CPP(XLua.IL2CPP.NativeAPI.xlua_getImpl());
+                XLua.IL2CPP.NativeAPI.InitialXLua_IL2CPP(XLua.IL2CPP.NativeAPI.xlua_getImpl(), rawL);
 #endif
                 //Init Base Libs
                 LuaAPI.luaopen_xlua(rawL);

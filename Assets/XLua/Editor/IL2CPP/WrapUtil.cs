@@ -10,8 +10,13 @@ using UnityScript.Steps;
 using UnityEngine.Timeline;
 namespace XLua.IL2CPP.Editor.Generator
 {
-    public class WrapUtil
+    
+    public static class WrapUtil
     {
+        public static bool IsStruct(this string str){
+            return (str.StartsWith(TypeUtils.TypeSignatures.StructPrefix) || str.StartsWith(TypeUtils.TypeSignatures.NullableStructPrefix)) && str.EndsWith("_");
+        }
+
         static Dictionary<string, string> PrimitiveSignatureCppTypeMap = new System.Collections.Generic.Dictionary<string, string>{
             {"v", "void"},
             {"b", "bool"},
@@ -63,18 +68,19 @@ namespace XLua.IL2CPP.Editor.Generator
         /// <returns></returns>
         public static string GenFuncWrapper(SignatureInfo signatureInfo)
         {
-            var selfCnt = needThis(signatureInfo.ThisSignature) ? 1 : 0;
-            return $@"
-//{signatureInfo.CsName}
-static bool w_{signatureInfo.Signature}(void* method, MethodPointer methodPointer, lua_State *L, bool checkLuaArgument, WrapData* wrapData, int index = 1) {{
+            // var selfCnt = needThis(signatureInfo.ThisSignature) ? 2 : 1;
+            var selfCnt = 0;
+            return 
+$@"//{signatureInfo.CsName}
+static bool w_{signatureInfo.Signature}(void* method, MethodPointer methodPointer, lua_State *L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {{
     {WrapUtil.DeclareTypeInfo(signatureInfo)}
+    auto length = lapi_lua_gettop(L);
     if({(signatureInfo.ParameterSignatures.Any(s => s[0] == 'D') ? "true" : "checkLuaArgument")}){{
-        auto length = lapi_lua_gettop(L);
-        if ({WrapUtil.GenObjArgsLenCheck(signatureInfo.ThisSignature, signatureInfo.ParameterSignatures)}) return false;
-        {String.Join("\n\t\t", signatureInfo.ParameterSignatures.Select<string, string>((s, index) => WrapUtil.CheckLuaArgument(s, index+selfCnt+1)))}
+        if ({WrapUtil.GenArgsLenCheck(signatureInfo.ParameterSignatures)}) return false;
+        {String.Join("\n\t\t", signatureInfo.ParameterSignatures.Select<string, string>((s, index) => WrapUtil.CheckLuaArgument(s, index+selfCnt)))}
     }}
     {WrapUtil.GetThis(signatureInfo.ThisSignature)}
-    {String.Join("\n\t", signatureInfo.ParameterSignatures.Select((s, index) => WrapUtil.LuaValToCSVal(s, "p" + index, GetParamIndex(signatureInfo.ThisSignature, index + 1+selfCnt), IsStatic(signatureInfo.ThisSignature))))}
+    {String.Join("\n\t", signatureInfo.ParameterSignatures.Select((s, index) => WrapUtil.LuaValToCSVal(s, "p" + index,  index + selfCnt, true)))}
     
     typedef {WrapUtil.SToCPPType(signatureInfo.ReturnSignature)} (*FuncToCall)({(WrapUtil.needThis(signatureInfo.ThisSignature) ? "void*, " : "")}{String.Join("", signatureInfo.ParameterSignatures.Select((s, i) => $"{WrapUtil.SToCPPType(s)} p{i}, "))}const void* method);
     {(signatureInfo.ReturnSignature != "v" ? $"{WrapUtil.SToCPPType(signatureInfo.ReturnSignature)} ret = " : "")}((FuncToCall)methodPointer)({(WrapUtil.needThis(signatureInfo.ThisSignature) ? "self, " : "")} {String.Join("", signatureInfo.ParameterSignatures.Select((s, i) => $"p{i}, "))}method);
@@ -129,19 +135,13 @@ static bool w_{signatureInfo.Signature}(void* method, MethodPointer methodPointe
         }
 
 
-        private static string GenObjArgsLenCheck(string thisSignature, List<string> parameterSignatures){
+        private static string GenArgsLenCheck(List<string> parameterSignatures){
             var requireNum = 0;
-            var selfCnt = needThis(thisSignature) ? 1 : 0;
+            
             for (; requireNum < parameterSignatures.Count && parameterSignatures[requireNum][0] != 'V' && parameterSignatures[requireNum][0] != 'D'; ++requireNum) { }
-            return requireNum != parameterSignatures.Count ? $"length < {requireNum + selfCnt}" : $"length != {parameterSignatures.Count + selfCnt}";
+            return requireNum != parameterSignatures.Count ? $"length < paramOffset + {requireNum - 1} " : $"length != paramOffset + {parameterSignatures.Count - 1}";
         }
 
-        public static string GenArgsLenCheck(List<string> parameterSignatures)
-        {
-            var requireNum = 0;
-            for (; requireNum < parameterSignatures.Count && parameterSignatures[requireNum][0] != 'V' && parameterSignatures[requireNum][0] != 'D'; ++requireNum) { }
-            return requireNum != parameterSignatures.Count ? $"length < {requireNum}" : $"length != {parameterSignatures.Count}";
-        }
 
         public static string CheckLuaArgument(string signature, int index)
         {
@@ -149,13 +149,15 @@ static bool w_{signatureInfo.Signature}(void* method, MethodPointer methodPointe
             string TypeInfoIndex = index.ToString();
             if (signature[0] == 'D') //optional
             {
-                ret += $"if (length > {index} && ";
+                ret += $"if (length > {index} + paramOffset && ";
                 signature = signature.Substring(1);
             }
             else if (signature[0] == 'V') //array
             {
                 TypeInfoIndex = index + "_V";
-                ret += $"auto TIp{index}_V = GetArrayElementTypeId(TIp{index}); if (!info[{index}]->IsNullOrUndefined() && ";
+                //#TODO@benp check null
+                ret += $@"auto TIp{index}_V = GetArrayElementTypeId(TIp{index}); 
+                if (!info[{index}]->IsNullOrUndefined() && ";
                 signature = signature.Substring(1);
             }
             else
@@ -167,32 +169,33 @@ static bool w_{signatureInfo.Signature}(void* method, MethodPointer methodPointe
             {
                 if (signature == "b")
                 {
-                    ret += $"!lapi_lua_isboolean(L, {index})) return false;";
+                    ret += $"!lapi_lua_isboolean(L, {index} + paramOffset)) return false;";
                 }
                 else if (signature == "u1" || signature == "i1" || signature == "i2" || signature == "u2" || signature == "u4" || signature == "i4"
                  || signature == "u8" || signature == "i8"
                 )
                 {
-                    ret += $"!lapi_lua_isinteger(L, {index})) return false;";
+                    ret += $"!lapi_lua_isnumber(L, {index} + paramOffset)) return false;";
                 }
                 else if (signature == "c")
                 {
-                    ret += $"!lapi_lua_isinteger(L, {index})) return false;";
+                    ret += $"!lapi_lua_isnumber(L, {index} + paramOffset)) return false;";
                 }
                 else if (signature == "r8" || signature == "r4")
                 {
-                    ret += $"!lapi_lua_isnumber(L, {index})) return false;";
+                    ret += $"!lapi_lua_isnumber(L, {index} + paramOffset)) return false;";
                 }else{
                     ret = $"// invalid check lua args signature {signature}";
                 }
             }
             else if (signature == "p" || signature == "Pv")
-            { // IntPtr, void*
-                ret += "true){/*#TODO@benp 类型检查*/};";
+            { 
+                // IntPtr, void*
+                ret +=$"!lapi_lua_isuserdata(L, {index} + paramOffset)) return false;";
             }
             else if (signature[0] == 'P')
             {
-                ret += "true){/*#TODO@benp 类型检查*/};";
+                ret +=$"!lapi_lua_isuserdata(L, {index} + paramOffset)) return false;";
             }
             else if (signature == "a")
             {
@@ -200,11 +203,11 @@ static bool w_{signatureInfo.Signature}(void* method, MethodPointer methodPointe
             }
             else if (signature == "s")
             {
-                ret += $"!lapi_lua_isstring(L, {index})) return false;";
+                ret += $"!lapi_lua_isstring(L, {index} + paramOffset)) return false;";
             }
             else if (signature == "o")
             {
-                ret += "true){/*#TODO@benp 类型检查*/};";
+                ret += $"!CheckIsClass(L, {index} + paramOffset, TIp{index})) return false;";
             }
             else if (signature == "O")
             {
@@ -212,8 +215,7 @@ static bool w_{signatureInfo.Signature}(void* method, MethodPointer methodPointe
             }
             else if ((signature.StartsWith(TypeUtils.TypeSignatures.StructPrefix) || signature.StartsWith(TypeUtils.TypeSignatures.NullableStructPrefix)) && signature.EndsWith("_"))
             {
-                ret += "true){/*#TODO@benp 类型检查*/};";
-                // ret += $"(!info[{index}]->IsObject() || !IsAssignableFrom(TIp{TypeInfoIndex}, GetTypeId(info[{index}].As<v8::Object>())))) return false;";
+                ret +=$"!CheckIsStruct(L, {index} + paramOffset, TIp{index})) return false;";
             }
             else
             {
@@ -233,138 +235,152 @@ static bool w_{signatureInfo.Signature}(void* method, MethodPointer methodPointe
                 return index;
             }
         }
-
+        /// struct 什么时候需要offset 需要调用struct的成员方法时 该struct需要offset 其他时刻均不需要
         public static string GetThis(string signature, bool field = false)
         {
             if (signature == "t")
             {
                 return $"auto self = GetCppObjMapper()->ToCppObj{(field?"_Field":"")}(L, 1);";
-                // return "auto self = lapi_xlua_getcsobj_ptr(L, 1);";
             }
             else if (signature == "T")
             {
                 return $"auto self = GetCppObjMapper()->ToCppObj{(field?"_Field":"")}(L, 1);";
-                // return "auto self = lapi_xlua_getcsobj_ptr(L, 1);";
             }
             else if (signature == "s" ){
                 return $"auto self = GetCppObjMapper()->ToCppObj{(field?"_Field":"")}(L, 1);";
-                // return $"auto self = (void*)GetCSharpStructPointer(L, 1);";
             }
             
             return "";
         }
 
-        public static string LuaValToCSVal(string signature, string CSName, int index, bool isStatic = false)
+                  
+        public static string LuaValToCSVal(string signature, string CSName, int index, bool needOffset = false, bool isField = false)
         {
             if (signature == TypeUtils.TypeSignatures.String)
             {
                 return
 $@"// string s
-    const char* str{index} =  lapi_lua_tolstring(L, {index});
-    auto {CSName} = il2cpp::vm::String::New(str{index});
-";
+    void* {CSName} = LuaStr2CSharpString(L, {index});";
             }
+            //string ref
             else if (signature == "Ps")
-            { //string ref
+            { 
                 return
 $@"// string ref Ps
     void* u{CSName} = nullptr; // string ref
     void** {CSName} = &u{CSName}
-    const char* str{index} =  lapi_lua_tolstring(L, {index});
-    auto u{CSName} = il2cpp::vm::String::New(str{index});
+    auto u{CSName} = LuaStr2CSharpString(L, {index}{ (needOffset?"+ paramOffset":"")});
 ";
             }
+            //object
             else if (signature == "O" || signature == "o" || signature == "a")
-            { //object
-                return $@"// object
-    void* {CSName} = lapi_xlua_getcsobj_ptr(L, {index});";
+            { 
+                return 
+$@"// object
+    void* {CSName} = (void*)xlua::LuaValueToCSRef((Il2CppClass*)TI{CSName}, L, {index}{ (needOffset?"+ paramOffset":"")});";
             }
+            //object ref
             else if (signature == "Po" || signature == "PO" || signature == "Pa")
             {
-                return $@"// object ref Po/PO
+                return 
+$@"// object ref Po/PO
     void* u${CSName} = nullptr; // object ref
     void** ${CSName} = &u${CSName};
-    u${CSName} = lapi_xlua_getcsobj_ptr(L, {index});";
+    u${CSName} = (void*)LuaValueToCSRef((Il2CppClass*)TI{CSName},L, {index}{ (needOffset?"+ paramOffset":"")});";
             }
+            //struct
             else if ((signature.StartsWith(TypeUtils.TypeSignatures.StructPrefix) || signature.StartsWith(TypeUtils.TypeSignatures.NullableStructPrefix)) && signature.EndsWith("_"))
             {
-                if(isStatic){
-                    return $@"//LuaValToCSVal struct
-    {signature} {CSName} = *({signature}*)GetCSharpStructPointer(L, {index});
-                ";
-                }else{
-
-                return $@"//LuaValToCSVal struct 指针偏移sizeof(RunTimeObject)
-    {signature} {CSName} = *({signature}*)GetCSharpStructPointerWithOffset(L, {index}, sizeof(RuntimeObject));
-                ";
-                }
+                    return 
+$@"//LuaValToCSVal struct
+    {signature} {CSName} = *({signature}*)GetCSharpStructPointer(L, {index}{ (needOffset?"+ paramOffset":"")}, TIp{(isField?"":index.ToString())});";
             }
             else if ((signature.StartsWith('P' + TypeUtils.TypeSignatures.StructPrefix) || signature.StartsWith('P' + TypeUtils.TypeSignatures.NullableStructPrefix)) && signature.EndsWith("_"))
             { 
                 var realS = signature.Substring(1);
-                if(isStatic){
-                return $@"//LuaValToCSVal Pstruct todo 容错保护
-    {realS}* {CSName} = ({realS}*)GetCSharpStructPointer(L, {index});
+                return 
+$@"//LuaValToCSVal Pstruct todo 容错保护
+    {realS}* {CSName} = ({realS}*)GetCSharpStructPointer(L, {index}{ (needOffset?"+ paramOffset":"")}, TIp{(isField? "": index.ToString())});
     if(!{CSName}){{
         {realS} u{CSName};
         memset(&u{CSName}, 0, sizeof({realS}));
         {CSName} = &u{CSName};
-    }}
-                ";
-                }else{
-
-                return $@"//LuaValToCSVal Pstruct todo 容错保护
-    {realS}* {CSName} = ({realS}*)GetCSharpStructPointerWithOffset(L, {index}, sizeof(RuntimeObject));
-    if(!{CSName}){{
-        {realS} u{CSName};
-        memset(&u{CSName}, 0, sizeof({realS}));
-        {CSName} = &u{CSName};
-    }}
-                ";
-                }
+    }}";
             }
             else if (signature[0] == 'P' && signature != "Pv")
             {
-
+                return $"{signature} {CSName} = nullptr;//todo pointer 但是不是指针";
+                // return "{signature} {CSName} = lapi_lua_touserdata();//todo array";
             }
             else if (signature[0] == 'V') // array 
             {
-
+                return $"{signature} {CSName} = nullptr;//todo array";
             }
             else if (signature[0] == 'D') // optional 
             {
-
+                var str = signature.Substring(1);
+                if(PrimitiveSignatureCppTypeMap.ContainsKey(str)){
+                    return 
+$@"//LuaValToCSVal primitive default
+    {PrimitiveSignatureCppTypeMap[str]} {CSName} = xlua::OptionalParameter<{PrimitiveSignatureCppTypeMap[str]}>::GetPrimitive(L,{index}{ (needOffset?"+ paramOffset":"")}, method, wrapData, {index});";
+                }
+                else if(str == "s"){
+                    return 
+$@"//LuaValToCSVal string default
+    void* {CSName} = nullptr;
+    if (lapi_lua_gettop(L) >= {index}{ (needOffset?"+ paramOffset":"")}){{
+        {CSName} = LuaStr2CSharpString(L, {index}{ (needOffset?"+ paramOffset":"")});
+    }}
+    else{{
+        {CSName} =  xlua::GetDefaultValuePtr((MethodInfo*)methodInfo, wrapData->IsExtensionMethod?++{index}:{index});
+    }}
+    //void* {CSName} = xlua::OptionalParameter<void*>::GetString(L,{index}{ (needOffset?"+ paramOffset":"")}, method, wrapData, {index});";
+                }
+                else if(str == "o" || str == "O" || str == "a"){
+                    return 
+$@"//LuaValToCSVal ref with default
+    void* {CSName} = xlua::OptionalParameter<void*>::GetRefType(L,{index}{ (needOffset?"+ paramOffset":"")}, method, wrapData, {index});";
+                }
+                else if(str.IsStruct()){
+                    return 
+$@"//LuaValToCSVal valuetype  with default
+    {str} {CSName} = xlua::OptionalParameter<{str}>::GetValueType(L,{index}{ (needOffset?"+ paramOffset":"")}, method, wrapData, {index});";
+                }
+                else{
+                    return 
+$@"//LuaValToCSVal unknow type with default
+    void* {CSName} = nullptr;";
+                }
             }
             else 
             {
                 // any
 
                 return $@"//signature {signature}
-    {SToCPPType(signature)} {CSName} = {GetArgValue(signature, index)}";
+    {SToCPPType(signature)} {CSName} = {GetArgValue(signature, index, false, needOffset)}";
             }
-            return $"//unknown type {signature}";
         }
 
-        public static string GetArgValue(string signature, int index, bool isRef = false){
+        public static string GetArgValue(string signature, int index, bool isRef = false, bool needOffset = false){
             if(PrimitiveSignatureCppTypeMap.ContainsKey(signature)){
                 //#TODO@benp ref
                 if(signature == "u1" || signature == "i1" ||
                 signature == "u2" || signature == "i2" ||
                 signature == "u4" || signature == "i4" ||
                 signature == "u8" || signature == "i8"){
-                    return $"lapi_xlua_tointeger(L, {index});";
+                    return $"lapi_xlua_tointeger(L, {index}{ (needOffset?"+ paramOffset":"")});";
                 }else if(signature == "c"){
-                    return $"(Il2CppChar)lapi_xlua_tointeger(L, {index});";
+                    return $"(Il2CppChar)lapi_xlua_tointeger(L, {index}{ (needOffset?"+ paramOffset":"")});";
                 }else if(signature == "r8" || signature == "r4"){
-                    return $"lapi_lua_tonumber(L, {index});";
+                    return $"lapi_lua_tonumber(L, {index}{ (needOffset?"+ paramOffset":"")});";
                 }else if(signature == "b"){
-                    return $"(bool)lapi_lua_toboolean(L, {index});";
+                    return $"lapi_lua_toboolean(L, {index}{ (needOffset?"+ paramOffset":"")});";
                 }else if(signature == "v"){
                     Debug.LogError("invalid signature v");
                     return "nullptr";
                 }
             }else if((signature == "Pv" || signature == "p") && !isRef){
-                return "nullptr /*todo pointer*/";
+                return $"lapi_lua_touserdata(L, {index}{ (needOffset?"+ paramOffset":"")});";
             }else{
                 //default value
                 return "nullptr /*todo default value*/";
@@ -414,7 +430,7 @@ $@"// string ref Ps
             }
             else if (signature.StartsWith(TypeUtils.TypeSignatures.NullableStructPrefix) && signature.EndsWith("_"))
             {
-                //#TODO@benp struct
+                //#TODO@benp  nullble struct
                 // return `CopyNullableValueType(isolate, context, TI${CSName[0] == '*' ? CSName.substring(1) : CSName}, ${CSName[0] == '*' ? CSName.substring(1) : `&${CSName}`}, (${CSName[0] == '*' ? CSName.substring(1) : `&${CSName}`})->hasValue, sizeof(${CSName}))`
             }
             else if (signature.StartsWith(TypeUtils.TypeSignatures.StructPrefix) && signature.EndsWith("_"))
@@ -498,8 +514,7 @@ $@"// string ref Ps
             }
             else if (signature == "p" || signature == "Pv")
             { // IntPtr, void*
-              //#TODO@benp
-              // return "info.GetReturnValue().Set(v8::ArrayBuffer::New(isolate, v8::ArrayBuffer::NewBackingStore(ret, 0, &v8::BackingStore::EmptyDeleter, nullptr)));";
+              return $@"lapi_lua_pushlightuserdata(L, ret);";
             }
             else
             { //TODO: 能处理的就处理, DateTime是否要处理呢？
@@ -550,7 +565,7 @@ static void ifs_{fieldWrapperInfo.Signature}(lua_State* L, void* fieldInfo, size
     
     {(needThis(fieldWrapperInfo.ThisSignature) ? GetThis(fieldWrapperInfo.ThisSignature, true) : "")}
 
-    {LuaValToCSVal(fieldWrapperInfo.ReturnSignature, "p", 3)}
+    {LuaValToCSVal(fieldWrapperInfo.ReturnSignature, "p", 3, false, true)}
     xlua:SetFieldValue({(needThis(fieldWrapperInfo.ThisSignature) ? "self, " : "nullptr, ")}(FieldInfo*)fieldInfo, offset, {(list.IndexOf(fieldWrapperInfo.Signature) != -1 ? "p" : "&p")});
 }}";
         }

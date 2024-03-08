@@ -139,6 +139,7 @@ namespace XLua
             typeof(IL2CPPTestBase),
             typeof(Il2CppTestStruct),
             typeof(UnityEngine.Vector3),
+            typeof(DirectionEnum),
         };
         Dictionary<Type, bool> loaded_types = new Dictionary<Type, bool>();
         public bool TryDelayWrapLoader(RealStatePtr L, Type type)
@@ -153,8 +154,9 @@ namespace XLua
             Action<RealStatePtr> loader;
             int top = LuaAPI.lua_gettop(L);
             #if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
-            if(IL2CPPTestType.Contains(type)){
+            if(true){
                 XLua.IL2CPP.TypeRegister.Register(L,type, privateAccessibleFlags.Contains(type));
+                
             }else 
             #endif
             if (delayWrap.TryGetValue(type, out loader))
@@ -842,6 +844,7 @@ namespace XLua
 		
 		internal object GetObject(RealStatePtr L,int index)
 		{
+            //#TODO@benp 替换为C++实现
             return (objectCasters.GetCaster(typeof(object))(L, index, null));
         }
 
@@ -894,6 +897,7 @@ namespace XLua
 
         public object GetObject(RealStatePtr L, int index, Type type)
         {
+            //#TODO@benp 替换为C++实现
             int udata = LuaAPI.xlua_tocsobj_safe(L, index);
 
             if (udata != -1)
@@ -1046,23 +1050,20 @@ namespace XLua
             
             if (!typeIdMap.TryGetValue(type, out type_id)) // no reference
             {
-                UnityEngine.Debug.Log("getTypeId:"+type);
                 if (type.IsArray)
                 {
-                    UnityEngine.Debug.Log("getType: type is array ");
                     if (common_array_meta == -1) throw new Exception("Fatal Exception! Array Metatable not inited!");
                     //#TODO@benp il2cpp array处理
                     return common_array_meta;
                 }
                 if (typeof(MulticastDelegate).IsAssignableFrom(type))
                 {
-                    UnityEngine.Debug.Log("getType: type is delegate ");
                     if (common_delegate_meta == -1) throw new Exception("Fatal Exception! Delegate Metatable not inited!");
                     TryDelayWrapLoader(L, type);
                     //#TODO@benp il2cpp delegate处理
                     return common_delegate_meta;
                 }
-
+        
                 is_first = true;
                 Type alias_type = null;
                 aliasCfg.TryGetValue(type, out alias_type);
@@ -1106,7 +1107,6 @@ namespace XLua
                     }
                     LuaAPI.lua_pushvalue(L, -1);
                     type_id = LuaAPI.luaL_ref(L, LuaIndexes.LUA_REGISTRYINDEX);
-                    UnityEngine.Debug.Log($"{type}+{type_id}");
                     LuaAPI.lua_pushnumber(L, type_id);
                     LuaAPI.xlua_rawseti(L, -2, 1);
                     LuaAPI.lua_pop(L, 1);
@@ -1119,9 +1119,7 @@ namespace XLua
                     typeIdMap.Add(type, type_id);
                 }
                 #if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
-                // if(type == typeof(IL2CPPTest) ){
                     XLua.IL2CPP.TypeRegister.SetTypeMetaId(type, type_id);
-                // }
                 #endif
             }
             return type_id;

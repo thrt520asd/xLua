@@ -397,6 +397,61 @@ CSharpStructInLua* lapi_xlua_tocss(lua_State* L, int index) {
     return lapi_xlua_tocss_ptr(L, index);
 }
 
+// xlua_getglobal
+typedef int (*lapi_xlua_getglobalType)(lua_State* L, const char* name);
+
+static lapi_xlua_getglobalType lapi_xlua_getglobal_ptr;
+
+int lapi_xlua_getglobal(lua_State* L, const char* name) {
+    return lapi_xlua_getglobal_ptr(L, name);
+}
+
+// xlua_setglobal
+typedef int (*lapi_xlua_setglobalType)(lua_State* L, const char* name);
+
+static lapi_xlua_setglobalType lapi_xlua_setglobal_ptr;
+
+int lapi_xlua_setglobal(lua_State* L, const char* name) {
+    return lapi_xlua_setglobal_ptr(L, name);
+}
+
+// lua_isint64
+typedef int (*lapi_lua_isint64Type)(lua_State* L, int index);
+
+static lapi_lua_isint64Type lapi_lua_isint64_ptr;
+
+int lapi_lua_isint64(lua_State* L, int index) {
+    return lapi_lua_isint64_ptr(L, index);
+}
+
+// lua_isuint64
+typedef int (*lapi_lua_isuint64Type)(lua_State* L, int index);
+
+static lapi_lua_isuint64Type lapi_lua_isuint64_ptr;
+
+int lapi_lua_isuint64(lua_State* L, int index) {
+    return lapi_lua_isuint64_ptr(L, index);
+}
+
+// lua_toint64
+typedef int64_t (*lapi_lua_toint64Type)(lua_State* L, int index);
+
+static lapi_lua_toint64Type lapi_lua_toint64_ptr;
+
+int64_t lapi_lua_toint64(lua_State* L, int index) {
+    return lapi_lua_toint64_ptr(L, index);
+}
+
+// lua_touint64
+typedef uint64_t (*lapi_lua_touint64Type)(lua_State* L, int index);
+
+static lapi_lua_touint64Type lapi_lua_touint64_ptr;
+
+uint64_t lapi_lua_touint64(lua_State* L, int index) {
+    return lapi_lua_touint64_ptr(L, index);
+}
+
+
 void lapi_init(lapi_func_ptr* func_array){
     lapi_lua_touserdata_ptr = (lapi_lua_touserdataType)func_array[0];
     lapi_lua_type_ptr = (lapi_lua_typeType)func_array[1];
@@ -441,6 +496,12 @@ void lapi_init(lapi_func_ptr* func_array){
     lapi_xlua_createstruct_pointer_ptr = (lapi_xlua_createstruct_pointerType)func_array[40];
     lapi_xlua_pushstruct_pointer_ptr = (lapi_xlua_pushstruct_pointerType)func_array[41];
     lapi_xlua_tocss_ptr = (lapi_xlua_tocssType)func_array[42];
+    lapi_xlua_getglobal_ptr = (lapi_xlua_getglobalType)func_array[43];
+    lapi_xlua_setglobal_ptr = (lapi_xlua_setglobalType)func_array[44];
+    lapi_lua_isint64_ptr = (lapi_lua_isint64Type)func_array[45];
+    lapi_lua_isuint64_ptr = (lapi_lua_isuint64Type)func_array[46];
+    lapi_lua_toint64_ptr = (lapi_lua_toint64Type)func_array[47];
+    lapi_lua_touint64_ptr = (lapi_lua_touint64Type)func_array[48];
 }
 
 EXTERN_C_END

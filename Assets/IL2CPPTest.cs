@@ -25,7 +25,6 @@ public class IL2CPPTestBase{
 
 }
 
-[LuaCallCSharp]
 public class IL2CPPTest :IL2CPPTestBase
 {
     public Il2CppTestStruct il2CppTestStruct;
@@ -76,6 +75,7 @@ public class IL2CPPTest :IL2CPPTestBase
     public IL2CPPTest(int n) : base("name")
     {
         ctorInt = n;
+        DefaultParam(1024);
     }
 
     public IL2CPPTest() : base("NoArgument")
@@ -99,6 +99,10 @@ public class IL2CPPTest :IL2CPPTestBase
     
     public void MethodInvoke(){
 
+    }
+
+    public void DefaultParam(int n , string str = "Default"){
+        Debug.Log("DefaultParam:"+n+"|"+str);
     }
 
     public static void StaticPrint(string str)
@@ -134,12 +138,16 @@ public struct Il2CppTestStruct{
 
     public int AddField1(int n ){
         field1 += n;
+        
         return field1;
     }
 
     public static Il2CppTestStruct StaticGetStruct(){
+        
         return new Il2CppTestStruct(1);
     }
+
+    
 
     public static int staticField1 = 0;
     public static int StaticPropertyInt{get;set;}
@@ -147,3 +155,10 @@ public struct Il2CppTestStruct{
     public static Il2CppTestStruct StaticStruct;
 }
 
+[LuaCallCSharp]
+public enum DirectionEnum{
+    Left = 1,
+    Right = 2,
+    Top = 3,
+    Down = 4
+}

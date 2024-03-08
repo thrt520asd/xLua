@@ -200,6 +200,24 @@ CSharpStructInLua* lapi_xlua_pushstruct_pointer(lua_State* L, unsigned int size,
 // xlua_tocss
 CSharpStructInLua* lapi_xlua_tocss(lua_State* L, int index);
 
+// xlua_getglobal
+int lapi_xlua_getglobal(lua_State* L, const char* name);
+
+// xlua_setglobal
+int lapi_xlua_setglobal(lua_State* L, const char* name);
+
+// lua_isint64
+int lapi_lua_isint64(lua_State* L, int index);
+
+// lua_isuint64
+int lapi_lua_isuint64(lua_State* L, int index);
+
+// lua_toint64
+int64_t lapi_lua_toint64(lua_State* L, int index);
+
+// lua_touint64
+uint64_t lapi_lua_touint64(lua_State* L, int index);
+
 void lapi_init(lapi_func_ptr* func_array);
 
 EXTERN_C_END

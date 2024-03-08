@@ -293,7 +293,6 @@ namespace XLua.IL2CPP
                     }
                 }
             }
-            UnityEngine.Debug.Log($"GetThisSignature {methodBase} {s} ");
             return s;
         }
         public static string GetMethodSignature(MethodBase methodBase, bool isDelegateInvoke = false, bool isExtensionMethod = false)

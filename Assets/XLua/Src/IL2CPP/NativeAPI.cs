@@ -33,7 +33,7 @@ namespace XLua.IL2CPP
 #endif
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void InitialXLua_IL2CPP(IntPtr apiImpl);
+        public static extern void InitialXLua_IL2CPP(IntPtr apiImpl, IntPtr rawL);
 
 
         // [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]

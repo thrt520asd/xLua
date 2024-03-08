@@ -220,3 +220,7 @@ il2cpp Alloc{
 }
 可以用GCHandle来持有引用 不能用gchandler  gchandler是重新申请内存 还是要走C#池
 
+todo xlua_il2cpp 和xlua的整合统一
+
+il2cpp版本跟C#版本如何互通？
+互通的工作量也挺大的 还是老老实实干完吧

@@ -833,7 +833,9 @@ typedef struct {
 } CSharpStruct;
 
 LUA_API void *xlua_pushstruct(lua_State *L, unsigned int size, int meta_ref) {
-	CSharpStruct *css = (CSharpStruct *)lua_newuserdata(L, size + sizeof(int) + sizeof(unsigned int));
+	CSharpStruct *css = (CSharpStruct *)lua_newuserdata(L, size + sizeof(int) + sizeof(unsigned int)
+    +sizeof(void*)
+    );
 	css->fake_id = -1;
 	css->len = size;
     lua_rawgeti(L, LUA_REGISTRYINDEX, meta_ref);
@@ -848,7 +850,9 @@ LUA_API void xlua_pushcstable(lua_State *L, unsigned int size, int meta_ref) {
 }
 
 LUA_API void *xlua_newstruct(lua_State *L, int size, int meta_ref) {
-	CSharpStruct *css = (CSharpStruct *)lua_newuserdata(L, size + sizeof(int) + sizeof(unsigned int));
+	CSharpStruct *css = (CSharpStruct *)lua_newuserdata(L, size + sizeof(int) + sizeof(unsigned int)
+    +sizeof(void*)
+    );
 	css->fake_id = -1;
 	css->len = size;
     lua_rawgeti(L, LUA_REGISTRYINDEX, meta_ref);
@@ -1216,7 +1220,9 @@ LUA_API int css_clone(lua_State *L) {
 		return luaL_error(L, "invalid c# struct!");
 	}
 	
-	to = (CSharpStruct *)lua_newuserdata(L, from->len + sizeof(int) + sizeof(unsigned int));
+	to = (CSharpStruct *)lua_newuserdata(L, from->len + sizeof(int) + sizeof(unsigned int)
+    +sizeof(void*)
+    );
 	to->fake_id = -1;
 	to->len = from->len;
 	memcpy(&(to->data[0]), &(from->data[0]), from->len);
@@ -1343,6 +1349,12 @@ static lapi_func_ptr funcs[] = {
 (lapi_func_ptr) &xlua_createstruct_pointer,//40
 (lapi_func_ptr) &xlua_pushstruct_pointer,
 (lapi_func_ptr) &xlua_tocss,
+(lapi_func_ptr) &xlua_getglobal,
+(lapi_func_ptr) &xlua_setglobal,
+(lapi_func_ptr) &lua_isint64,//45
+(lapi_func_ptr) &lua_isuint64,
+(lapi_func_ptr) &lua_toint64,
+(lapi_func_ptr) &lua_touint64,
 
 };
 

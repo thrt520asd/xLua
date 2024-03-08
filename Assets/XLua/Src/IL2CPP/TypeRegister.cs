@@ -42,6 +42,8 @@ namespace XLua.IL2CPP
             return -1;
         }
 
+        
+
         //#TODO@benp C++类型释放
 
         private static IntPtr GetFieldWrapper(string name, bool isStatic, string signature)
@@ -120,25 +122,12 @@ namespace XLua.IL2CPP
             LuaAPI.lua_pushnumber(L, 1);
             LuaAPI.lua_rawset(L, -3); // 1 objMeta 2 tag 3 1
 
-            if ((type == null || !translator.HasCustomOp(type)) && type != typeof(decimal))
-            {
-                //#TODO@benp GC处理
-                LuaAPI.xlua_pushasciistring(L, "__gc");
-                LuaAPI.lua_pushstdcallcfunction(L, translator.metaFunctions.GcMeta);
-                LuaAPI.lua_rawset(L, -3);
-            }
-
-            // LuaAPI.xlua_pushasciistring(L, "__tostring");
-            // LuaAPI.lua_pushstdcallcfunction(L, translator.metaFunctions.ToStringMeta);
-            // LuaAPI.lua_rawset(L, -3);
-
             NativeAPI.HandleObjMetatable(L, -3, typeId);
 
             LuaAPI.lua_createtable(L, 0, 0); // 1 objMeta 2 clsTable
-            //#TODO@benp 支持UnderlyingSystemType
-            LuaAPI.xlua_pushasciistring(L, "UnderlyingSystemType");
-            translator.PushAny(L, type);
-            LuaAPI.lua_rawset(L, -3);
+            // LuaAPI.xlua_pushasciistring(L, "UnderlyingSystemType");
+            // translator.PushAny(L, type);
+            // LuaAPI.lua_rawset(L, -3);
 
             int cls_table = LuaAPI.lua_gettop(L);
 
