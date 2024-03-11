@@ -1825,6 +1825,75 @@ namespace xlua
         return false;
     }
 
+    template <typename T>
+    struct OptionalParameter
+    {
+        static T GetPrimitive(lua_State* L, int index, const void* methodInfo, WrapData* wrapData, int paramIndex)
+        {
+            if (lapi_lua_gettop(L) >= index)
+            {
+                return converter::Converter<T>::toCpp(L, index);
+            }
+            else
+            {
+                if (wrapData->IsExtensionMethod) ++paramIndex;
+                auto pret = (T*)GetDefaultValuePtr((MethodInfo*)methodInfo, paramIndex);
+                if (pret)
+                {
+                    return *pret;
+                }
+                return {};
+            }
+
+        }
+
+        static T GetValueType(lua_State* L, int index, const void* methodInfo, WrapData* wrapData, int paramIndex)
+        {
+            if (lapi_lua_gettop(L) >= index)
+            {
+                return GetCSharpStructPointer(L, index);
+            }
+            else
+            {
+                if (wrapData->IsExtensionMethod) ++paramIndex;
+                auto pret = (T*)GetDefaultValuePtr((MethodInfo*)methodInfo, paramIndex);
+                if (pret) 
+                {
+                    return *pret;
+                }
+                T ret;
+                memset(&ret, 0, sizeof(T));
+                return ret;
+            }
+        }
+        
+        static void* GetString(lua_State* L, int index, const void* methodInfo, WrapData* wrapData, int paramIndex)
+        {
+            if (lapi_lua_gettop(L) >= index)
+            {
+                return LuaStr2CSharpString(L, index);
+            }
+            else
+            {
+                if (wrapData->IsExtensionMethod) ++paramIndex;
+                return xlua::GetDefaultValuePtr((MethodInfo*)methodInfo, paramIndex);
+            }
+        }
+        
+        static void* GetRefType(lua_State* L, int index, const void* methodInfo, WrapData* wrapData, int paramIndex, const void* typeId)
+        {
+            if (lapi_lua_gettop(L) >= index)
+            {
+                return LuaValueToCSRef(L, typeId, index);
+            }
+            else
+            {
+                if (wrapData->IsExtensionMethod) ++index;
+                return GetDefaultValuePtr((MethodInfo*)methodInfo, index);
+            }
+        }
+    };
+
     #include "FunctionBridge.Gen.h"
 
 
@@ -2312,74 +2381,7 @@ namespace xlua
         return 0;
     }
 
-    template <typename T>
-    struct OptionalParameter
-    {
-        static T GetPrimitive(lua_State* L, int index, const void* methodInfo, WrapData* wrapData, int paramIndex)
-        {
-            if (lapi_lua_gettop(L) >= index)
-            {
-                return converter::Converter<T>::toCpp(context, index);
-            }
-            else
-            {
-                if (wrapData->IsExtensionMethod) ++paramIndex;
-                auto pret = (T*)GetDefaultValuePtr((MethodInfo*)methodInfo, paramIndex);
-                if (pret)
-                {
-                    return *pret;
-                }
-                return {};
-            }
-            
-        }
-        static T GetValueType(lua_State* L, int index, const void* methodInfo, WrapData* wrapData, int paramIndex)
-        {
-            if (lapi_lua_gettop(L) >= index)
-            {
-                return GetCSharpStructPointer(L, index);
-            }
-            else
-            {
-                if (wrapData->IsExtensionMethod) ++paramIndex;
-                auto pret = (T*)GetDefaultValuePtr((MethodInfo*)methodInfo, paramIndex);
-                if (pret) 
-                {
-                    return *pret;
-                }
-                T ret;
-                memset(&ret, 0, sizeof(T));
-                return ret;
-            }
-        }
-        
-        //todo 需要深入研究下模板
-        static void* GetString(lua_State* L, int index, const void* methodInfo, WrapData* wrapData, int paramIndex)
-        {
-            if (lapi_lua_gettop(L) >= index)
-            {
-                return LuaStr2CSharpString(L, index);
-            }
-            else
-            {
-                if (wrapData->IsExtensionMethod) ++paramIndex;
-                return xlua::GetDefaultValuePtr((MethodInfo*)methodInfo, paramIndex);
-            }
-        }
-        
-        static void* GetRefType(lua_State* L, int index, const void* methodInfo, WrapData* wrapData, int paramIndex, const void* typeId)
-        {
-            if (lapi_lua_gettop(L) >= index)
-            {
-                return LuaValueToCSRef(L, typeId, index);
-            }
-            else
-            {
-                if (wrapData->IsExtensionMethod) ++index;
-                return GetDefaultValuePtr((MethodInfo*)methodInfo, index);
-            }
-        }
-    };
+    
     xlua::UnityExports* GetUnityExports()
     {
         //void* a = OptionalParameter<void*>::GetString(nullptr, 0, nullptr, nullptr, 0);

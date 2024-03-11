@@ -1361,24 +1361,11 @@ static bool w_vti4Ds(void* method, MethodPointer methodPointer, lua_State* L, bo
     //signature i4
     int32_t p0 = lapi_xlua_tointeger(L, 0 + paramOffset);
     //LuaValToCSVal string default
-    /*void* p1 = nullptr;
-    if (lapi_lua_gettop(L) >= 1+paramOffset)
-     {
-         p1 = xlua::LuaStr2CSharpString(L, 1 + paramOffset);
-    }
-    else
-    {
-        if (wrapData->IsExtensionMethod) ++paramOffset;
-        p1 =  xlua::GetDefaultValuePtr((MethodInfo*)method, 1);
-    }*/
-    int32_t i32 = converter::Converter<int32_t>::toCpp(L, 1);
-    void* p1 = xlua::OptionalParameter<void*>::GetString(L, 1+paramOffset, method, wrapData, 1);
-    //void* p1 = xlua::OptionalParameter<void*>::GetString(L, 1 + paramOffset, method, wrapData, 1);
+    
+    void* p1 = xlua::OptionalParameter<void*>::GetString(L, 1 + paramOffset, method, wrapData, 1);
 
-    /*typedef void (*FuncToCall)(void*, int32_t p0, void* p1, const void* method);
-    ((FuncToCall)methodPointer)(self, p0, p1, method);*/
-
-
+    typedef void (*FuncToCall)(void*, int32_t p0, void* p1, const void* method);
+    ((FuncToCall)methodPointer)(self, p0, p1, method);
 
     return true;
 }
