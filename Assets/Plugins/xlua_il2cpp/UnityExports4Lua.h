@@ -10,7 +10,10 @@ namespace xlua
 #define MethodPointer Il2CppMethodPointer
 typedef void* (*ObjectAllocateFunc)(Il2CppClass *klass);
 typedef void (*ValueTypeDeallocateFunc)(void* ptr);
-typedef void PersistentObjectInfo;
+struct PersistentObjectInfo {
+    lua_State* L;
+    int reference;
+};
 typedef void* (*DelegateAllocateFunc)(Il2CppClass* klass, MethodPointer methodPointer, PersistentObjectInfo** outDelegateInfo);
 typedef void (*FieldOperationFunc)(void *obj, FieldInfo *fieldInfo, size_t offset, void *value);
 typedef void* (*GetValueTypeFieldPtrFunc)(void *obj, FieldInfo *field, size_t offset);
@@ -131,7 +134,7 @@ struct UnityExports
     NewArrayFunc NewArray = nullptr;
     GetArrayFirstElementAddressFunc GetArrayFirstElementAddress = nullptr;
     ArraySetRefFunc ArraySetRef = nullptr;
-    GetArrayElementTypeIdFunc GetArrayElementTypeId = nullptr;
+    //GetArrayElementTypeIdFunc GetArrayElementTypeId = nullptr;
     GetArrayLengthFunc GetArrayLength = nullptr;
     GetDefaultValuePtrFunc GetDefaultValuePtr = nullptr;
     WrapFuncPtr ReflectionWrapper = nullptr;

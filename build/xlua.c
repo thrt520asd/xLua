@@ -1355,6 +1355,15 @@ static lapi_func_ptr funcs[] = {
 (lapi_func_ptr) &lua_isuint64,
 (lapi_func_ptr) &lua_toint64,
 (lapi_func_ptr) &lua_touint64,
+(lapi_func_ptr) &load_error_func,
+(lapi_func_ptr) &xlua_get_registry_index,//50
+(lapi_func_ptr) &xlua_rawgeti,
+(lapi_func_ptr) &xlua_rawseti,
+(lapi_func_ptr) &lua_pcall,
+(lapi_func_ptr) &pcall_prepare,
+(lapi_func_ptr) &luaL_ref,
+
+
 
 };
 

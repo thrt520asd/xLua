@@ -75,6 +75,7 @@ void lapi_xlua_pushcsobj_ptr(lua_State*L, void* ptr, int meta_ref, int key, int 
 int lapi_lua_isnumber(lua_State*L, int idx);
 
 #define lapi_lua_isboolean(L,n)	(lapi_lua_type(L, (n)) == LUA_TBOOLEAN)
+#define lapi_lua_isfunction(L,n)(lapi_lua_type(L, (n)) == LUA_TFUNCTION)
 
 //lua_isstring
 int lapi_lua_isstring(lua_State*L, int idx);
@@ -217,6 +218,27 @@ int64_t lapi_lua_toint64(lua_State* L, int index);
 
 // lua_touint64
 uint64_t lapi_lua_touint64(lua_State* L, int index);
+
+// load_error_func
+int lapi_load_error_func(lua_State* L, int ref);
+
+// xlua_get_registry_index
+int lapi_xlua_get_registry_index();
+
+// xlua_rawgeti
+int lapi_xlua_rawgeti(lua_State* L, int idx, int64_t n);
+
+// xlua_rawseti
+int lapi_xlua_rawseti(lua_State* L, int idx, int64_t n);
+
+// pcall_prepare
+int lapi_lua_pcall(lua_State *L, int nargs, int nresults, int errfunc);
+
+// pcall_prepare
+int lapi_pcall_prepare(lua_State *L, int error_func_ref, int func_ref);
+
+// luaL_ref
+int lapi_luaL_ref(lua_State *L, int t);
 
 void lapi_init(lapi_func_ptr* func_array);
 

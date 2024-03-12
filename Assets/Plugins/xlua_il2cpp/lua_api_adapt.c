@@ -451,6 +451,69 @@ uint64_t lapi_lua_touint64(lua_State* L, int index) {
     return lapi_lua_touint64_ptr(L, index);
 }
 
+// load_error_func
+typedef int (*lapi_load_error_funcType)(lua_State* L, int ref);
+
+static lapi_load_error_funcType lapi_load_error_func_ptr;
+
+int lapi_load_error_func(lua_State* L, int ref) {
+    return lapi_load_error_func_ptr(L, ref);
+}
+
+// xlua_get_registry_index
+typedef int (*lapi_xlua_get_registry_indexType)();
+
+static lapi_xlua_get_registry_indexType lapi_xlua_get_registry_index_ptr;
+
+int lapi_xlua_get_registry_index() {
+    return lapi_xlua_get_registry_index_ptr();
+}
+
+// xlua_rawgeti
+typedef int (*lapi_xlua_rawgetiType)(lua_State* L, int idx, int64_t n);
+
+static lapi_xlua_rawgetiType lapi_xlua_rawgeti_ptr;
+
+int lapi_xlua_rawgeti(lua_State* L, int idx, int64_t n) {
+    return lapi_xlua_rawgeti_ptr(L, idx, n);
+}
+
+// xlua_rawseti
+typedef int (*lapi_xlua_rawsetiType)(lua_State* L, int idx, int64_t n);
+
+static lapi_xlua_rawsetiType lapi_xlua_rawseti_ptr;
+
+int lapi_xlua_rawseti(lua_State* L, int idx, int64_t n) {
+    return lapi_xlua_rawseti_ptr(L, idx, n);
+}
+
+// lua_pcall
+typedef int (*lapi_lua_pcallType)(lua_State *L, int nargs, int nresults, int errfunc);
+
+static lapi_lua_pcallType lapi_lua_pcall_ptr;
+
+int lapi_lua_pcall(lua_State *L, int nargs, int nresults, int errfunc) {
+    return lapi_lua_pcall_ptr(L, nargs, nresults, errfunc);
+}
+
+// pcall_prepare
+typedef int (*lapi_pcall_prepareType)(lua_State *L, int error_func_ref, int func_ref);
+
+static lapi_pcall_prepareType lapi_pcall_prepare_ptr;
+
+int lapi_pcall_prepare(lua_State *L, int error_func_ref, int func_ref) {
+    return lapi_pcall_prepare_ptr(L, error_func_ref, func_ref);
+}
+
+// luaL_ref
+typedef int (*lapi_luaL_refType)(lua_State *L, int t);
+
+static lapi_luaL_refType lapi_luaL_ref_ptr;
+
+int lapi_luaL_ref(lua_State *L, int t) {
+    return lapi_luaL_ref_ptr(L, t);
+}
+
 
 void lapi_init(lapi_func_ptr* func_array){
     lapi_lua_touserdata_ptr = (lapi_lua_touserdataType)func_array[0];
@@ -502,6 +565,13 @@ void lapi_init(lapi_func_ptr* func_array){
     lapi_lua_isuint64_ptr = (lapi_lua_isuint64Type)func_array[46];
     lapi_lua_toint64_ptr = (lapi_lua_toint64Type)func_array[47];
     lapi_lua_touint64_ptr = (lapi_lua_touint64Type)func_array[48];
+    lapi_load_error_func_ptr = (lapi_load_error_funcType)func_array[49];
+    lapi_xlua_get_registry_index_ptr = (lapi_xlua_get_registry_indexType)func_array[50];
+    lapi_xlua_rawgeti_ptr = (lapi_xlua_rawgetiType)func_array[51];
+    lapi_xlua_rawseti_ptr = (lapi_xlua_rawsetiType)func_array[52];
+    lapi_lua_pcall_ptr = (lapi_lua_pcallType)func_array[53];
+    lapi_pcall_prepare_ptr = (lapi_pcall_prepareType)func_array[54];
+    lapi_luaL_ref_ptr = (lapi_luaL_refType)func_array[55];
 }
 
 EXTERN_C_END

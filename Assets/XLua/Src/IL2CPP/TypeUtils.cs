@@ -80,6 +80,9 @@ namespace XLua.IL2CPP
             public static string Object = "o";
             public static string StructPrefix = "S_";
             public static string NullableStructPrefix = "N_";
+            public static string ArrayPrefix = "V";
+            public static string OptionalParmaeterPrefix = "D";
+            public static string OutParameterPrefix = "U";
         }
         private static Type GetType(string className, bool isQualifiedName)
         {
@@ -265,6 +268,10 @@ namespace XLua.IL2CPP
             if (parameterInfo.IsOptional)
             {
                 return "D" + GetTypeSignature(parameterInfo.ParameterType);
+            }
+
+            if(parameterInfo.IsOut){
+                return TypeSignatures.OutParameterPrefix + GetTypeSignature(parameterInfo.ParameterType);
             }
             
             return GetTypeSignature(parameterInfo.ParameterType);

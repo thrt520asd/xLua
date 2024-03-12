@@ -222,5 +222,6 @@ il2cpp Alloc{
 
 todo xlua_il2cpp 和xlua的整合统一
 
-il2cpp版本跟C#版本如何互通？
-互通的工作量也挺大的 还是老老实实干完吧
+ref,in,out处理方案
+out不传递参数
+ref,in的处理方式一样 从lua栈直接取参数 然后把参数push到lua栈

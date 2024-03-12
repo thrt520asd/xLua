@@ -86,8 +86,8 @@ namespace XLua.IL2CPP
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void SetClassMetaId(IntPtr p, int metaId);
 
-        [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void SetLuaCacheRef(int cacheRef);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+		public static extern void SetXLuaRef(int[] refArr);
         
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void HandleObjMetatable(IntPtr L, int tableIdx, IntPtr typeId);
@@ -97,6 +97,7 @@ namespace XLua.IL2CPP
 
         [MethodImpl(MethodImplOptions.InternalCall)]
 		public static extern void SetCSharpAPI(MethodBase[] methodInfo);
+
 
         
         //[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
@@ -177,11 +178,11 @@ namespace XLua.IL2CPP
             throw new NotImplementedException();
         }
 
-        //[MethodImpl(MethodImplOptions.InternalCall)]
-        //public static void SetGlobalType_JSObject(Type type)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static void SetGlobalType_LuaObject(Type type)
+        {
+           throw new NotImplementedException();
+        }
 
         //[MethodImpl(MethodImplOptions.InternalCall)]
         //public static void SetGlobalType_ArrayBuffer(Type type)

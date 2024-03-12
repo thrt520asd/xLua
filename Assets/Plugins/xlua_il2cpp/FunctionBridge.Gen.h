@@ -46,18 +46,21 @@ struct S__ {
 struct S_p_ {
     void* p0;
 };
+struct S_i4s_ {
+    int32_t p0;
+    void* p1;
+};
 struct v {
 
 };
-
 
 //System.Object ToObject(System.Type, System.Object)
 static bool w_OoO(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
     auto TIp1 = wrapData->TypeInfos[2];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 1) return false;
         if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return false;
 
@@ -76,13 +79,12 @@ static bool w_OoO(void* method, MethodPointer methodPointer, lua_State* L, bool 
     return true;
 }
 
-
 //System.Object ToObject(System.Type, SByte)
 static bool w_Ooi1(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 1) return false;
         if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return false;
         if (!lapi_lua_isnumber(L, 1 + paramOffset)) return false;
@@ -91,7 +93,7 @@ static bool w_Ooi1(void* method, MethodPointer methodPointer, lua_State* L, bool
     // object
     void* p0 = (void*)xlua::LuaValueToCSRef((Il2CppClass*)TIp0, L, 0 + paramOffset);
     //signature i1
-    int8_t p1 = lapi_xlua_tointeger(L, 1 + paramOffset);
+    int8_t p1 = converter::Converter<int8_t>::toCpp(L, 1 + paramOffset);
 
     typedef void* (*FuncToCall)(void* p0, int8_t p1, const void* method);
     void* ret = ((FuncToCall)methodPointer)(p0, p1, method);
@@ -101,13 +103,12 @@ static bool w_Ooi1(void* method, MethodPointer methodPointer, lua_State* L, bool
     return true;
 }
 
-
 //System.Object ToObject(System.Type, Int16)
 static bool w_Ooi2(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 1) return false;
         if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return false;
         if (!lapi_lua_isnumber(L, 1 + paramOffset)) return false;
@@ -116,7 +117,7 @@ static bool w_Ooi2(void* method, MethodPointer methodPointer, lua_State* L, bool
     // object
     void* p0 = (void*)xlua::LuaValueToCSRef((Il2CppClass*)TIp0, L, 0 + paramOffset);
     //signature i2
-    int16_t p1 = lapi_xlua_tointeger(L, 1 + paramOffset);
+    int16_t p1 = converter::Converter<int16_t>::toCpp(L, 1 + paramOffset);
 
     typedef void* (*FuncToCall)(void* p0, int16_t p1, const void* method);
     void* ret = ((FuncToCall)methodPointer)(p0, p1, method);
@@ -126,13 +127,12 @@ static bool w_Ooi2(void* method, MethodPointer methodPointer, lua_State* L, bool
     return true;
 }
 
-
 //System.Object ToObject(System.Type, Int32)
 static bool w_Ooi4(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 1) return false;
         if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return false;
         if (!lapi_lua_isnumber(L, 1 + paramOffset)) return false;
@@ -141,7 +141,7 @@ static bool w_Ooi4(void* method, MethodPointer methodPointer, lua_State* L, bool
     // object
     void* p0 = (void*)xlua::LuaValueToCSRef((Il2CppClass*)TIp0, L, 0 + paramOffset);
     //signature i4
-    int32_t p1 = lapi_xlua_tointeger(L, 1 + paramOffset);
+    int32_t p1 = converter::Converter<int32_t>::toCpp(L, 1 + paramOffset);
 
     typedef void* (*FuncToCall)(void* p0, int32_t p1, const void* method);
     void* ret = ((FuncToCall)methodPointer)(p0, p1, method);
@@ -151,13 +151,12 @@ static bool w_Ooi4(void* method, MethodPointer methodPointer, lua_State* L, bool
     return true;
 }
 
-
 //System.Object ToObject(System.Type, Int64)
 static bool w_Ooi8(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 1) return false;
         if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return false;
         if (!lapi_lua_isnumber(L, 1 + paramOffset)) return false;
@@ -166,7 +165,7 @@ static bool w_Ooi8(void* method, MethodPointer methodPointer, lua_State* L, bool
     // object
     void* p0 = (void*)xlua::LuaValueToCSRef((Il2CppClass*)TIp0, L, 0 + paramOffset);
     //signature i8
-    int64_t p1 = lapi_xlua_tointeger(L, 1 + paramOffset);
+    int64_t p1 = converter::Converter<int64_t>::toCpp(L, 1 + paramOffset);
 
     typedef void* (*FuncToCall)(void* p0, int64_t p1, const void* method);
     void* ret = ((FuncToCall)methodPointer)(p0, p1, method);
@@ -176,14 +175,13 @@ static bool w_Ooi8(void* method, MethodPointer methodPointer, lua_State* L, bool
     return true;
 }
 
-
 //System.Object Parse(System.Type, System.String)
 static bool w_Oos(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
     auto TIp1 = wrapData->TypeInfos[2];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 1) return false;
         if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return false;
         if (!lapi_lua_isstring(L, 1 + paramOffset)) return false;
@@ -202,14 +200,13 @@ static bool w_Oos(void* method, MethodPointer methodPointer, lua_State* L, bool 
     return true;
 }
 
-
 //System.Object Parse(System.Type, System.String, Boolean)
 static bool w_Oosb(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
     auto TIp1 = wrapData->TypeInfos[2];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 2) return false;
         if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return false;
         if (!lapi_lua_isstring(L, 1 + paramOffset)) return false;
@@ -221,7 +218,7 @@ static bool w_Oosb(void* method, MethodPointer methodPointer, lua_State* L, bool
     // string s
     void* p1 = LuaStr2CSharpString(L, 1);
     //signature b
-    bool p2 = lapi_lua_toboolean(L, 2 + paramOffset);
+    bool p2 = converter::Converter<bool>::toCpp(L, 2 + paramOffset);
 
     typedef void* (*FuncToCall)(void* p0, void* p1, bool p2, const void* method);
     void* ret = ((FuncToCall)methodPointer)(p0, p1, p2, method);
@@ -231,13 +228,12 @@ static bool w_Oosb(void* method, MethodPointer methodPointer, lua_State* L, bool
     return true;
 }
 
-
 //System.Object ToObject(System.Type, Byte)
 static bool w_Oou1(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 1) return false;
         if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return false;
         if (!lapi_lua_isnumber(L, 1 + paramOffset)) return false;
@@ -246,7 +242,7 @@ static bool w_Oou1(void* method, MethodPointer methodPointer, lua_State* L, bool
     // object
     void* p0 = (void*)xlua::LuaValueToCSRef((Il2CppClass*)TIp0, L, 0 + paramOffset);
     //signature u1
-    uint8_t p1 = lapi_xlua_tointeger(L, 1 + paramOffset);
+    uint8_t p1 = converter::Converter<uint8_t>::toCpp(L, 1 + paramOffset);
 
     typedef void* (*FuncToCall)(void* p0, uint8_t p1, const void* method);
     void* ret = ((FuncToCall)methodPointer)(p0, p1, method);
@@ -256,13 +252,12 @@ static bool w_Oou1(void* method, MethodPointer methodPointer, lua_State* L, bool
     return true;
 }
 
-
 //System.Object ToObject(System.Type, UInt16)
 static bool w_Oou2(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 1) return false;
         if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return false;
         if (!lapi_lua_isnumber(L, 1 + paramOffset)) return false;
@@ -271,7 +266,7 @@ static bool w_Oou2(void* method, MethodPointer methodPointer, lua_State* L, bool
     // object
     void* p0 = (void*)xlua::LuaValueToCSRef((Il2CppClass*)TIp0, L, 0 + paramOffset);
     //signature u2
-    uint16_t p1 = lapi_xlua_tointeger(L, 1 + paramOffset);
+    uint16_t p1 = converter::Converter<uint16_t>::toCpp(L, 1 + paramOffset);
 
     typedef void* (*FuncToCall)(void* p0, uint16_t p1, const void* method);
     void* ret = ((FuncToCall)methodPointer)(p0, p1, method);
@@ -281,13 +276,12 @@ static bool w_Oou2(void* method, MethodPointer methodPointer, lua_State* L, bool
     return true;
 }
 
-
 //System.Object ToObject(System.Type, UInt32)
 static bool w_Oou4(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 1) return false;
         if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return false;
         if (!lapi_lua_isnumber(L, 1 + paramOffset)) return false;
@@ -296,7 +290,7 @@ static bool w_Oou4(void* method, MethodPointer methodPointer, lua_State* L, bool
     // object
     void* p0 = (void*)xlua::LuaValueToCSRef((Il2CppClass*)TIp0, L, 0 + paramOffset);
     //signature u4
-    uint32_t p1 = lapi_xlua_tointeger(L, 1 + paramOffset);
+    uint32_t p1 = converter::Converter<uint32_t>::toCpp(L, 1 + paramOffset);
 
     typedef void* (*FuncToCall)(void* p0, uint32_t p1, const void* method);
     void* ret = ((FuncToCall)methodPointer)(p0, p1, method);
@@ -306,13 +300,12 @@ static bool w_Oou4(void* method, MethodPointer methodPointer, lua_State* L, bool
     return true;
 }
 
-
 //System.Object ToObject(System.Type, UInt64)
 static bool w_Oou8(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 1) return false;
         if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return false;
         if (!lapi_lua_isnumber(L, 1 + paramOffset)) return false;
@@ -321,7 +314,7 @@ static bool w_Oou8(void* method, MethodPointer methodPointer, lua_State* L, bool
     // object
     void* p0 = (void*)xlua::LuaValueToCSRef((Il2CppClass*)TIp0, L, 0 + paramOffset);
     //signature u8
-    uint64_t p1 = lapi_xlua_tointeger(L, 1 + paramOffset);
+    uint64_t p1 = converter::Converter<uint64_t>::toCpp(L, 1 + paramOffset);
 
     typedef void* (*FuncToCall)(void* p0, uint64_t p1, const void* method);
     void* ret = ((FuncToCall)methodPointer)(p0, p1, method);
@@ -331,12 +324,11 @@ static bool w_Oou8(void* method, MethodPointer methodPointer, lua_State* L, bool
     return true;
 }
 
-
 //Il2CppTestStruct StaticGetStruct()
 static bool w_S_i4i4_(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + -1) return false;
 
     }
@@ -351,12 +343,11 @@ static bool w_S_i4i4_(void* method, MethodPointer methodPointer, lua_State* L, b
     return true;
 }
 
-
 //UnityEngine.Vector3 get_zero()
 static bool w_S_r4r4r4_(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + -1) return false;
 
     }
@@ -371,19 +362,19 @@ static bool w_S_r4r4r4_(void* method, MethodPointer methodPointer, lua_State* L,
     return true;
 }
 
-
 //UnityEngine.Vector3 Normalize(UnityEngine.Vector3)
 static bool w_S_r4r4r4_S_r4r4r4_(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 0) return false;
         if (!CheckIsStruct(L, 0 + paramOffset, TIp0)) return false;
     }
 
     //LuaValToCSVal struct
-    S_r4r4r4_ p0 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_* pp0 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_ p0 = pp0 ? *pp0 : S_r4r4r4_{};
 
     typedef struct S_r4r4r4_(*FuncToCall)(struct S_r4r4r4_ p0, const void* method);
     struct S_r4r4r4_ ret = ((FuncToCall)methodPointer)(p0, method);
@@ -393,23 +384,24 @@ static bool w_S_r4r4r4_S_r4r4r4_(void* method, MethodPointer methodPointer, lua_
     return true;
 }
 
-
 //UnityEngine.Vector3 Scale(UnityEngine.Vector3, UnityEngine.Vector3)
 static bool w_S_r4r4r4_S_r4r4r4_S_r4r4r4_(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
     auto TIp1 = wrapData->TypeInfos[2];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 1) return false;
         if (!CheckIsStruct(L, 0 + paramOffset, TIp0)) return false;
         if (!CheckIsStruct(L, 1 + paramOffset, TIp1)) return false;
     }
 
     //LuaValToCSVal struct
-    S_r4r4r4_ p0 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_* pp0 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_ p0 = pp0 ? *pp0 : S_r4r4r4_{};
     //LuaValToCSVal struct
-    S_r4r4r4_ p1 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 1 + paramOffset, TIp1);
+    S_r4r4r4_* pp1 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 1 + paramOffset, TIp1);
+    S_r4r4r4_ p1 = pp1 ? *pp1 : S_r4r4r4_{};
 
     typedef struct S_r4r4r4_(*FuncToCall)(struct S_r4r4r4_ p0, struct S_r4r4r4_ p1, const void* method);
     struct S_r4r4r4_ ret = ((FuncToCall)methodPointer)(p0, p1, method);
@@ -419,15 +411,14 @@ static bool w_S_r4r4r4_S_r4r4r4_S_r4r4r4_(void* method, MethodPointer methodPoin
     return true;
 }
 
-
 //UnityEngine.Vector3 SmoothDamp(UnityEngine.Vector3, UnityEngine.Vector3, UnityEngine.Vector3 ByRef, Single)
 static bool w_S_r4r4r4_S_r4r4r4_S_r4r4r4_PS_r4r4r4_r4(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
     auto TIp1 = wrapData->TypeInfos[2];
     auto TIp2 = wrapData->TypeInfos[3];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 3) return false;
         if (!CheckIsStruct(L, 0 + paramOffset, TIp0)) return false;
         if (!CheckIsStruct(L, 1 + paramOffset, TIp1)) return false;
@@ -436,27 +427,29 @@ static bool w_S_r4r4r4_S_r4r4r4_S_r4r4r4_PS_r4r4r4_r4(void* method, MethodPointe
     }
 
     //LuaValToCSVal struct
-    S_r4r4r4_ p0 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_* pp0 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_ p0 = pp0 ? *pp0 : S_r4r4r4_{};
     //LuaValToCSVal struct
-    S_r4r4r4_ p1 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 1 + paramOffset, TIp1);
-    //LuaValToCSVal Pstruct todo 容错保护
-    S_r4r4r4_* p2 = (S_r4r4r4_*)GetCSharpStructPointer(L, 2 + paramOffset, TIp2);
+    S_r4r4r4_* pp1 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 1 + paramOffset, TIp1);
+    S_r4r4r4_ p1 = pp1 ? *pp1 : S_r4r4r4_{};
+    //LuaValToCSVal Pstruct
+    S_r4r4r4_* p2 = nullptr;
+    p2 = (S_r4r4r4_*)GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 2 + paramOffset, TIp2);
     if (!p2) {
         S_r4r4r4_ up2;
         memset(&up2, 0, sizeof(S_r4r4r4_));
         p2 = &up2;
     }
     //signature r4
-    float p3 = lapi_lua_tonumber(L, 3 + paramOffset);
+    float p3 = converter::Converter<float>::toCpp(L, 3 + paramOffset);
 
     typedef struct S_r4r4r4_(*FuncToCall)(struct S_r4r4r4_ p0, struct S_r4r4r4_ p1, struct S_r4r4r4_* p2, float p3, const void* method);
     struct S_r4r4r4_ ret = ((FuncToCall)methodPointer)(p0, p1, p2, p3, method);
-
+    
 
     GetCppObjMapper()->TryPushStruct(L, TIret, &ret, sizeof(S_r4r4r4_));
     return true;
 }
-
 
 //UnityEngine.Vector3 SmoothDamp(UnityEngine.Vector3, UnityEngine.Vector3, UnityEngine.Vector3 ByRef, Single, Single)
 static bool w_S_r4r4r4_S_r4r4r4_S_r4r4r4_PS_r4r4r4_r4r4(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
@@ -464,8 +457,8 @@ static bool w_S_r4r4r4_S_r4r4r4_S_r4r4r4_PS_r4r4r4_r4r4(void* method, MethodPoin
     auto TIp0 = wrapData->TypeInfos[1];
     auto TIp1 = wrapData->TypeInfos[2];
     auto TIp2 = wrapData->TypeInfos[3];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 4) return false;
         if (!CheckIsStruct(L, 0 + paramOffset, TIp0)) return false;
         if (!CheckIsStruct(L, 1 + paramOffset, TIp1)) return false;
@@ -475,20 +468,23 @@ static bool w_S_r4r4r4_S_r4r4r4_S_r4r4r4_PS_r4r4r4_r4r4(void* method, MethodPoin
     }
 
     //LuaValToCSVal struct
-    S_r4r4r4_ p0 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_* pp0 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_ p0 = pp0 ? *pp0 : S_r4r4r4_{};
     //LuaValToCSVal struct
-    S_r4r4r4_ p1 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 1 + paramOffset, TIp1);
-    //LuaValToCSVal Pstruct todo 容错保护
-    S_r4r4r4_* p2 = (S_r4r4r4_*)GetCSharpStructPointer(L, 2 + paramOffset, TIp2);
+    S_r4r4r4_* pp1 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 1 + paramOffset, TIp1);
+    S_r4r4r4_ p1 = pp1 ? *pp1 : S_r4r4r4_{};
+    //LuaValToCSVal Pstruct
+    S_r4r4r4_* p2 = nullptr;
+    p2 = (S_r4r4r4_*)GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 2 + paramOffset, TIp2);
     if (!p2) {
         S_r4r4r4_ up2;
         memset(&up2, 0, sizeof(S_r4r4r4_));
         p2 = &up2;
     }
     //signature r4
-    float p3 = lapi_lua_tonumber(L, 3 + paramOffset);
+    float p3 = converter::Converter<float>::toCpp(L, 3 + paramOffset);
     //signature r4
-    float p4 = lapi_lua_tonumber(L, 4 + paramOffset);
+    float p4 = converter::Converter<float>::toCpp(L, 4 + paramOffset);
 
     typedef struct S_r4r4r4_(*FuncToCall)(struct S_r4r4r4_ p0, struct S_r4r4r4_ p1, struct S_r4r4r4_* p2, float p3, float p4, const void* method);
     struct S_r4r4r4_ ret = ((FuncToCall)methodPointer)(p0, p1, p2, p3, p4, method);
@@ -498,15 +494,14 @@ static bool w_S_r4r4r4_S_r4r4r4_S_r4r4r4_PS_r4r4r4_r4r4(void* method, MethodPoin
     return true;
 }
 
-
 //UnityEngine.Vector3 SmoothDamp(UnityEngine.Vector3, UnityEngine.Vector3, UnityEngine.Vector3 ByRef, Single, Single, Single)
 static bool w_S_r4r4r4_S_r4r4r4_S_r4r4r4_PS_r4r4r4_r4r4r4(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
     auto TIp1 = wrapData->TypeInfos[2];
     auto TIp2 = wrapData->TypeInfos[3];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 5) return false;
         if (!CheckIsStruct(L, 0 + paramOffset, TIp0)) return false;
         if (!CheckIsStruct(L, 1 + paramOffset, TIp1)) return false;
@@ -517,22 +512,25 @@ static bool w_S_r4r4r4_S_r4r4r4_S_r4r4r4_PS_r4r4r4_r4r4r4(void* method, MethodPo
     }
 
     //LuaValToCSVal struct
-    S_r4r4r4_ p0 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_* pp0 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_ p0 = pp0 ? *pp0 : S_r4r4r4_{};
     //LuaValToCSVal struct
-    S_r4r4r4_ p1 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 1 + paramOffset, TIp1);
-    //LuaValToCSVal Pstruct todo 容错保护
-    S_r4r4r4_* p2 = (S_r4r4r4_*)GetCSharpStructPointer(L, 2 + paramOffset, TIp2);
+    S_r4r4r4_* pp1 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 1 + paramOffset, TIp1);
+    S_r4r4r4_ p1 = pp1 ? *pp1 : S_r4r4r4_{};
+    //LuaValToCSVal Pstruct
+    S_r4r4r4_* p2 = nullptr;
+    p2 = (S_r4r4r4_*)GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 2 + paramOffset, TIp2);
     if (!p2) {
         S_r4r4r4_ up2;
         memset(&up2, 0, sizeof(S_r4r4r4_));
         p2 = &up2;
     }
     //signature r4
-    float p3 = lapi_lua_tonumber(L, 3 + paramOffset);
+    float p3 = converter::Converter<float>::toCpp(L, 3 + paramOffset);
     //signature r4
-    float p4 = lapi_lua_tonumber(L, 4 + paramOffset);
+    float p4 = converter::Converter<float>::toCpp(L, 4 + paramOffset);
     //signature r4
-    float p5 = lapi_lua_tonumber(L, 5 + paramOffset);
+    float p5 = converter::Converter<float>::toCpp(L, 5 + paramOffset);
 
     typedef struct S_r4r4r4_(*FuncToCall)(struct S_r4r4r4_ p0, struct S_r4r4r4_ p1, struct S_r4r4r4_* p2, float p3, float p4, float p5, const void* method);
     struct S_r4r4r4_ ret = ((FuncToCall)methodPointer)(p0, p1, p2, p3, p4, p5, method);
@@ -542,14 +540,13 @@ static bool w_S_r4r4r4_S_r4r4r4_S_r4r4r4_PS_r4r4r4_r4r4r4(void* method, MethodPo
     return true;
 }
 
-
 //UnityEngine.Vector3 Slerp(UnityEngine.Vector3, UnityEngine.Vector3, Single)
 static bool w_S_r4r4r4_S_r4r4r4_S_r4r4r4_r4(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
     auto TIp1 = wrapData->TypeInfos[2];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 2) return false;
         if (!CheckIsStruct(L, 0 + paramOffset, TIp0)) return false;
         if (!CheckIsStruct(L, 1 + paramOffset, TIp1)) return false;
@@ -557,11 +554,13 @@ static bool w_S_r4r4r4_S_r4r4r4_S_r4r4r4_r4(void* method, MethodPointer methodPo
     }
 
     //LuaValToCSVal struct
-    S_r4r4r4_ p0 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_* pp0 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_ p0 = pp0 ? *pp0 : S_r4r4r4_{};
     //LuaValToCSVal struct
-    S_r4r4r4_ p1 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 1 + paramOffset, TIp1);
+    S_r4r4r4_* pp1 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 1 + paramOffset, TIp1);
+    S_r4r4r4_ p1 = pp1 ? *pp1 : S_r4r4r4_{};
     //signature r4
-    float p2 = lapi_lua_tonumber(L, 2 + paramOffset);
+    float p2 = converter::Converter<float>::toCpp(L, 2 + paramOffset);
 
     typedef struct S_r4r4r4_(*FuncToCall)(struct S_r4r4r4_ p0, struct S_r4r4r4_ p1, float p2, const void* method);
     struct S_r4r4r4_ ret = ((FuncToCall)methodPointer)(p0, p1, p2, method);
@@ -571,14 +570,13 @@ static bool w_S_r4r4r4_S_r4r4r4_S_r4r4r4_r4(void* method, MethodPointer methodPo
     return true;
 }
 
-
 //UnityEngine.Vector3 RotateTowards(UnityEngine.Vector3, UnityEngine.Vector3, Single, Single)
 static bool w_S_r4r4r4_S_r4r4r4_S_r4r4r4_r4r4(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
     auto TIp1 = wrapData->TypeInfos[2];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 3) return false;
         if (!CheckIsStruct(L, 0 + paramOffset, TIp0)) return false;
         if (!CheckIsStruct(L, 1 + paramOffset, TIp1)) return false;
@@ -587,13 +585,15 @@ static bool w_S_r4r4r4_S_r4r4r4_S_r4r4r4_r4r4(void* method, MethodPointer method
     }
 
     //LuaValToCSVal struct
-    S_r4r4r4_ p0 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_* pp0 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_ p0 = pp0 ? *pp0 : S_r4r4r4_{};
     //LuaValToCSVal struct
-    S_r4r4r4_ p1 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 1 + paramOffset, TIp1);
+    S_r4r4r4_* pp1 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 1 + paramOffset, TIp1);
+    S_r4r4r4_ p1 = pp1 ? *pp1 : S_r4r4r4_{};
     //signature r4
-    float p2 = lapi_lua_tonumber(L, 2 + paramOffset);
+    float p2 = converter::Converter<float>::toCpp(L, 2 + paramOffset);
     //signature r4
-    float p3 = lapi_lua_tonumber(L, 3 + paramOffset);
+    float p3 = converter::Converter<float>::toCpp(L, 3 + paramOffset);
 
     typedef struct S_r4r4r4_(*FuncToCall)(struct S_r4r4r4_ p0, struct S_r4r4r4_ p1, float p2, float p3, const void* method);
     struct S_r4r4r4_ ret = ((FuncToCall)methodPointer)(p0, p1, p2, p3, method);
@@ -603,22 +603,22 @@ static bool w_S_r4r4r4_S_r4r4r4_S_r4r4r4_r4r4(void* method, MethodPointer method
     return true;
 }
 
-
 //UnityEngine.Vector3 ClampMagnitude(UnityEngine.Vector3, Single)
 static bool w_S_r4r4r4_S_r4r4r4_r4(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 1) return false;
         if (!CheckIsStruct(L, 0 + paramOffset, TIp0)) return false;
         if (!lapi_lua_isnumber(L, 1 + paramOffset)) return false;
     }
 
     //LuaValToCSVal struct
-    S_r4r4r4_ p0 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_* pp0 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_ p0 = pp0 ? *pp0 : S_r4r4r4_{};
     //signature r4
-    float p1 = lapi_lua_tonumber(L, 1 + paramOffset);
+    float p1 = converter::Converter<float>::toCpp(L, 1 + paramOffset);
 
     typedef struct S_r4r4r4_(*FuncToCall)(struct S_r4r4r4_ p0, float p1, const void* method);
     struct S_r4r4r4_ ret = ((FuncToCall)methodPointer)(p0, p1, method);
@@ -628,22 +628,22 @@ static bool w_S_r4r4r4_S_r4r4r4_r4(void* method, MethodPointer methodPointer, lu
     return true;
 }
 
-
 //UnityEngine.Vector3 op_Multiply(Single, UnityEngine.Vector3)
 static bool w_S_r4r4r4_r4S_r4r4r4_(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp1 = wrapData->TypeInfos[1];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 1) return false;
         if (!lapi_lua_isnumber(L, 0 + paramOffset)) return false;
         if (!CheckIsStruct(L, 1 + paramOffset, TIp1)) return false;
     }
 
     //signature r4
-    float p0 = lapi_lua_tonumber(L, 0 + paramOffset);
+    float p0 = converter::Converter<float>::toCpp(L, 0 + paramOffset);
     //LuaValToCSVal struct
-    S_r4r4r4_ p1 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 1 + paramOffset, TIp1);
+    S_r4r4r4_* pp1 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 1 + paramOffset, TIp1);
+    S_r4r4r4_ p1 = pp1 ? *pp1 : S_r4r4r4_{};
 
     typedef struct S_r4r4r4_(*FuncToCall)(float p0, struct S_r4r4r4_ p1, const void* method);
     struct S_r4r4r4_ ret = ((FuncToCall)methodPointer)(p0, p1, method);
@@ -653,12 +653,11 @@ static bool w_S_r4r4r4_r4S_r4r4r4_(void* method, MethodPointer methodPointer, lu
     return true;
 }
 
-
 //UnityEngine.Vector3 get_normalized()
 static bool w_S_r4r4r4_t(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + -1) return false;
 
     }
@@ -673,22 +672,23 @@ static bool w_S_r4r4r4_t(void* method, MethodPointer methodPointer, lua_State* L
     return true;
 }
 
-
 //Boolean op_Equality(UnityEngine.Vector3, UnityEngine.Vector3)
 static bool w_bS_r4r4r4_S_r4r4r4_(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIp0 = wrapData->TypeInfos[0];
     auto TIp1 = wrapData->TypeInfos[1];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 1) return false;
         if (!CheckIsStruct(L, 0 + paramOffset, TIp0)) return false;
         if (!CheckIsStruct(L, 1 + paramOffset, TIp1)) return false;
     }
 
     //LuaValToCSVal struct
-    S_r4r4r4_ p0 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_* pp0 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_ p0 = pp0 ? *pp0 : S_r4r4r4_{};
     //LuaValToCSVal struct
-    S_r4r4r4_ p1 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 1 + paramOffset, TIp1);
+    S_r4r4r4_* pp1 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 1 + paramOffset, TIp1);
+    S_r4r4r4_ p1 = pp1 ? *pp1 : S_r4r4r4_{};
 
     typedef bool (*FuncToCall)(struct S_r4r4r4_ p0, struct S_r4r4r4_ p1, const void* method);
     bool ret = ((FuncToCall)methodPointer)(p0, p1, method);
@@ -698,13 +698,12 @@ static bool w_bS_r4r4r4_S_r4r4r4_(void* method, MethodPointer methodPointer, lua
     return true;
 }
 
-
 //Boolean IsDefined(System.Type, System.Object)
 static bool w_boO(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIp0 = wrapData->TypeInfos[0];
     auto TIp1 = wrapData->TypeInfos[1];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 1) return false;
         if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return false;
 
@@ -723,12 +722,11 @@ static bool w_boO(void* method, MethodPointer methodPointer, lua_State* L, bool 
     return true;
 }
 
-
 //Boolean Equals(System.Object)
 static bool w_btO(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIp0 = wrapData->TypeInfos[0];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 0) return false;
 
     }
@@ -744,18 +742,18 @@ static bool w_btO(void* method, MethodPointer methodPointer, lua_State* L, bool 
     return true;
 }
 
-
 //Boolean Equals(UnityEngine.Vector3)
 static bool w_btS_r4r4r4_(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIp0 = wrapData->TypeInfos[0];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 0) return false;
         if (!CheckIsStruct(L, 0 + paramOffset, TIp0)) return false;
     }
     auto self = GetCppObjMapper()->ToCppObj(L, 1);
     //LuaValToCSVal struct
-    S_r4r4r4_ p0 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_* pp0 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_ p0 = pp0 ? *pp0 : S_r4r4r4_{};
 
     typedef bool (*FuncToCall)(void*, struct S_r4r4r4_ p0, const void* method);
     bool ret = ((FuncToCall)methodPointer)(self, p0, method);
@@ -765,12 +763,11 @@ static bool w_btS_r4r4r4_(void* method, MethodPointer methodPointer, lua_State* 
     return true;
 }
 
-
 //Boolean HasFlag(System.Enum)
 static bool w_bto(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIp0 = wrapData->TypeInfos[0];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 0) return false;
         if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return false;
     }
@@ -786,12 +783,11 @@ static bool w_bto(void* method, MethodPointer methodPointer, lua_State* L, bool 
     return true;
 }
 
-
 //Int32 get_StaticPropertyInt()
 static bool w_i4(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
 
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + -1) return false;
 
     }
@@ -806,12 +802,11 @@ static bool w_i4(void* method, MethodPointer methodPointer, lua_State* L, bool c
     return true;
 }
 
-
 //Int32 get_PropertyInt()
 static bool w_i4t(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
 
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + -1) return false;
 
     }
@@ -826,12 +821,11 @@ static bool w_i4t(void* method, MethodPointer methodPointer, lua_State* L, bool 
     return true;
 }
 
-
 //Int32 CompareTo(System.Object)
 static bool w_i4tO(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIp0 = wrapData->TypeInfos[0];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 0) return false;
 
     }
@@ -847,18 +841,17 @@ static bool w_i4tO(void* method, MethodPointer methodPointer, lua_State* L, bool
     return true;
 }
 
-
 //Int32 get_Item(Int32)
 static bool w_i4ti4(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
 
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 0) return false;
         if (!lapi_lua_isnumber(L, 0 + paramOffset)) return false;
     }
     auto self = GetCppObjMapper()->ToCppObj(L, 1);
     //signature i4
-    int32_t p0 = lapi_xlua_tointeger(L, 0 + paramOffset);
+    int32_t p0 = converter::Converter<int32_t>::toCpp(L, 0 + paramOffset);
 
     typedef int32_t(*FuncToCall)(void*, int32_t p0, const void* method);
     int32_t ret = ((FuncToCall)methodPointer)(self, p0, method);
@@ -868,13 +861,12 @@ static bool w_i4ti4(void* method, MethodPointer methodPointer, lua_State* L, boo
     return true;
 }
 
-
 //System.Type GetUnderlyingType(System.Type)
 static bool w_oo(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 0) return false;
         if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return false;
     }
@@ -890,18 +882,62 @@ static bool w_oo(void* method, MethodPointer methodPointer, lua_State* L, bool c
     return true;
 }
 
+//Tutorial.DerivedClass op_Addition(Tutorial.DerivedClass, Tutorial.DerivedClass)
+static bool w_ooo(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
+    auto TIret = wrapData->TypeInfos[0];
+    auto TIp0 = wrapData->TypeInfos[1];
+    auto TIp1 = wrapData->TypeInfos[2];
+    auto length = lapi_lua_gettop(L);
+    if (checkLuaArgument) {
+        if (length != paramOffset + 1) return false;
+        if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return false;
+        if (!CheckIsClass(L, 1 + paramOffset, TIp1)) return false;
+    }
+
+    // object
+    void* p0 = (void*)xlua::LuaValueToCSRef((Il2CppClass*)TIp0, L, 0 + paramOffset);
+    // object
+    void* p1 = (void*)xlua::LuaValueToCSRef((Il2CppClass*)TIp1, L, 1 + paramOffset);
+
+    typedef void* (*FuncToCall)(void* p0, void* p1, const void* method);
+    void* ret = ((FuncToCall)methodPointer)(p0, p1, method);
+
+
+    GetCppObjMapper()->TryPushObject(L, ret);
+    return true;
+}
+
+//Tutorial.ICalc GetCalc()
+static bool w_ot(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
+    auto TIret = wrapData->TypeInfos[0];
+    auto length = lapi_lua_gettop(L);
+    if (checkLuaArgument) {
+        if (length != paramOffset + -1) return false;
+
+    }
+    auto self = GetCppObjMapper()->ToCppObj(L, 1);
+
+
+    typedef void* (*FuncToCall)(void*, const void* method);
+    void* ret = ((FuncToCall)methodPointer)(self, method);
+
+
+    GetCppObjMapper()->TryPushObject(L, ret);
+    return true;
+}
 
 //Single Magnitude(UnityEngine.Vector3)
 static bool w_r4S_r4r4r4_(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIp0 = wrapData->TypeInfos[0];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 0) return false;
         if (!CheckIsStruct(L, 0 + paramOffset, TIp0)) return false;
     }
 
     //LuaValToCSVal struct
-    S_r4r4r4_ p0 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_* pp0 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_ p0 = pp0 ? *pp0 : S_r4r4r4_{};
 
     typedef float (*FuncToCall)(struct S_r4r4r4_ p0, const void* method);
     float ret = ((FuncToCall)methodPointer)(p0, method);
@@ -911,22 +947,23 @@ static bool w_r4S_r4r4r4_(void* method, MethodPointer methodPointer, lua_State* 
     return true;
 }
 
-
 //Single Dot(UnityEngine.Vector3, UnityEngine.Vector3)
 static bool w_r4S_r4r4r4_S_r4r4r4_(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIp0 = wrapData->TypeInfos[0];
     auto TIp1 = wrapData->TypeInfos[1];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 1) return false;
         if (!CheckIsStruct(L, 0 + paramOffset, TIp0)) return false;
         if (!CheckIsStruct(L, 1 + paramOffset, TIp1)) return false;
     }
 
     //LuaValToCSVal struct
-    S_r4r4r4_ p0 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_* pp0 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_ p0 = pp0 ? *pp0 : S_r4r4r4_{};
     //LuaValToCSVal struct
-    S_r4r4r4_ p1 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 1 + paramOffset, TIp1);
+    S_r4r4r4_* pp1 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 1 + paramOffset, TIp1);
+    S_r4r4r4_ p1 = pp1 ? *pp1 : S_r4r4r4_{};
 
     typedef float (*FuncToCall)(struct S_r4r4r4_ p0, struct S_r4r4r4_ p1, const void* method);
     float ret = ((FuncToCall)methodPointer)(p0, p1, method);
@@ -936,14 +973,13 @@ static bool w_r4S_r4r4r4_S_r4r4r4_(void* method, MethodPointer methodPointer, lu
     return true;
 }
 
-
 //Single SignedAngle(UnityEngine.Vector3, UnityEngine.Vector3, UnityEngine.Vector3)
 static bool w_r4S_r4r4r4_S_r4r4r4_S_r4r4r4_(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIp0 = wrapData->TypeInfos[0];
     auto TIp1 = wrapData->TypeInfos[1];
     auto TIp2 = wrapData->TypeInfos[2];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 2) return false;
         if (!CheckIsStruct(L, 0 + paramOffset, TIp0)) return false;
         if (!CheckIsStruct(L, 1 + paramOffset, TIp1)) return false;
@@ -951,11 +987,14 @@ static bool w_r4S_r4r4r4_S_r4r4r4_S_r4r4r4_(void* method, MethodPointer methodPo
     }
 
     //LuaValToCSVal struct
-    S_r4r4r4_ p0 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_* pp0 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_ p0 = pp0 ? *pp0 : S_r4r4r4_{};
     //LuaValToCSVal struct
-    S_r4r4r4_ p1 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 1 + paramOffset, TIp1);
+    S_r4r4r4_* pp1 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 1 + paramOffset, TIp1);
+    S_r4r4r4_ p1 = pp1 ? *pp1 : S_r4r4r4_{};
     //LuaValToCSVal struct
-    S_r4r4r4_ p2 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 2 + paramOffset, TIp2);
+    S_r4r4r4_* pp2 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 2 + paramOffset, TIp2);
+    S_r4r4r4_ p2 = pp2 ? *pp2 : S_r4r4r4_{};
 
     typedef float (*FuncToCall)(struct S_r4r4r4_ p0, struct S_r4r4r4_ p1, struct S_r4r4r4_ p2, const void* method);
     float ret = ((FuncToCall)methodPointer)(p0, p1, p2, method);
@@ -965,12 +1004,11 @@ static bool w_r4S_r4r4r4_S_r4r4r4_S_r4r4r4_(void* method, MethodPointer methodPo
     return true;
 }
 
-
 //Single get_magnitude()
 static bool w_r4t(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
 
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + -1) return false;
 
     }
@@ -985,18 +1023,17 @@ static bool w_r4t(void* method, MethodPointer methodPointer, lua_State* L, bool 
     return true;
 }
 
-
 //Single get_Item(Int32)
 static bool w_r4ti4(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
 
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 0) return false;
         if (!lapi_lua_isnumber(L, 0 + paramOffset)) return false;
     }
     auto self = GetCppObjMapper()->ToCppObj(L, 1);
     //signature i4
-    int32_t p0 = lapi_xlua_tointeger(L, 0 + paramOffset);
+    int32_t p0 = converter::Converter<int32_t>::toCpp(L, 0 + paramOffset);
 
     typedef float (*FuncToCall)(void*, int32_t p0, const void* method);
     float ret = ((FuncToCall)methodPointer)(self, p0, method);
@@ -1005,15 +1042,50 @@ static bool w_r4ti4(void* method, MethodPointer methodPointer, lua_State* L, boo
     lapi_lua_pushnumber(L, (double)ret);
     return true;
 }
+//Double ComplexFunc(Tutorial.Param1, Int32 ByRef, System.String ByRef, System.Action, System.Action ByRef)
+static bool w_r8tS_i4s_Pi4UPsoUPo(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
+    auto TIp0 = wrapData->TypeInfos[0];
+    auto TIp2 = wrapData->TypeInfos[1];
+    auto TIp3 = wrapData->TypeInfos[2];
+    auto TIp4 = wrapData->TypeInfos[3];
+    auto length = lapi_lua_gettop(L);
+    if (checkLuaArgument) {
+        if (length != paramOffset + 4) return false;
+        if (!CheckIsStruct(L, 0 + paramOffset, TIp0)) return false;
+        if (!lapi_lua_isuserdata(L, 1 + paramOffset)) return false;
+        if (!!true) return false;
+        if (!CheckIsClass(L, 3 + paramOffset, TIp3)) return false;
+        if (!!true) return false;
+    }
+    auto self = GetCppObjMapper()->ToCppObj(L, 1);
+    //LuaValToCSVal struct
+    S_i4s_* pp0 = GetCSharpStructPointerFromLua<S_i4s_>(L, 0 + paramOffset, TIp0);
+    S_i4s_ p0 = pp0 ? *pp0 : S_i4s_{};
+    int32_t* p1 = nullptr; // Pi4
+    int32_t up1 = converter::Converter<int32_t>::toCpp(L, 1 + paramOffset);
+    p1 = &up1;
+    void* up2 = nullptr; // string ref 
+    void** p2 = &up2;
+    // object
+    void* p3 = (void*)xlua::LuaValueToCSRef((Il2CppClass*)TIp3, L, 2 + paramOffset);
+    void* up4 = nullptr; // Pi4
+    void** p4 = &up4;
 
+    typedef double (*FuncToCall)(void*, struct S_i4s_ p0, int32_t* p1, void** p2, void* p3, void** p4, const void* method);
+    double ret = ((FuncToCall)methodPointer)(self, p0, p1, p2, p3, p4, method);
+
+
+    lapi_lua_pushnumber(L, (double)ret);
+    return true;
+}
 
 //System.String GetName(System.Type, System.Object)
 static bool w_soO(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
     auto TIp1 = wrapData->TypeInfos[2];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 1) return false;
         if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return false;
 
@@ -1034,15 +1106,14 @@ static bool w_soO(void* method, MethodPointer methodPointer, lua_State* L, bool 
     return true;
 }
 
-
 //System.String Format(System.Type, System.Object, System.String)
 static bool w_soOs(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
     auto TIp1 = wrapData->TypeInfos[2];
     auto TIp2 = wrapData->TypeInfos[3];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 2) return false;
         if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return false;
 
@@ -1066,12 +1137,11 @@ static bool w_soOs(void* method, MethodPointer methodPointer, lua_State* L, bool
     return true;
 }
 
-
 //System.String ToString()
 static bool w_st(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + -1) return false;
 
     }
@@ -1088,13 +1158,12 @@ static bool w_st(void* method, MethodPointer methodPointer, lua_State* L, bool c
     return true;
 }
 
-
 //System.String ToString(System.IFormatProvider)
 static bool w_sto(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 0) return false;
         if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return false;
     }
@@ -1112,13 +1181,12 @@ static bool w_sto(void* method, MethodPointer methodPointer, lua_State* L, bool 
     return true;
 }
 
-
 //System.String ToString(System.String)
 static bool w_sts(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 0) return false;
         if (!lapi_lua_isstring(L, 0 + paramOffset)) return false;
     }
@@ -1136,14 +1204,13 @@ static bool w_sts(void* method, MethodPointer methodPointer, lua_State* L, bool 
     return true;
 }
 
-
 //System.String ToString(System.String, System.IFormatProvider)
 static bool w_stso(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIret = wrapData->TypeInfos[0];
     auto TIp0 = wrapData->TypeInfos[1];
     auto TIp1 = wrapData->TypeInfos[2];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 1) return false;
         if (!lapi_lua_isstring(L, 0 + paramOffset)) return false;
         if (!CheckIsClass(L, 1 + paramOffset, TIp1)) return false;
@@ -1164,27 +1231,67 @@ static bool w_stso(void* method, MethodPointer methodPointer, lua_State* L, bool
     return true;
 }
 
+//UInt64 TestLong(Int64)
+static bool w_u8ti8(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
+
+    auto length = lapi_lua_gettop(L);
+    if (checkLuaArgument) {
+        if (length != paramOffset + 0) return false;
+        if (!lapi_lua_isnumber(L, 0 + paramOffset)) return false;
+    }
+    auto self = GetCppObjMapper()->ToCppObj(L, 1);
+    //signature i8
+    int64_t p0 = converter::Converter<int64_t>::toCpp(L, 0 + paramOffset);
+
+    typedef uint64_t(*FuncToCall)(void*, int64_t p0, const void* method);
+    uint64_t ret = ((FuncToCall)methodPointer)(self, p0, method);
+
+
+    lapi_lua_pushinteger(L, (long long)ret);
+    return true;
+}
+
+//Void BSFunc()
+static bool w_v(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
+
+    auto length = lapi_lua_gettop(L);
+    if (checkLuaArgument) {
+        if (length != paramOffset + -1) return false;
+
+    }
+
+
+
+    typedef void (*FuncToCall)(const void* method);
+    ((FuncToCall)methodPointer)(method);
+
+
+
+    return true;
+}
 
 //Void OrthoNormalize(UnityEngine.Vector3 ByRef, UnityEngine.Vector3 ByRef)
 static bool w_vPS_r4r4r4_PS_r4r4r4_(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIp0 = wrapData->TypeInfos[0];
     auto TIp1 = wrapData->TypeInfos[1];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 1) return false;
         if (!lapi_lua_isuserdata(L, 0 + paramOffset)) return false;
         if (!lapi_lua_isuserdata(L, 1 + paramOffset)) return false;
     }
 
-    //LuaValToCSVal Pstruct todo 容错保护
-    S_r4r4r4_* p0 = (S_r4r4r4_*)GetCSharpStructPointer(L, 0 + paramOffset, TIp0);
+    //LuaValToCSVal Pstruct
+    S_r4r4r4_* p0 = nullptr;
+    p0 = (S_r4r4r4_*)GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 0 + paramOffset, TIp0);
     if (!p0) {
         S_r4r4r4_ up0;
         memset(&up0, 0, sizeof(S_r4r4r4_));
         p0 = &up0;
     }
-    //LuaValToCSVal Pstruct todo 容错保护
-    S_r4r4r4_* p1 = (S_r4r4r4_*)GetCSharpStructPointer(L, 1 + paramOffset, TIp1);
+    //LuaValToCSVal Pstruct
+    S_r4r4r4_* p1 = nullptr;
+    p1 = (S_r4r4r4_*)GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 1 + paramOffset, TIp1);
     if (!p1) {
         S_r4r4r4_ up1;
         memset(&up1, 0, sizeof(S_r4r4r4_));
@@ -1199,36 +1306,38 @@ static bool w_vPS_r4r4r4_PS_r4r4r4_(void* method, MethodPointer methodPointer, l
     return true;
 }
 
-
 //Void OrthoNormalize(UnityEngine.Vector3 ByRef, UnityEngine.Vector3 ByRef, UnityEngine.Vector3 ByRef)
 static bool w_vPS_r4r4r4_PS_r4r4r4_PS_r4r4r4_(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIp0 = wrapData->TypeInfos[0];
     auto TIp1 = wrapData->TypeInfos[1];
     auto TIp2 = wrapData->TypeInfos[2];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 2) return false;
         if (!lapi_lua_isuserdata(L, 0 + paramOffset)) return false;
         if (!lapi_lua_isuserdata(L, 1 + paramOffset)) return false;
         if (!lapi_lua_isuserdata(L, 2 + paramOffset)) return false;
     }
 
-    //LuaValToCSVal Pstruct todo 容错保护
-    S_r4r4r4_* p0 = (S_r4r4r4_*)GetCSharpStructPointer(L, 0 + paramOffset, TIp0);
+    //LuaValToCSVal Pstruct
+    S_r4r4r4_* p0 = nullptr;
+    p0 = (S_r4r4r4_*)GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 0 + paramOffset, TIp0);
     if (!p0) {
         S_r4r4r4_ up0;
         memset(&up0, 0, sizeof(S_r4r4r4_));
         p0 = &up0;
     }
-    //LuaValToCSVal Pstruct todo 容错保护
-    S_r4r4r4_* p1 = (S_r4r4r4_*)GetCSharpStructPointer(L, 1 + paramOffset, TIp1);
+    //LuaValToCSVal Pstruct
+    S_r4r4r4_* p1 = nullptr;
+    p1 = (S_r4r4r4_*)GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 1 + paramOffset, TIp1);
     if (!p1) {
         S_r4r4r4_ up1;
         memset(&up1, 0, sizeof(S_r4r4r4_));
         p1 = &up1;
     }
-    //LuaValToCSVal Pstruct todo 容错保护
-    S_r4r4r4_* p2 = (S_r4r4r4_*)GetCSharpStructPointer(L, 2 + paramOffset, TIp2);
+    //LuaValToCSVal Pstruct
+    S_r4r4r4_* p2 = nullptr;
+    p2 = (S_r4r4r4_*)GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 2 + paramOffset, TIp2);
     if (!p2) {
         S_r4r4r4_ up2;
         memset(&up2, 0, sizeof(S_r4r4r4_));
@@ -1243,18 +1352,17 @@ static bool w_vPS_r4r4r4_PS_r4r4r4_PS_r4r4r4_(void* method, MethodPointer method
     return true;
 }
 
-
 //Void set_StaticPropertyInt(Int32)
 static bool w_vi4(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
 
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 0) return false;
         if (!lapi_lua_isnumber(L, 0 + paramOffset)) return false;
     }
 
     //signature i4
-    int32_t p0 = lapi_xlua_tointeger(L, 0 + paramOffset);
+    int32_t p0 = converter::Converter<int32_t>::toCpp(L, 0 + paramOffset);
 
     typedef void (*FuncToCall)(int32_t p0, const void* method);
     ((FuncToCall)methodPointer)(p0, method);
@@ -1264,12 +1372,11 @@ static bool w_vi4(void* method, MethodPointer methodPointer, lua_State* L, bool 
     return true;
 }
 
-
 //Void StaticPrint(System.String)
 static bool w_vs(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIp0 = wrapData->TypeInfos[0];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 0) return false;
         if (!lapi_lua_isstring(L, 0 + paramOffset)) return false;
     }
@@ -1285,12 +1392,11 @@ static bool w_vs(void* method, MethodPointer methodPointer, lua_State* L, bool c
     return true;
 }
 
-
 //Void MethodInvoke()
 static bool w_vt(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
 
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + -1) return false;
 
     }
@@ -1305,18 +1411,45 @@ static bool w_vt(void* method, MethodPointer methodPointer, lua_State* L, bool c
     return true;
 }
 
+//Void DefaultValueFunc(Int32, System.String, System.String)
+static bool w_vtDi4DsDs(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
+    auto TIp1 = wrapData->TypeInfos[0];
+    auto TIp2 = wrapData->TypeInfos[1];
+    auto length = lapi_lua_gettop(L);
+    if (true) {
+        if (length < paramOffset + -1) return false;
+        if (length > 0 + paramOffset && !lapi_lua_isnumber(L, 0 + paramOffset)) return false;
+        if (length > 1 + paramOffset && !lapi_lua_isstring(L, 1 + paramOffset)) return false;
+        if (length > 2 + paramOffset && !lapi_lua_isstring(L, 2 + paramOffset)) return false;
+    }
+    auto self = GetCppObjMapper()->ToCppObj(L, 1);
+    //LuaValToCSVal primitive default
+    int32_t p0 = xlua::OptionalParameter<int32_t>::GetPrimitive(L, 0 + paramOffset, method, wrapData, 0);
+    //LuaValToCSVal string default
+    void* p1 = xlua::OptionalParameter<void*>::GetString(L, 1 + paramOffset, method, wrapData, 1);
+    //LuaValToCSVal string default
+    void* p2 = xlua::OptionalParameter<void*>::GetString(L, 2 + paramOffset, method, wrapData, 2);
+
+    typedef void (*FuncToCall)(void*, int32_t p0, void* p1, void* p2, const void* method);
+    ((FuncToCall)methodPointer)(self, p0, p1, p2, method);
+
+
+
+    return true;
+}
 
 //Void Scale(UnityEngine.Vector3)
 static bool w_vtS_r4r4r4_(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIp0 = wrapData->TypeInfos[0];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 0) return false;
         if (!CheckIsStruct(L, 0 + paramOffset, TIp0)) return false;
     }
     auto self = GetCppObjMapper()->ToCppObj(L, 1);
     //LuaValToCSVal struct
-    S_r4r4r4_ p0 = *(S_r4r4r4_*)GetCSharpStructPointer(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_* pp0 = GetCSharpStructPointerFromLua<S_r4r4r4_>(L, 0 + paramOffset, TIp0);
+    S_r4r4r4_ p0 = pp0 ? *pp0 : S_r4r4r4_{};
 
     typedef void (*FuncToCall)(void*, struct S_r4r4r4_ p0, const void* method);
     ((FuncToCall)methodPointer)(self, p0, method);
@@ -1326,18 +1459,17 @@ static bool w_vtS_r4r4r4_(void* method, MethodPointer methodPointer, lua_State* 
     return true;
 }
 
-
 //Void set_PropertyInt(Int32)
 static bool w_vti4(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
 
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 0) return false;
         if (!lapi_lua_isnumber(L, 0 + paramOffset)) return false;
     }
     auto self = GetCppObjMapper()->ToCppObj(L, 1);
     //signature i4
-    int32_t p0 = lapi_xlua_tointeger(L, 0 + paramOffset);
+    int32_t p0 = converter::Converter<int32_t>::toCpp(L, 0 + paramOffset);
 
     typedef void (*FuncToCall)(void*, int32_t p0, const void* method);
     ((FuncToCall)methodPointer)(self, p0, method);
@@ -1347,44 +1479,65 @@ static bool w_vti4(void* method, MethodPointer methodPointer, lua_State* L, bool
     return true;
 }
 
-
 //Void DefaultParam(Int32, System.String)
 static bool w_vti4Ds(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIp1 = wrapData->TypeInfos[0];
+    auto length = lapi_lua_gettop(L);
     if (true) {
-        auto length = lapi_lua_gettop(L);
         if (length < paramOffset + 0) return false;
         if (!lapi_lua_isnumber(L, 0 + paramOffset)) return false;
         if (length > 1 + paramOffset && !lapi_lua_isstring(L, 1 + paramOffset)) return false;
     }
     auto self = GetCppObjMapper()->ToCppObj(L, 1);
     //signature i4
-    int32_t p0 = lapi_xlua_tointeger(L, 0 + paramOffset);
+    int32_t p0 = converter::Converter<int32_t>::toCpp(L, 0 + paramOffset);
     //LuaValToCSVal string default
-    
     void* p1 = xlua::OptionalParameter<void*>::GetString(L, 1 + paramOffset, method, wrapData, 1);
 
     typedef void (*FuncToCall)(void*, int32_t p0, void* p1, const void* method);
     ((FuncToCall)methodPointer)(self, p0, p1, method);
 
+
+
     return true;
 }
 
+//Void VariableParamsFunc(Int32, System.String[])
+static bool w_vti4Vs(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
+    auto TIp1 = wrapData->TypeInfos[0];
+    auto length = lapi_lua_gettop(L);
+    if (checkLuaArgument) {
+        if (length < paramOffset + 0) return false;
+        if (!lapi_lua_isnumber(L, 0 + paramOffset)) return false;
+        //#TODO@benp check null
+    }
+    auto self = GetCppObjMapper()->ToCppObj(L, 1);
+    //signature i4
+    int32_t p0 = converter::Converter<int32_t>::toCpp(L, 0 + paramOffset);
+    void* p1 = nullptr;//todo array
+
+    typedef void (*FuncToCall)(void*, int32_t p0, void* p1, const void* method);
+    ((FuncToCall)methodPointer)(self, p0, p1, method);
+
+
+
+    return true;
+}
 
 //Void set_Item(Int32, Int32)
 static bool w_vti4i4(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
 
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 1) return false;
         if (!lapi_lua_isnumber(L, 0 + paramOffset)) return false;
         if (!lapi_lua_isnumber(L, 1 + paramOffset)) return false;
     }
     auto self = GetCppObjMapper()->ToCppObj(L, 1);
     //signature i4
-    int32_t p0 = lapi_xlua_tointeger(L, 0 + paramOffset);
+    int32_t p0 = converter::Converter<int32_t>::toCpp(L, 0 + paramOffset);
     //signature i4
-    int32_t p1 = lapi_xlua_tointeger(L, 1 + paramOffset);
+    int32_t p1 = converter::Converter<int32_t>::toCpp(L, 1 + paramOffset);
 
     typedef void (*FuncToCall)(void*, int32_t p0, int32_t p1, const void* method);
     ((FuncToCall)methodPointer)(self, p0, p1, method);
@@ -1394,21 +1547,20 @@ static bool w_vti4i4(void* method, MethodPointer methodPointer, lua_State* L, bo
     return true;
 }
 
-
 //Void set_Item(Int32, Single)
 static bool w_vti4r4(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
 
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 1) return false;
         if (!lapi_lua_isnumber(L, 0 + paramOffset)) return false;
         if (!lapi_lua_isnumber(L, 1 + paramOffset)) return false;
     }
     auto self = GetCppObjMapper()->ToCppObj(L, 1);
     //signature i4
-    int32_t p0 = lapi_xlua_tointeger(L, 0 + paramOffset);
+    int32_t p0 = converter::Converter<int32_t>::toCpp(L, 0 + paramOffset);
     //signature r4
-    float p1 = lapi_lua_tonumber(L, 1 + paramOffset);
+    float p1 = converter::Converter<float>::toCpp(L, 1 + paramOffset);
 
     typedef void (*FuncToCall)(void*, int32_t p0, float p1, const void* method);
     ((FuncToCall)methodPointer)(self, p0, p1, method);
@@ -1418,21 +1570,40 @@ static bool w_vti4r4(void* method, MethodPointer methodPointer, lua_State* L, bo
     return true;
 }
 
+//Void add_TestEvent(System.Action)
+static bool w_vto(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
+    auto TIp0 = wrapData->TypeInfos[0];
+    auto length = lapi_lua_gettop(L);
+    if (checkLuaArgument) {
+        if (length != paramOffset + 0) return false;
+        if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return false;
+    }
+    auto self = GetCppObjMapper()->ToCppObj(L, 1);
+    // object
+    void* p0 = (void*)xlua::LuaValueToCSRef((Il2CppClass*)TIp0, L, 0 + paramOffset);
+
+    typedef void (*FuncToCall)(void*, void* p0, const void* method);
+    ((FuncToCall)methodPointer)(self, p0, method);
+
+
+
+    return true;
+}
 
 //Void .ctor(Single, Single)
 static bool w_vtr4r4(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
 
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 1) return false;
         if (!lapi_lua_isnumber(L, 0 + paramOffset)) return false;
         if (!lapi_lua_isnumber(L, 1 + paramOffset)) return false;
     }
     auto self = GetCppObjMapper()->ToCppObj(L, 1);
     //signature r4
-    float p0 = lapi_lua_tonumber(L, 0 + paramOffset);
+    float p0 = converter::Converter<float>::toCpp(L, 0 + paramOffset);
     //signature r4
-    float p1 = lapi_lua_tonumber(L, 1 + paramOffset);
+    float p1 = converter::Converter<float>::toCpp(L, 1 + paramOffset);
 
     typedef void (*FuncToCall)(void*, float p0, float p1, const void* method);
     ((FuncToCall)methodPointer)(self, p0, p1, method);
@@ -1442,12 +1613,11 @@ static bool w_vtr4r4(void* method, MethodPointer methodPointer, lua_State* L, bo
     return true;
 }
 
-
 //Void Set(Single, Single, Single)
 static bool w_vtr4r4r4(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
 
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 2) return false;
         if (!lapi_lua_isnumber(L, 0 + paramOffset)) return false;
         if (!lapi_lua_isnumber(L, 1 + paramOffset)) return false;
@@ -1455,11 +1625,11 @@ static bool w_vtr4r4r4(void* method, MethodPointer methodPointer, lua_State* L, 
     }
     auto self = GetCppObjMapper()->ToCppObj(L, 1);
     //signature r4
-    float p0 = lapi_lua_tonumber(L, 0 + paramOffset);
+    float p0 = converter::Converter<float>::toCpp(L, 0 + paramOffset);
     //signature r4
-    float p1 = lapi_lua_tonumber(L, 1 + paramOffset);
+    float p1 = converter::Converter<float>::toCpp(L, 1 + paramOffset);
     //signature r4
-    float p2 = lapi_lua_tonumber(L, 2 + paramOffset);
+    float p2 = converter::Converter<float>::toCpp(L, 2 + paramOffset);
 
     typedef void (*FuncToCall)(void*, float p0, float p1, float p2, const void* method);
     ((FuncToCall)methodPointer)(self, p0, p1, p2, method);
@@ -1469,12 +1639,11 @@ static bool w_vtr4r4r4(void* method, MethodPointer methodPointer, lua_State* L, 
     return true;
 }
 
-
 //Void Print(System.String)
 static bool w_vts(void* method, MethodPointer methodPointer, lua_State* L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {
     auto TIp0 = wrapData->TypeInfos[0];
+    auto length = lapi_lua_gettop(L);
     if (checkLuaArgument) {
-        auto length = lapi_lua_gettop(L);
         if (length != paramOffset + 0) return false;
         if (!lapi_lua_isstring(L, 0 + paramOffset)) return false;
     }
@@ -1525,36 +1694,94 @@ static WrapFuncInfo g_wrapFuncInfos[] = {
     {"i4tO", (WrapFuncPtr)w_i4tO},
     {"i4ti4", (WrapFuncPtr)w_i4ti4},
     {"oo", (WrapFuncPtr)w_oo},
+    {"ooo", (WrapFuncPtr)w_ooo},
+    {"ot", (WrapFuncPtr)w_ot},
     {"r4S_r4r4r4_", (WrapFuncPtr)w_r4S_r4r4r4_},
     {"r4S_r4r4r4_S_r4r4r4_", (WrapFuncPtr)w_r4S_r4r4r4_S_r4r4r4_},
     {"r4S_r4r4r4_S_r4r4r4_S_r4r4r4_", (WrapFuncPtr)w_r4S_r4r4r4_S_r4r4r4_S_r4r4r4_},
     {"r4t", (WrapFuncPtr)w_r4t},
     {"r4ti4", (WrapFuncPtr)w_r4ti4},
+    {"r8tS_i4s_Pi4UPsoUPo", (WrapFuncPtr)w_r8tS_i4s_Pi4UPsoUPo},
     {"soO", (WrapFuncPtr)w_soO},
     {"soOs", (WrapFuncPtr)w_soOs},
     {"st", (WrapFuncPtr)w_st},
     {"sto", (WrapFuncPtr)w_sto},
     {"sts", (WrapFuncPtr)w_sts},
     {"stso", (WrapFuncPtr)w_stso},
+    {"u8ti8", (WrapFuncPtr)w_u8ti8},
+    {"v", (WrapFuncPtr)w_v},
     {"vPS_r4r4r4_PS_r4r4r4_", (WrapFuncPtr)w_vPS_r4r4r4_PS_r4r4r4_},
     {"vPS_r4r4r4_PS_r4r4r4_PS_r4r4r4_", (WrapFuncPtr)w_vPS_r4r4r4_PS_r4r4r4_PS_r4r4r4_},
     {"vi4", (WrapFuncPtr)w_vi4},
     {"vs", (WrapFuncPtr)w_vs},
     {"vt", (WrapFuncPtr)w_vt},
+    {"vtDi4DsDs", (WrapFuncPtr)w_vtDi4DsDs},
     {"vtS_r4r4r4_", (WrapFuncPtr)w_vtS_r4r4r4_},
     {"vti4", (WrapFuncPtr)w_vti4},
     {"vti4Ds", (WrapFuncPtr)w_vti4Ds},
+    {"vti4Vs", (WrapFuncPtr)w_vti4Vs},
     {"vti4i4", (WrapFuncPtr)w_vti4i4},
     {"vti4r4", (WrapFuncPtr)w_vti4r4},
+    {"vto", (WrapFuncPtr)w_vto},
     {"vtr4r4", (WrapFuncPtr)w_vtr4r4},
     {"vtr4r4r4", (WrapFuncPtr)w_vtr4r4r4},
     {"vts", (WrapFuncPtr)w_vts},
     {nullptr, nullptr}
 };
 
+static void b_v(void* target, MethodInfo* method) {
+
+
+
+    PersistentObjectInfo* delegateInfo = GetDelegateInfo(target);
+    auto L = delegateInfo->L;
+    if (!L)
+    {
+        //todo thwrow exception
+        return;
+    }
+    int oldTop = lapi_lua_gettop(L);
+    int errFunc = lapi_pcall_prepare(L, errorFunc_ref, delegateInfo->reference);
+
+
+    int n = lapi_lua_pcall(L, 0, 0, errFunc);
+    if (!n) {
+
+    }
+    else {
+        //todo throw exception 
+    }
+    lapi_lua_settop(L, errFunc - 1);
+}
+
+static void b_vs(void* target, void* p0, MethodInfo* method) {
+
+    auto TIp0 = GetParameterType(method, 0);
+
+    PersistentObjectInfo* delegateInfo = GetDelegateInfo(target);
+    auto L = delegateInfo->L;
+    if (!L)
+    {
+        //todo thwrow exception
+        return;
+    }
+    int oldTop = lapi_lua_gettop(L);
+    int errFunc = lapi_pcall_prepare(L, errorFunc_ref, delegateInfo->reference);
+
+    CSAnyToLuaValue(L, p0);
+    int n = lapi_lua_pcall(L, 1, 0, errFunc);
+    if (!n) {
+
+    }
+    else {
+        //todo throw exception 
+    }
+    lapi_lua_settop(L, errFunc - 1);
+}
 ;
 static BridgeFuncInfo g_bridgeFuncInfos[] = {
-
+    {"v", (MethodPointer)b_v},
+    {"vs", (MethodPointer)b_vs},
     {nullptr, nullptr}
 };
 
@@ -1574,7 +1801,8 @@ static void ifs_S_i4i4_(lua_State* L, void* fieldInfo, size_t offset, void* TIp)
 
 
     //LuaValToCSVal struct
-    S_i4i4_ p = *(S_i4i4_*)GetCSharpStructPointer(L, 3, TIp);
+    S_i4i4_* pp = GetCSharpStructPointerFromLua<S_i4i4_>(L, 3, TIp);
+    S_i4i4_ p = pp ? *pp : S_i4i4_{};
 xlua:SetFieldValue(nullptr, (FieldInfo*)fieldInfo, offset, &p);
 }
 
@@ -1594,7 +1822,7 @@ static void ifs_i4(lua_State* L, void* fieldInfo, size_t offset, void* TIp) {
 
 
     //signature i4
-    int32_t p = lapi_xlua_tointeger(L, 3);
+    int32_t p = converter::Converter<int32_t>::toCpp(L, 3);
 xlua:SetFieldValue(nullptr, (FieldInfo*)fieldInfo, offset, &p);
 }
 
@@ -1614,7 +1842,7 @@ static void ifs_r4(lua_State* L, void* fieldInfo, size_t offset, void* TIp) {
 
 
     //signature r4
-    float p = lapi_lua_tonumber(L, 3);
+    float p = converter::Converter<float>::toCpp(L, 3);
 xlua:SetFieldValue(nullptr, (FieldInfo*)fieldInfo, offset, &p);
 }
 
@@ -1633,7 +1861,8 @@ static void ifs_tS_i4i4_(lua_State* L, void* fieldInfo, size_t offset, void* TIp
     auto self = GetCppObjMapper()->ToCppObj_Field(L, 1);
 
     //LuaValToCSVal struct
-    S_i4i4_ p = *(S_i4i4_*)GetCSharpStructPointer(L, 3, TIp);
+    S_i4i4_* pp = GetCSharpStructPointerFromLua<S_i4i4_>(L, 3, TIp);
+    S_i4i4_ p = pp ? *pp : S_i4i4_{};
 xlua:SetFieldValue(self, (FieldInfo*)fieldInfo, offset, &p);
 }
 
@@ -1653,7 +1882,27 @@ static void ifs_ti4(lua_State* L, void* fieldInfo, size_t offset, void* TIp) {
     auto self = GetCppObjMapper()->ToCppObj_Field(L, 1);
 
     //signature i4
-    int32_t p = lapi_xlua_tointeger(L, 3);
+    int32_t p = converter::Converter<int32_t>::toCpp(L, 3);
+xlua:SetFieldValue(self, (FieldInfo*)fieldInfo, offset, &p);
+}
+
+static void ifg_to(lua_State* L, void* fieldInfo, size_t offset, void* TIret) {
+
+    auto self = GetCppObjMapper()->ToCppObj_Field(L, 1);
+
+    void* ret;
+
+xlua:GetFieldValue(self, (FieldInfo*)fieldInfo, offset, &ret);
+
+    GetCppObjMapper()->TryPushObject(L, ret);
+}
+
+static void ifs_to(lua_State* L, void* fieldInfo, size_t offset, void* TIp) {
+
+    auto self = GetCppObjMapper()->ToCppObj_Field(L, 1);
+
+    // object
+    void* p = (void*)xlua::LuaValueToCSRef((Il2CppClass*)TIp, L, 3);
 xlua:SetFieldValue(self, (FieldInfo*)fieldInfo, offset, &p);
 }
 
@@ -1673,7 +1922,7 @@ static void ifs_tr4(lua_State* L, void* fieldInfo, size_t offset, void* TIp) {
     auto self = GetCppObjMapper()->ToCppObj_Field(L, 1);
 
     //signature r4
-    float p = lapi_lua_tonumber(L, 3);
+    float p = converter::Converter<float>::toCpp(L, 3);
 xlua:SetFieldValue(self, (FieldInfo*)fieldInfo, offset, &p);
 };
 
@@ -1683,6 +1932,7 @@ static FieldWrapFuncInfo g_fieldWrapFuncInfos[] = {
     {"r4", (FieldWrapFuncPtr)ifg_r4, (FieldWrapFuncPtr)ifs_r4},
     {"tS_i4i4_", (FieldWrapFuncPtr)ifg_tS_i4i4_, (FieldWrapFuncPtr)ifs_tS_i4i4_},
     {"ti4", (FieldWrapFuncPtr)ifg_ti4, (FieldWrapFuncPtr)ifs_ti4},
+    {"to", (FieldWrapFuncPtr)ifg_to, (FieldWrapFuncPtr)ifs_to},
     {"tr4", (FieldWrapFuncPtr)ifg_tr4, (FieldWrapFuncPtr)ifs_tr4},
     {nullptr, nullptr, nullptr}
 };

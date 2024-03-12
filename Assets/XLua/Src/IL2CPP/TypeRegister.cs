@@ -64,10 +64,6 @@ namespace XLua.IL2CPP
             NativeAPI.SetClassMetaId(typeId, metaId);
         }
 
-        public static void SetLuaCacheRef(int cacheRef)
-        {
-            NativeAPI.SetLuaCacheRef(cacheRef);
-        }
 
         private static bool setcache = false;
         public static void Register(RealStatePtr L, Type type, bool includeNonPublic, bool throwIfMemberFail = false)
@@ -77,12 +73,15 @@ namespace XLua.IL2CPP
             if (!setcache)
             {
                 setcache = true;
-                NativeAPI.SetLuaCacheRef(translator.cacheRef);
+                
+                NativeAPI.SetXLuaRef(new int[]{translator.cacheRef, translator.luaEnv.errorFuncRef});
                 var StaticGetTypeIdMethod = typeof(TypeRegister).GetMethod("StaticGetTypeId", BindingFlags.Static | BindingFlags.Public);
                 var AddObjMethod = typeof(TypeRegister).GetMethod("AddObj", BindingFlags.Static | BindingFlags.Public);
                 var RemoveObjMethod = typeof(TypeRegister).GetMethod("RemoveObj", BindingFlags.Static | BindingFlags.Public);
                 
                 NativeAPI.SetCSharpAPI(new MethodBase[]{StaticGetTypeIdMethod, AddObjMethod, RemoveObjMethod});
+
+                NativeAPI.SetGlobalType_LuaObject(typeof(LuaObject));
             }
             BindingFlags flag = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public;
             if (includeNonPublic)

@@ -75,7 +75,7 @@ struct Converter;
 
     //float
     template <typename T>
-    struct Converter<T, typename std::enable_if<std::is_floating_point<T>::value>>
+    struct Converter<T, typename std::enable_if<std::is_floating_point<T>::value>::type>
     {
         static void toScript(lua_State* L, T value)
         {

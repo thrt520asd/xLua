@@ -35,7 +35,7 @@ static WrapFuncInfo g_wrapFuncInfos[] = {{
     {{nullptr, nullptr}}
 }};
 
-{String.Join("", cppWrappersInfo.BridgeInfos.Select(s=>""))};
+{String.Join("\n", cppWrappersInfo.BridgeInfos.Select(s=>WrapUtil.genBridge(s)))};
 static BridgeFuncInfo g_bridgeFuncInfos[] = {{
     {String.Join("\n\t", cppWrappersInfo.BridgeInfos.Select(s=>"{"+ $@"""{s.Signature}"", (MethodPointer)b_{s.Signature}" + "},"))}
     {{nullptr, nullptr}}
