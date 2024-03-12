@@ -118,14 +118,28 @@ namespace XLua.IL2CPP.Editor.Generator
             }
         }
         /// <summary>
+        /// 过滤out的参数
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public static int RealParameterIndex(List<string> list, int index){
+            int outParameterCnt = 0;
+            for(int i = 0; i < Math.Min(list.Count - 1, index); i++){
+                if(list[i].IsOutParameter()){
+                    outParameterCnt++;
+                }
+            }
+            return Math.Max(index - outParameterCnt, 0);
+        }
+        /// <summary>
         /// 函数的lua栈 1 closure 2 param1 3 param2
         /// </summary>
         /// <param name="signatureInfo"></param>
         /// <returns></returns>
         public static string GenFuncWrapper(SignatureInfo signatureInfo)
         {
-            // var selfCnt = needThis(signatureInfo.ThisSignature) ? 2 : 1;
-            var selfCnt = 0;
+            
             return 
 $@"//{signatureInfo.CsName}
 static bool w_{signatureInfo.Signature}(void* method, MethodPointer methodPointer, lua_State *L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {{
@@ -133,16 +147,17 @@ static bool w_{signatureInfo.Signature}(void* method, MethodPointer methodPointe
     auto length = lapi_lua_gettop(L);
     if({(signatureInfo.ParameterSignatures.Any(s => s[0] == 'D') ? "true" : "checkLuaArgument")}){{
         if ({WrapUtil.GenArgsLenCheck(signatureInfo.ParameterSignatures)}) return false;
-        {String.Join("\n\t\t", signatureInfo.ParameterSignatures.Select<string, string>((s, index) => WrapUtil.CheckLuaArgument(s, index+selfCnt)))}
+        {String.Join("\n\t\t", signatureInfo.ParameterSignatures.Select<string, string>((s, index) => WrapUtil.CheckLuaArgument(s, RealParameterIndex(signatureInfo.ParameterSignatures, index))))}
     }}
     {WrapUtil.GetThis(signatureInfo.ThisSignature)}
-    {String.Join("\n\t", signatureInfo.ParameterSignatures.Select((s, index) => WrapUtil.LuaValToCSVal(s, "p" + index,  index + selfCnt, true)))}
+    {String.Join("\n\t", signatureInfo.ParameterSignatures.Select((s, index) => WrapUtil.LuaValToCSVal(s, "p" + index,  RealParameterIndex(signatureInfo.ParameterSignatures, index) , true)))}
     
     typedef {WrapUtil.SToCPPType(signatureInfo.ReturnSignature)} (*FuncToCall)({(WrapUtil.needThis(signatureInfo.ThisSignature) ? "void*, " : "")}{String.Join("", signatureInfo.ParameterSignatures.Select((s, i) => $"{WrapUtil.SToCPPType(s)} p{i}, "))}const void* method);
     {(signatureInfo.ReturnSignature != "v" ? $"{WrapUtil.SToCPPType(signatureInfo.ReturnSignature)} ret = " : "")}((FuncToCall)methodPointer)({(WrapUtil.needThis(signatureInfo.ThisSignature) ? "self, " : "")} {String.Join("", signatureInfo.ParameterSignatures.Select((s, i) => $"p{i}, "))}method);
-    {String.Join("", signatureInfo.ParameterSignatures.Select((s, i) => WrapUtil.refSetback(s, i, signatureInfo)))}
 
     {(signatureInfo.ReturnSignature != "v" ? WrapUtil.ReturnToLua(signatureInfo.ReturnSignature) : "")}
+
+    {String.Join("", signatureInfo.ParameterSignatures.Select((s, i) => WrapUtil.refSetback(s, i, signatureInfo)))}
     return true;
 }}
 ";
@@ -215,6 +230,8 @@ static bool w_{signatureInfo.Signature}(void* method, MethodPointer methodPointe
                 ret += $@"";
                 signature = signature.Substring(1);
                 return "//#TODO@benp check null";
+            }else if(signature.IsOutParameter()){
+                return "";
             }
             else
             {
@@ -313,9 +330,10 @@ static bool w_{signatureInfo.Signature}(void* method, MethodPointer methodPointe
         public static string LuaValToCSVal(string signature, string CSName, int index, bool needOffset = false, bool isField = false)
         {
             if(signature.IsOutParameter()){
+                Debug.Log("signature "+signature + index);
                 return 
-$@"void* up{index} = nullptr; //out ref
-    void* p{index} = &up{index};
+$@"void* u{CSName} = nullptr; //out ref
+    void** {CSName} = &u{CSName};
     ";
             }
             if (signature == TypeUtils.TypeSignatures.String)
