@@ -1,0 +1,9 @@
+IL2CPPTest
+IL2CPPTestBase
+UnityEngine.Vector3
+Il2CppTestStruct
+DirectionEnum
+System.Enum
+Tutorial.DerivedClass
+Tutorial.BaseClass
+System.Action

@@ -26,6 +26,8 @@ namespace xlua{
         void SetTypeId(void *kclass, int32_t metaId);
         int GetClassMetaId(void *kclass);
 
+        void CreateDelegateMetatable(lua_State *L);
+
     private:
         CSharpGetTypeIdFunc cSharpGetTypeMethodPtr = nullptr;
         void* cSharpGetTypeMethod = nullptr;

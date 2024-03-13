@@ -240,6 +240,15 @@ int lapi_pcall_prepare(lua_State *L, int error_func_ref, int func_ref);
 // luaL_ref
 int lapi_luaL_ref(lua_State *L, int t);
 
+// xlua_tag
+void* lapi_xlua_tag();
+
+// lua_rawget
+int lapi_lua_rawget(lua_State* L, int idx);
+
+// lua_rawset
+int lapi_lua_rawset(lua_State* L, int idx);
+
 void lapi_init(lapi_func_ptr* func_array);
 
 EXTERN_C_END

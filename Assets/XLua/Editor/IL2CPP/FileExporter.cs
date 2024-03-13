@@ -157,7 +157,8 @@ $@"struct {Signature}{{
 
                 const BindingFlags flag = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public;
                 const BindingFlags flagForPuer = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
-                types = new List<Type>(){typeof(IL2CPPTest), typeof(IL2CPPTestBase), typeof(Vector3), typeof(Il2CppTestStruct), typeof(DirectionEnum), typeof(Enum), typeof(Tutorial.DerivedClass), typeof(Tutorial.BaseClass)};
+                types = new List<Type>(){typeof(IL2CPPTest), typeof(IL2CPPTestBase), typeof(Vector3), typeof(Il2CppTestStruct), typeof(DirectionEnum), typeof(Enum), typeof(Tutorial.DerivedClass), typeof(Tutorial.BaseClass), typeof(System.Action)};
+                File.WriteAllText(Application.dataPath+"/../type.text",  String.Join("\n", types.Select(s=>s.FullName)));
                 //#TODO@benp 白名单处理
                 var typeExcludeDelegate = types
                     .Where(t => !typeof(MulticastDelegate).IsAssignableFrom(t));

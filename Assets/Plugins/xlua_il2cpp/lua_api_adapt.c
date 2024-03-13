@@ -514,6 +514,32 @@ int lapi_luaL_ref(lua_State *L, int t) {
     return lapi_luaL_ref_ptr(L, t);
 }
 
+// xlua_tag
+typedef void* (*lapi_xlua_tagType)();
+
+static lapi_xlua_tagType lapi_xlua_tag_ptr;
+
+void* lapi_xlua_tag() {
+    return lapi_xlua_tag_ptr();
+}
+
+// lua_rawget
+typedef int (*lapi_lua_rawgetType)(lua_State* L, int index);
+
+static lapi_lua_rawgetType lapi_lua_rawget_ptr;
+
+int lapi_lua_rawget(lua_State* L, int index) {
+    return lapi_lua_rawget_ptr(L, index);
+}
+
+// lua_rawset
+typedef int (*lapi_lua_rawsetType)(lua_State* L, int index);
+
+static lapi_lua_rawsetType lapi_lua_rawset_ptr;
+
+int lapi_lua_rawset(lua_State* L, int index) {
+    return lapi_lua_rawset_ptr(L, index);
+}
 
 void lapi_init(lapi_func_ptr* func_array){
     lapi_lua_touserdata_ptr = (lapi_lua_touserdataType)func_array[0];
@@ -572,6 +598,9 @@ void lapi_init(lapi_func_ptr* func_array){
     lapi_lua_pcall_ptr = (lapi_lua_pcallType)func_array[53];
     lapi_pcall_prepare_ptr = (lapi_pcall_prepareType)func_array[54];
     lapi_luaL_ref_ptr = (lapi_luaL_refType)func_array[55];
+    lapi_xlua_tag_ptr = (lapi_xlua_tagType)func_array[56];
+    lapi_lua_rawget_ptr = (lapi_lua_rawgetType)func_array[57];
+    lapi_lua_rawset_ptr = (lapi_lua_rawsetType)func_array[58];
 }
 
 EXTERN_C_END

@@ -2,6 +2,7 @@
 #include <map>
 #include <utils/StringUtils.h>
 #include "vm/Reflection.h"
+#include "CppObjMapper.h"
 namespace xlua
 {
     
@@ -123,6 +124,40 @@ namespace xlua
         }
         return -1;
     }
+
+    // int DelegateCall(lua_State* L){
+    //     void* ptr = GetCppObjMapper()->ToCppObj(L, -1);
+    //     if(ptr){
+    //         Il2CppDelegate* delegate = (Il2CppDelegate*)ptr;
+               
+    //     }else{
+
+    //     }
+    // }
+
+    // int DelegateCombine(lua_State* L){
+
+    // }
+
+    // int DelegateRemove(lua_State* L){
+
+    // }
+
+    // void LuaClassRegister::CreateDelegateMetatable(lua_State* L){
+    //     lapi_lua_createtable(L, 1, 4);
+    //     int common_delegate_meta = lapi_luaL_ref(L, lapi_xlua_get_registry_index());
+    //     lapi_lua_pushlightuserdata(L, lapi_xlua_tag());
+    //     lapi_xlua_rawseti(L, -3, 1);
+    //     lapi_lua_pushstring(L, "__call");
+    //     lapi_lua_pushcclosure(L, DelegateCall, 0);
+    //     lapi_lua_rawset(L, -3);
+    //     lapi_lua_pushstring(L, "__add");
+    //     lapi_lua_pushcclosure(L, DelegateCombine, 0);
+    //     lapi_lua_rawset(L, -3);
+    //     lapi_lua_pushstring(L, "__sub");
+    //     lapi_lua_pushcclosure(L, DelegateRemove, 0);
+    //     lapi_lua_rawset(L, -3);
+    // }
 
 
     LuaClassRegister* GetLuaClassRegister()

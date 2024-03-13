@@ -115,30 +115,29 @@ namespace XLua.IL2CPP
                     LuaAPI.luaL_newmetatable(L, type.FullName);
                 }
             }
+            
+            if(typeof(MulticastDelegate).IsAssignableFrom(type)){
+                //xlua 标记
+                LuaAPI.lua_pushlightuserdata(L, LuaAPI.xlua_tag());
+                LuaAPI.lua_pushnumber(L, 1);
+                LuaAPI.lua_rawset(L, -3); // 1 objMeta 2 tag 3 1
 
-            //xlua 标记
-            LuaAPI.lua_pushlightuserdata(L, LuaAPI.xlua_tag());
-            LuaAPI.lua_pushnumber(L, 1);
-            LuaAPI.lua_rawset(L, -3); // 1 objMeta 2 tag 3 1
+                NativeAPI.HandleObjMetatable(L, -3, typeId);
 
-            NativeAPI.HandleObjMetatable(L, -3, typeId);
+                LuaAPI.lua_createtable(L, 0, 0); // 1 objMeta 2 clsTable
 
-            LuaAPI.lua_createtable(L, 0, 0); // 1 objMeta 2 clsTable
-            // LuaAPI.xlua_pushasciistring(L, "UnderlyingSystemType");
-            // translator.PushAny(L, type);
-            // LuaAPI.lua_rawset(L, -3);
+                int cls_table = LuaAPI.lua_gettop(L);
 
-            int cls_table = LuaAPI.lua_gettop(L);
+                Utils.SetCSTable(L, type, cls_table);
+                LuaAPI.lua_createtable(L, 0, 3); // // 1 objMeta 2 clsTable 3 clsMeta
+                int meta_table = LuaAPI.lua_gettop(L);
 
-            Utils.SetCSTable(L, type, cls_table);
-            LuaAPI.lua_createtable(L, 0, 3); // // 1 objMeta 2 clsTable 3 clsMeta
-            int meta_table = LuaAPI.lua_gettop(L);
+                NativeAPI.HandleClsMetaTable(L, meta_table, typeId);
 
-            NativeAPI.HandleClsMetaTable(L, meta_table, typeId);
-
-            LuaAPI.lua_pushvalue(L, meta_table); // 1 objMeta 2 clsTable 3 clsMeta 4 clsMeta
-            LuaAPI.lua_setmetatable(L, cls_table); //  setmetatable(clsTable, clsMeta[4])  1 objMeta 2 clsTable 3 clsMeta
-            LuaAPI.lua_pop(L, 3);
+                LuaAPI.lua_pushvalue(L, meta_table); // 1 objMeta 2 clsTable 3 clsMeta 4 clsMeta
+                LuaAPI.lua_setmetatable(L, cls_table); //  setmetatable(clsTable, clsMeta[4])  1 objMeta 2 clsTable 3 clsMeta
+                LuaAPI.lua_pop(L, 3);
+            }
         }
 
         /// <summary>

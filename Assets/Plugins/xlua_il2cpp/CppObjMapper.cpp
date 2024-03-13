@@ -6,7 +6,7 @@
 #include "CppObjMapper.h"
 #include "LuaClassRegister.h"
 #include <vm/Exception.h>
-
+#include "Il2CppTools.h"
 CppObjMapper::CppObjMapper(/* args */)
 {
 }
@@ -111,8 +111,14 @@ bool CppObjMapper::TryPushObject(lua_State *L, void * obj){
     }
     int32_t key = objCache.size();
     objCache[obj] = key;
-    void* kclass = *reinterpret_cast<void**>(obj);
-    int32_t metaId = xlua::GetLuaClassRegister()->GetTypeIdByIl2cppClass(L, (Il2CppClass*)kclass);
+    Il2CppClass* kclass = (Il2CppClass*)*reinterpret_cast<void**>(obj);
+    int32_t metaId = -1;
+    if(IsDelegate(kclass)){
+        
+    }else{
+        metaId = xlua::GetLuaClassRegister()->GetTypeIdByIl2cppClass(L, kclass);
+    }
+    
     
     if(metaId != -1){
         auto poolIdx = AddToPool((Il2CppObject*)obj);

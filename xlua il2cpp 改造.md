@@ -225,3 +225,6 @@ todo xlua_il2cpp 和xlua的整合统一
 ref,in,out处理方案
 out不传递参数
 ref,in的处理方式一样 从lua栈直接取参数 然后把参数push到lua栈
+
+lua function to c# create delegate 
+c# function to lua ?

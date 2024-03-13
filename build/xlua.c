@@ -1361,7 +1361,10 @@ static lapi_func_ptr funcs[] = {
 (lapi_func_ptr) &xlua_rawseti,
 (lapi_func_ptr) &lua_pcall,
 (lapi_func_ptr) &pcall_prepare,
-(lapi_func_ptr) &luaL_ref,
+(lapi_func_ptr) &luaL_ref,//55
+(lapi_func_ptr) &xlua_tag,
+(lapi_func_ptr) &lua_rawget,
+(lapi_func_ptr) &lua_rawset,
 
 
 
