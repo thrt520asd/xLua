@@ -14,27 +14,48 @@ struct Converter;
     {
         static void toScript(lua_State* L, T value)
         {
+            lapi_lua_pushint64(L, value);
         }
 
         static T toCpp(lua_State * L, int index)
         {
-            // if (value->IsBigInt())
-            // {
-            //     return value.As<v8::BigInt>()->Int64Value();
-            // }
-            return 0;
+            
+            return lapi_lua_toint64(L, index);
         }
 
         static bool accept(lua_State *L, int index)
         {
-            return false;
-            // return value->IsBigInt();
+            
+            return lapi_lua_isint64(L, index);
         }
     };
 
-    //int
+
+    //uint64
     template <typename T>
-    struct Converter<T, typename std::enable_if<std::is_integral<T>::value && sizeof(T) < 8 >::type>
+    struct Converter<T, typename std::enable_if<std::is_integral<T>::value && sizeof(T) == 8 && std::is_unsigned<T>::value>::type>
+    {
+        static void toScript(lua_State* L, T value)
+        {
+            lapi_lua_pushuint64(L, value);
+        }
+
+        static T toCpp(lua_State* L, int index)
+        {
+
+            return lapi_lua_touint64(L, index);
+        }
+
+        static bool accept(lua_State* L, int index)
+        {
+
+            return lapi_lua_isuint64(L, index);
+        }
+    };
+
+    //int/uint
+    template <typename T>
+    struct Converter < T, typename std::enable_if<std::is_integral<T>::value && sizeof(T) < 8 > ::type>
     {
         static void toScript(lua_State* L, T value)
         {
@@ -53,25 +74,6 @@ struct Converter;
         }
     };
 
-    //uint64
-    template <typename T>
-    struct Converter<T, typename std::enable_if<std::is_integral<T>::value && sizeof(T) == 8 && std::is_unsigned<T>::value>::type>
-    {
-        static void toScript(lua_State* L, T value)
-        {
-        }
-
-        static T toCpp(lua_State * L, int index)
-        {
-
-            return 0;
-        }
-
-        static bool accept(lua_State *L, int index)
-        {
-            return false;
-        }
-    };
 
     //float
     template <typename T>

@@ -281,7 +281,7 @@ namespace xlua
         try
         {
             bool checkArgument = true;
-            if (wrapDatas->Wrap(wrapDatas->Method, wrapDatas->MethodPointer, L, checkArgument, wrapDatas, offset)) {
+            if (wrapDatas->Wrap(wrapDatas->Method, wrapDatas->MethodPointer, L, checkArgument, wrapDatas, offset) >= 0) {
                 return 1;
             }
             else {
@@ -316,13 +316,15 @@ namespace xlua
              bool checkArgument = *wrapDatas && *(wrapDatas + 1);
              while(*wrapDatas)
              {
-                 if ((*wrapDatas)->Wrap((*wrapDatas)->Method, (*wrapDatas)->MethodPointer, L, checkArgument, *wrapDatas, paramOffset))
+                 int n = (*wrapDatas)->Wrap((*wrapDatas)->Method, (*wrapDatas)->MethodPointer, L, checkArgument, *wrapDatas, paramOffset);
+                 if (n >= 0)
                  {
-                     return 1;
+                     return n;
                  }
                  ++wrapDatas;
              }
-            return throw_exception2lua(L, "invalid arguments"); 
+            throw_exception2lua(L, "invalid arguments"); 
+            return -1;
         } 
         catch (Il2CppExceptionWrapper& exception)
         {
@@ -474,7 +476,7 @@ namespace xlua
 
     
 
-    static bool TryTranslatePrimitiveWithClass(lua_State* L, Il2CppObject* obj, Il2CppClass *klass = nullptr)
+    static bool TryTranslatePrimitiveWithClassAAA(lua_State* L, Il2CppObject* obj, Il2CppClass *klass = nullptr)
     {
         if (obj)
         {
@@ -485,6 +487,7 @@ namespace xlua
                 const Il2CppChar* utf16 = il2cpp::utils::StringUtils::GetChars((Il2CppString*)obj);
                 std::string str = il2cpp::utils::StringUtils::Utf16ToUtf8(utf16);
                 lapi_lua_pushstring(L, str.c_str());
+                return true;
             }
             void* ptr = Object::Unbox(obj);
             switch (t)
@@ -559,8 +562,9 @@ namespace xlua
 
     bool TryTranslatePrimitive(lua_State* L, Il2CppObject* obj)
     {
-        return TryTranslatePrimitiveWithClass(L, obj);
+        return TryTranslatePrimitiveWithClassAAA(L, obj);
     }
+
     static bool CSValueToLuaValue(lua_State* L, void* klass, void* ptr, unsigned int size) {
         return GetCppObjMapper()->TryPushStruct(L, klass, ptr, size);
     }
@@ -2187,11 +2191,12 @@ namespace xlua
                     
                     if (clsInfo->CtorWrapDatas) {
                         //#TODO@benp 构造函数失败  清除引用
-                        if (xlua::MethodCallback(L, clsInfo->CtorWrapDatas, 2)) {
+                        if (MethodCallback(L, clsInfo->CtorWrapDatas, 2) >= 0) {
                             lapi_lua_settop(L, 1);
                             return 1;
                         }
                         else {
+                            
                             return 0;
                         }
                     }
@@ -2212,7 +2217,7 @@ namespace xlua
                 if (clsInfo->CtorWrapDatas) {
                     //-1 obj -2 param
                     lapi_lua_replace(L, 1);
-                    if (MethodCallback(L, clsInfo->CtorWrapDatas, 2)) {
+                    if (MethodCallback(L, clsInfo->CtorWrapDatas, 2) >= 0) {
                         lapi_lua_settop(L, 1);
                         return 1;
                     }

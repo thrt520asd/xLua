@@ -126,6 +126,13 @@ bool CppObjMapper::TryPushObject(lua_State *L, void * obj){
     }
 }
 
+void CppObjMapper::FreeObj(Il2CppObject* obj)
+{
+    //todo 清理obj
+}
+
+
+
 CppObjMapper* GetCppObjMapper(){
     static CppObjMapper s_cppObjMapper;
     return &s_cppObjMapper;
