@@ -90,6 +90,9 @@ namespace XLua.IL2CPP
 		public static extern void SetXLuaRef(int[] refArr);
         
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void HandleDeleagateMetatable(IntPtr L, int tableIdx, IntPtr typeId);
+
+        [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void HandleObjMetatable(IntPtr L, int tableIdx, IntPtr typeId);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]

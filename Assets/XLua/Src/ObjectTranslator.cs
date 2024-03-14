@@ -1050,20 +1050,21 @@ namespace XLua
             
             if (!typeIdMap.TryGetValue(type, out type_id)) // no reference
             {
-                if (type.IsArray)
-                {
-                    if (common_array_meta == -1) throw new Exception("Fatal Exception! Array Metatable not inited!");
-                    //#TODO@benp il2cpp array处理
-                    return common_array_meta;
-                }
-                if (typeof(MulticastDelegate).IsAssignableFrom(type))
-                {
-                    if (common_delegate_meta == -1) throw new Exception("Fatal Exception! Delegate Metatable not inited!");
-                    TryDelayWrapLoader(L, type);
-                    //#TODO@benp il2cpp delegate处理
-                    return common_delegate_meta;
-                }
-        
+                //todo 临时注释 后续要和C#剥离开
+                // #if !(IL2CPP_ENHANCED_LUA_DEVELOP && ENABLE_IL2CPP)
+                // if (type.IsArray)
+                // {
+                //     if (common_array_meta == -1) throw new Exception("Fatal Exception! Array Metatable not inited!");
+                //     return common_array_meta;
+                // }
+                
+                // if (typeof(MulticastDelegate).IsAssignableFrom(type))
+                // {
+                //     if (common_delegate_meta == -1) throw new Exception("Fatal Exception! Delegate Metatable not inited!");
+                //     TryDelayWrapLoader(L, type);
+                //     return common_delegate_meta;
+                // }
+                // #endif
                 is_first = true;
                 Type alias_type = null;
                 aliasCfg.TryGetValue(type, out alias_type);

@@ -113,11 +113,11 @@ bool CppObjMapper::TryPushObject(lua_State *L, void * obj){
     objCache[obj] = key;
     Il2CppClass* kclass = (Il2CppClass*)*reinterpret_cast<void**>(obj);
     int32_t metaId = -1;
-    if(IsDelegate(kclass)){
-        
-    }else{
+    /*if(IsDelegate(kclass)){
+        int a = 1;
+    }else{*/
         metaId = xlua::GetLuaClassRegister()->GetTypeIdByIl2cppClass(L, kclass);
-    }
+    //}
     
     
     if(metaId != -1){

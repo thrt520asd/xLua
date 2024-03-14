@@ -44,6 +44,7 @@
 #include "Converter.cpp"
 #include <mutex>
 #include <vm-utils/NativeDelegateMethodCache.h>
+#include "Il2CppTools.h"
 static_assert(IL2CPP_GC_BOEHM, "Only BOEHM GC supported!");
 
 using namespace il2cpp::vm;
@@ -429,10 +430,10 @@ namespace xlua
         return Class::IsValuetype(klass);
     }
 
-    bool IsDelegate(Il2CppClass *klass)
+    /*bool IsDelegate(Il2CppClass *klass)
     {
         return Class::IsAssignableFrom(il2cpp_defaults.delegate_class, klass) && klass != il2cpp_defaults.delegate_class && klass != il2cpp_defaults.multicastdelegate_class;
-    }
+    }*/
 
     int GetTID(Il2CppObject* obj)
     {
@@ -1990,7 +1991,7 @@ namespace xlua
     {
         const Il2CppChar* utf16 = il2cpp::utils::StringUtils::GetChars(name);
         std::string str = il2cpp::utils::StringUtils::Utf16ToUtf8(utf16);
-        // xlua::GLogFormatted(str.c_str());
+         xlua::GLogFormatted("CreateCSharpTypeInfo %s", str.c_str());
         MethodPointer delegateBridge = nullptr;
         if (isDelegate)
         {
@@ -2488,7 +2489,7 @@ namespace xlua
         g_unityExports.IsInstClass = &IsInstClass;
         g_unityExports.IsInstSealed = &IsInstSealed;
         g_unityExports.IsValueType = &IsValueType;
-        g_unityExports.IsDelegate = &IsDelegate;
+        //g_unityExports.IsDelegate = &IsDelegate;
         g_unityExports.IsAssignableFrom = &Class::IsAssignableFrom;
         g_unityExports.CSharpTypeToTypeId = &CSharpTypeToTypeId;
         g_unityExports.CStringToCSharpString = &String::NewWrapper;
@@ -2558,6 +2559,37 @@ void InitialXLua_IL2CPP(lapi_func_ptr* func_array, lua_State* L)
 void SetLogCallback(xlua::LogCallback log)
 {
     xlua::SetLogHandler(log);
+}
+
+int DelegateCallBack(lua_State* L) {
+    void* ptr = GetCppObjMapper()->ToCppObj(L, -1);
+    if (ptr) {
+        Il2CppDelegate* obj = reinterpret_cast<Il2CppDelegate*>(ptr);
+        //todo 动态invoke delegate
+        auto clsInfo = xlua::GetLuaClassRegister()->GetOrLoadLuaClsInfoByTypeId(obj->object.klass, L);
+        if (clsInfo) {
+
+            obj->method_ptr();
+        }
+        else {
+            return xlua::throw_exception2lua(L, "obj is not delegate obj");
+        }
+        return 0;
+    }
+    else {
+        return xlua::throw_exception2lua(L, "obj is not cpp obj");
+    }
+}
+
+void HandleDeleagateMetatable(lua_State* L, int metatable_idx, Il2CppClass* typeId) {
+    lapi_lua_pushstring(L, "__call");
+    lapi_lua_pushcclosure(L, DelegateCallBack, 0);
+    lapi_lua_settable(L, metatable_idx);
+    lapi_lua_pushstring(L, "__gc");
+    lapi_lua_pushlightuserdata(L, typeId);
+    lapi_lua_pushcclosure(L, xlua::LuaGCCallBack, 1);
+    lapi_lua_settable(L, metatable_idx);
+    lapi_lua_pop(L, 1);
 }
 
 void HandleObjMetatable(lua_State *L, int metatable_idx, Il2CppClass* typeId){

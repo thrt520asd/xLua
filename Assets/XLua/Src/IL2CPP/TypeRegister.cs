@@ -115,13 +115,15 @@ namespace XLua.IL2CPP
                     LuaAPI.luaL_newmetatable(L, type.FullName);
                 }
             }
-            
-            if(typeof(MulticastDelegate).IsAssignableFrom(type)){
-                //xlua 标记
-                LuaAPI.lua_pushlightuserdata(L, LuaAPI.xlua_tag());
-                LuaAPI.lua_pushnumber(L, 1);
-                LuaAPI.lua_rawset(L, -3); // 1 objMeta 2 tag 3 1
 
+            //xlua 标记
+            LuaAPI.lua_pushlightuserdata(L, LuaAPI.xlua_tag());
+            LuaAPI.lua_pushnumber(L, 1);
+            LuaAPI.lua_rawset(L, -3); // 1 objMeta 2 tag 3 1
+            if(typeof(MulticastDelegate).IsAssignableFrom(type)){
+                NativeAPI.HandleDeleagateMetatable(L, -3, typeId);
+            }
+            else{
                 NativeAPI.HandleObjMetatable(L, -3, typeId);
 
                 LuaAPI.lua_createtable(L, 0, 0); // 1 objMeta 2 clsTable
