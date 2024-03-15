@@ -65,7 +65,7 @@ struct Converter;
         static T toCpp(lua_State* L, int index)
         {
             
-            return lapi_xlua_tointeger(L, index);
+            return (int)lapi_lua_tonumber(L, index);
         }
 
         static bool accept(lua_State* L, int index)

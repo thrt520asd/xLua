@@ -176,6 +176,8 @@ void *lapi_xlua_tag ();
 int (lapi_lua_rawget) (lua_State *L, int idx);
 //lua_rawset
 void  (lapi_lua_rawset) (lua_State *L, int idx);
+//luaL_newmetatable
+int   (lapi_luaL_newmetatable) (lua_State *L, const char *tname);
 //genEnd
 
 #define lapi_lua_isboolean(L,n)	(lapi_lua_type(L, (n)) == LUA_TBOOLEAN)
@@ -189,6 +191,9 @@ void  (lapi_lua_rawset) (lua_State *L, int idx);
 #define lapi_lua_tostring(L,i)	lapi_lua_tolstring(L, (i), NULL)
 
 #define lapi_xlua_tointeger (int)(lapi_lua_tonumber(L, i))
+
+#define lapi_luaL_getmetatable(L, meta) lapi_lua_pushstring(L, meta); \
+lapi_lua_rawget(L, lapi_xlua_get_registry_index())
 
 void lapi_init(lapi_func_ptr* func_array);
 

@@ -98,7 +98,7 @@ namespace XLua.IL2CPP
                 flag = flag | BindingFlags.NonPublic;
             }
 
-            var cppClsDef = Register2Cpp(type, type.GetConstructors(flag), type.GetMethods(flag), type.GetProperties(flag), type.GetFields(flag), throwIfMemberFail);
+            var cppClsDef = Register2Cpp(L, type, type.GetConstructors(flag), type.GetMethods(flag), type.GetProperties(flag), type.GetFields(flag), throwIfMemberFail);
 
             if (cppClsDef != IntPtr.Zero)
             {
@@ -129,6 +129,7 @@ namespace XLua.IL2CPP
             LuaAPI.lua_pushlightuserdata(L, LuaAPI.xlua_tag());
             LuaAPI.lua_pushnumber(L, 1);
             LuaAPI.lua_rawset(L, -3); // 1 objMeta 2 tag 3 1
+            int objMeta = LuaAPI.lua_gettop(L);
             if(typeof(MulticastDelegate).IsAssignableFrom(type)){
                 NativeAPI.HandleDeleagateMetatable(L, -3, typeId);
             }
@@ -149,6 +150,7 @@ namespace XLua.IL2CPP
                 LuaAPI.lua_setmetatable(L, cls_table); //  setmetatable(clsTable, clsMeta[4])  1 objMeta 2 clsTable 3 clsMeta
                 LuaAPI.lua_pop(L, 3);
             }
+
         }
 
         /// <summary>
@@ -160,7 +162,7 @@ namespace XLua.IL2CPP
         /// <param name="properties"></param>
         /// <param name="fields"></param>
         /// <param name="throwIfMemberFail"></param>
-        private static IntPtr Register2Cpp(Type type, MethodBase[] ctors = null, MethodBase[] methods = null, PropertyInfo[] properties = null, FieldInfo[] fields = null, bool throwIfMemberFail = false)
+        private static IntPtr Register2Cpp(IntPtr L, Type type, MethodBase[] ctors = null, MethodBase[] methods = null, PropertyInfo[] properties = null, FieldInfo[] fields = null, bool throwIfMemberFail = false)
         {
             IntPtr typeInfo = IntPtr.Zero;
             try
@@ -305,7 +307,7 @@ namespace XLua.IL2CPP
                         foreach (var method in methods)
                         {
                             if (method.IsAbstract) continue;
-                            if (method.IsSpecialName) continue;
+                            // if (method.IsSpecialName) continue;
                             AddMethodToType(method.Name, method as MethodInfo, false, false, false);
                         }
                     }

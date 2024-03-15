@@ -51,10 +51,11 @@ namespace XLua.IL2CPP.Editor{
                     Debug.Log("======================selfSignature======================");
                     var thisSignature = TypeUtils.GetTypeSignature(type);
                     Debug.Log($"{type}:{thisSignature}");
-                    var ctors = type.GetConstructors();
-                    var methods = type.GetMethods();
-                    var properties = type.GetProperties();
-                    var fields = type.GetFields();
+                    BindingFlags flag = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public;
+                    var ctors = type.GetConstructors(flag);
+                    var methods = type.GetMethods(flag);
+                    var properties = type.GetProperties(flag);
+                    var fields = type.GetFields(flag);
                     if(ctors != null){
                         Debug.Log("======================ctor======================");
                         foreach (var item in ctors)

@@ -1365,11 +1365,13 @@ static lapi_func_ptr funcs[] = {
 (lapi_func_ptr) &xlua_tag,//56
 (lapi_func_ptr) &lua_rawget,//57
 (lapi_func_ptr) &lua_rawset,//58
+(lapi_func_ptr) &luaL_newmetatable,//59
 };
 //genEnd
 
 
 LUA_API lapi_func_ptr* xlua_getImpl(){
+    
     return funcs;
 }
 

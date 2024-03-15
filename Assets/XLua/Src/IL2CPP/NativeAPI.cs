@@ -98,6 +98,9 @@ namespace XLua.IL2CPP
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void HandleClsMetaTable(IntPtr L, int tabldIdx, IntPtr typeId);
 
+            [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void InitObjOperation(IntPtr L, int tabldIdx, IntPtr typeId);
+
         [MethodImpl(MethodImplOptions.InternalCall)]
 		public static extern void SetCSharpAPI(MethodBase[] methodInfo);
 

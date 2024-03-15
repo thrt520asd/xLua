@@ -415,6 +415,13 @@ static lapi_lua_rawsetType lapi_lua_rawset_ptr;
     return lapi_lua_rawset_ptr(L,idx);
 }
 
+//luaL_newmetatable
+typedef int   ((*lapi_luaL_newmetatableType)) (lua_State *L, const char *tname);
+static lapi_luaL_newmetatableType lapi_luaL_newmetatable_ptr;
+ int   (lapi_luaL_newmetatable) (lua_State *L, const char *tname){
+    return lapi_luaL_newmetatable_ptr(L,tname);
+}
+
 //genEnd
 
 void lapi_init(lapi_func_ptr* func_array){
@@ -478,6 +485,7 @@ lapi_luaL_ref_ptr = (lapi_luaL_refType)func_array[55];
 lapi_xlua_tag_ptr = (lapi_xlua_tagType)func_array[56];
 lapi_lua_rawget_ptr = (lapi_lua_rawgetType)func_array[57];
 lapi_lua_rawset_ptr = (lapi_lua_rawsetType)func_array[58];
+lapi_luaL_newmetatable_ptr = (lapi_luaL_newmetatableType)func_array[59];
 //end1
 }
 

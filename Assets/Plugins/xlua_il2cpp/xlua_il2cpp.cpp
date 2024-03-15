@@ -46,6 +46,14 @@ static_assert(IL2CPP_GC_BOEHM, "Only BOEHM GC supported!");
 
 using namespace il2cpp::vm;
 
+struct cmp_str
+{
+    bool operator()(char const* a, char const* b) const
+    {
+        return std::strcmp(a, b) < 0;
+    }
+};
+
 namespace xlua
 {
     static xlua::UnityExports g_unityExports;
@@ -2588,6 +2596,41 @@ void HandleDeleagateMetatable(lua_State* L, int metatable_idx, Il2CppClass* type
     lapi_lua_settable(L, metatable_idx);
     lapi_lua_pop(L, 1);
 }
+static std::map<const char*, const char*, cmp_str> supportOp = {
+    { "op_Addition", "__add" },
+    { "op_Subtraction", "__sub" },
+    { "op_Multiply", "__mul" },
+    { "op_Division", "__div" },
+    { "op_Equality", "__eq" },
+    { "op_UnaryNegation", "__unm" },
+    { "op_LessThan", "__lt" },
+    { "op_LessThanOrEqual", "__le" },
+    { "op_Modulus", "__mod" },
+    { "op_BitwiseAnd", "__band" },
+    { "op_BitwiseOr", "__bor" },
+    { "op_ExclusiveOr", "__bxor" },
+    { "op_OnesComplement", "__bnot" },
+    { "op_LeftShift", "__shl" },
+    { "op_RightShift", "__shr" },
+};
+void InitObjOperation(lua_State* L, int objMetaIdx, Il2CppClass* klass) {
+    auto clsInfo = xlua::GetLuaClassRegister()->GetLuaClsInfoByTypeId((void*)klass);
+    if (clsInfo) {
+        for (auto& method : clsInfo->Methods) {
+            auto iter = supportOp.find(method.Name.c_str());
+
+            if (iter != supportOp.end()) {
+                auto key = iter->second;
+                lapi_lua_pushstring(L, key);
+                xlua::WrapData** p = method.OverloadDatas.data();
+                lapi_lua_pushlightuserdata(L, p);
+                lapi_lua_pushcclosure(L, [](lua_State* L) {return xlua::MethodCallbackLuaWrap(L, 1); }, 1);
+                lapi_lua_rawset(L, objMetaIdx);
+                xlua::GLogFormatted("InitObjOperation class[%s]  op[%s]", klass->name, iter->second);
+            }
+        }
+    }
+}
 
 void HandleObjMetatable(lua_State *L, int metatable_idx, Il2CppClass* typeId){
     lapi_lua_pushstring(L, "__index");
@@ -2609,8 +2652,7 @@ void HandleObjMetatable(lua_State *L, int metatable_idx, Il2CppClass* typeId){
         lapi_lua_pushcclosure(L, xlua::LuaGCCallBack, 1);
         lapi_lua_settable(L, metatable_idx);
     }
-
-    //#TODO@benp tostring
+    InitObjOperation(L, metatable_idx, typeId);
 }
 
 void HandleClsMetaTable(lua_State *L, int clstable_idx, Il2CppClass* typeId){
@@ -2636,15 +2678,10 @@ void HandleClsMetaTable(lua_State *L, int clstable_idx, Il2CppClass* typeId){
 }
 
 
-int RegisterLuaClass(xlua::LuaClassInfo *luaClsInfo, const char* fullName){
-    Il2CppClass* klass = luaClsInfo->Class;
-    if(IsDelegate(klass)){
-
-    }else{
-        
-    }
+int RegisterLuaClass(xlua::LuaClassInfo *luaClsInfo, lua_State* L, const char* fullName){
     return xlua::GetLuaClassRegister()->RegisterClass(luaClsInfo);
 }
+
 
 void UnRegisterLuaClass(Il2CppString* ilstring){
     const Il2CppChar* utf16 = il2cpp::utils::StringUtils::GetChars(ilstring);

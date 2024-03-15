@@ -57,3 +57,4 @@ LUALIB_API int (luaL_ref) (lua_State *L, int t);
 LUA_API void *xlua_tag () 
 LUA_API int (lua_rawget) (lua_State *L, int idx);
 LUA_API void  (lua_rawset) (lua_State *L, int idx);
+LUALIB_API int   (luaL_newmetatable) (lua_State *L, const char *tname);
