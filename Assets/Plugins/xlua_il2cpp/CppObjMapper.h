@@ -1,7 +1,7 @@
 #include "unordered_map"
 
-typedef int32_t(*AddObjFunc)(Il2CppObject* obj, void* method);
-typedef Il2CppObject* (*RemoveObjFunc)(int32_t objIndex, void* method);
+typedef int32_t(*AddObjFunc)(lua_State* L, Il2CppObject* obj, void* method);
+typedef Il2CppObject* (*RemoveObjFunc)(lua_State* L, int32_t objIndex, void* method);
 
 class CppObjMapper
 {
@@ -23,9 +23,9 @@ public:
     void SetCacheRef(int32_t cache_ref);
     void InitObjPoolMethod(Il2CppReflectionMethod* addObjMethod, Il2CppMethodPointer* addObjMethodPointer, Il2CppReflectionMethod* removeObjMethod, Il2CppMethodPointer* removeObjMethodPointer);
 
-    int AddToPool(Il2CppObject* obj);
+    int AddToPool(lua_State* L,Il2CppObject* obj);
 
-    Il2CppObject* RemoveFromPool(int index);
+    Il2CppObject* RemoveFromPool(lua_State* L, int index);
 
     void *ToCppObj(lua_State *L, int index);
 

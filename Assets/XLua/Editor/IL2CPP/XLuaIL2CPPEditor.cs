@@ -17,6 +17,14 @@ namespace XLua.IL2CPP.Editor{
         public static void GenFunctionBridge(){
             Generator.FileExporter.GenCPPWrap(Application.dataPath+"/FunctionBridge.gen.h");
         }
+
+        /// <summary>
+        /// 生成LuaAPIAdapt代码
+        /// </summary>
+        [MenuItem("Tools/XLuaIL2CPP/GenLuaAdapt")]
+        public static void GenLuaAPIAdapt(){
+            LuaAPIAdaptGenerator.Gen();
+        }
     }
 
 

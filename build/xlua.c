@@ -1237,7 +1237,7 @@ LUA_API void* xlua_gl(lua_State *L) {
 
 typedef void (*lapi_func_ptr)(void);
 
-int lapi_lua_upvalueindex(index){
+int lapi_lua_upvalueindex(int index){
     return lua_upvalueindex(index);
 }
 
@@ -1304,71 +1304,70 @@ LUA_API CSharpStruct* xlua_tocss(lua_State *L, int index) {
 void xlua_call(lua_State*L, int nargs, int nresults){
     lua_call(L, nargs, nresults);
 }
-
+//genBegin
 static lapi_func_ptr funcs[] = {
-(lapi_func_ptr) &lua_touserdata,
-(lapi_func_ptr) &lua_type,
-(lapi_func_ptr) &lua_gettop,
-(lapi_func_ptr) &lapi_lua_upvalueindex,
-(lapi_func_ptr) &xlua_pushcsobj_ptr,
-(lapi_func_ptr)&lua_isnumber, // 5
-(lapi_func_ptr)&lua_isstring,
-(lapi_func_ptr)&lua_iscfunction,
-(lapi_func_ptr)&lua_isinteger,
-(lapi_func_ptr)&lua_isuserdata,
-(lapi_func_ptr)&lua_typename,//10
-(lapi_func_ptr)&lua_tonumber,
-(lapi_func_ptr)&lua_tolstring,
-(lapi_func_ptr)&lua_toboolean,
-(lapi_func_ptr)&lua_topointer,
-(lapi_func_ptr)&xlua_tryget_cachedud,//15
-(lapi_func_ptr) &xlua_getcsobj_ptr,
-(lapi_func_ptr) &lua_pushcclosure,
-(lapi_func_ptr) &lua_setupvalue,
-(lapi_func_ptr) &lua_getupvalue, 
+(lapi_func_ptr) &lua_touserdata,//0
+(lapi_func_ptr) &lua_type,//1
+(lapi_func_ptr) &lua_gettop,//2
+(lapi_func_ptr) &lapi_lua_upvalueindex,//3
+(lapi_func_ptr) &xlua_pushcsobj_ptr,//4
+(lapi_func_ptr) &lua_isnumber,//5
+(lapi_func_ptr) &lua_isstring,//6
+(lapi_func_ptr) &lua_iscfunction,//7
+(lapi_func_ptr) &lua_isinteger,//8
+(lapi_func_ptr) &lua_isuserdata,//9
+(lapi_func_ptr) &lua_typename,//10
+(lapi_func_ptr) &lua_tonumber,//11
+(lapi_func_ptr) &lua_tolstring,//12
+(lapi_func_ptr) &lua_toboolean,//13
+(lapi_func_ptr) &lua_topointer,//14
+(lapi_func_ptr) &xlua_tryget_cachedud,//15
+(lapi_func_ptr) &xlua_getcsobj_ptr,//16
+(lapi_func_ptr) &lua_pushcclosure,//17
+(lapi_func_ptr) &lua_setupvalue,//18
+(lapi_func_ptr) &lua_getupvalue,//19
 (lapi_func_ptr) &lua_pushvalue,//20
-(lapi_func_ptr) &lua_gettable,
-(lapi_func_ptr) &xlua_call,
-(lapi_func_ptr) &lua_settop,
-(lapi_func_ptr) &lua_pushlightuserdata,
+(lapi_func_ptr) &lua_gettable,//21
+(lapi_func_ptr) &xlua_call,//22
+(lapi_func_ptr) &lua_settop,//23
+(lapi_func_ptr) &lua_pushlightuserdata,//24
 (lapi_func_ptr) &lua_settable,//25
-(lapi_func_ptr) &lua_createtable,
-(lapi_func_ptr) &lua_pushboolean,
-(lapi_func_ptr) &lua_pushstring,
-(lapi_func_ptr) &lua_pushlstring,
+(lapi_func_ptr) &lua_createtable,//26
+(lapi_func_ptr) &lua_pushboolean,//27
+(lapi_func_ptr) &lua_pushstring,//28
+(lapi_func_ptr) &lua_pushlstring,//29
 (lapi_func_ptr) &lua_pushnumber,//30
-(lapi_func_ptr) &lua_pushinteger, 
-(lapi_func_ptr) &lua_pushnil,
-(lapi_func_ptr) &lua_pushint64,
-(lapi_func_ptr) &lua_pushuint64,
+(lapi_func_ptr) &lua_pushinteger,//31
+(lapi_func_ptr) &lua_pushnil,//32
+(lapi_func_ptr) &lua_pushint64,//33
+(lapi_func_ptr) &lua_pushuint64,//34
 (lapi_func_ptr) &luaL_error,//35
-(lapi_func_ptr) &lua_remove,
-(lapi_func_ptr) &lua_insert,
-(lapi_func_ptr) &lua_replace,
-(lapi_func_ptr) &lua_copy,
+(lapi_func_ptr) &lua_remove,//36
+(lapi_func_ptr) &lua_insert,//37
+(lapi_func_ptr) &lua_replace,//38
+(lapi_func_ptr) &lua_copy,//39
 (lapi_func_ptr) &xlua_createstruct_pointer,//40
-(lapi_func_ptr) &xlua_pushstruct_pointer,
-(lapi_func_ptr) &xlua_tocss,
-(lapi_func_ptr) &xlua_getglobal,
-(lapi_func_ptr) &xlua_setglobal,
+(lapi_func_ptr) &xlua_pushstruct_pointer,//41
+(lapi_func_ptr) &xlua_tocss,//42
+(lapi_func_ptr) &xlua_getglobal,//43
+(lapi_func_ptr) &xlua_setglobal,//44
 (lapi_func_ptr) &lua_isint64,//45
-(lapi_func_ptr) &lua_isuint64,
-(lapi_func_ptr) &lua_toint64,
-(lapi_func_ptr) &lua_touint64,
-(lapi_func_ptr) &load_error_func,
+(lapi_func_ptr) &lua_isuint64,//46
+(lapi_func_ptr) &lua_toint64,//47
+(lapi_func_ptr) &lua_touint64,//48
+(lapi_func_ptr) &load_error_func,//49
 (lapi_func_ptr) &xlua_get_registry_index,//50
-(lapi_func_ptr) &xlua_rawgeti,
-(lapi_func_ptr) &xlua_rawseti,
-(lapi_func_ptr) &lua_pcall,
-(lapi_func_ptr) &pcall_prepare,
+(lapi_func_ptr) &xlua_rawgeti,//51
+(lapi_func_ptr) &xlua_rawseti,//52
+(lapi_func_ptr) &lua_pcall,//53
+(lapi_func_ptr) &pcall_prepare,//54
 (lapi_func_ptr) &luaL_ref,//55
-(lapi_func_ptr) &xlua_tag,
-(lapi_func_ptr) &lua_rawget,
-(lapi_func_ptr) &lua_rawset,
-
-
-
+(lapi_func_ptr) &xlua_tag,//56
+(lapi_func_ptr) &lua_rawget,//57
+(lapi_func_ptr) &lua_rawset,//58
 };
+//genEnd
+
 
 LUA_API lapi_func_ptr* xlua_getImpl(){
     return funcs;

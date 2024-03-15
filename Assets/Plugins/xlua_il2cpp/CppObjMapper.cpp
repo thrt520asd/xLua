@@ -29,13 +29,13 @@ void CppObjMapper::InitObjPoolMethod(Il2CppReflectionMethod* addObjMethod, Il2Cp
     removeObjReflectionMethod = removeObjMethod;
 }
 
-int32_t CppObjMapper::AddToPool(Il2CppObject* obj ) {
-    int32_t idx = addObjFunc(obj, addObjReflectionMethod);
+int32_t CppObjMapper::AddToPool(lua_State* L, Il2CppObject* obj ) {
+    int32_t idx = addObjFunc(L, obj, addObjReflectionMethod);
     return idx;
 }
 
-Il2CppObject* CppObjMapper::RemoveFromPool(int index) {
-    auto obj = removeObjFunc(index, removeObjReflectionMethod);
+Il2CppObject* CppObjMapper::RemoveFromPool(lua_State* L, int index) {
+    auto obj = removeObjFunc(L,index, removeObjReflectionMethod);
     return obj;
 }
 
@@ -121,7 +121,7 @@ bool CppObjMapper::TryPushObject(lua_State *L, void * obj){
     
     
     if(metaId != -1){
-        auto poolIdx = AddToPool((Il2CppObject*)obj);
+        auto poolIdx = AddToPool(L, (Il2CppObject*)obj);
 
         xlua::GLogFormatted("lapi_xlua_pushcsobj_ptr %p  metaId %d key %d cacheRef %d", obj, metaId, key, cacheRef);
         lapi_xlua_pushcsobj_ptr(L, obj, metaId, key, 1, cacheRef, poolIdx);

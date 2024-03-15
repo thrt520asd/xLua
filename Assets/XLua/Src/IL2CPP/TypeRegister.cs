@@ -15,15 +15,24 @@ namespace XLua.IL2CPP
 {
     public class TypeRegister
     {
-
-        static ObjectPool objectPool = new ObjectPool();
-
-        public static int AddObj(object obj){
-            return objectPool.Add(obj);
+        
+        /// call from native
+        public static int AddObj(RealStatePtr L, object obj){
+            var translator = ObjectTranslatorPool.Instance.Find(L);
+            if (translator != null)
+            {
+                return translator.objects.Add(obj);
+            }
+            return -1;
         }
-
-        public static object RemoveObj(int idx){
-            return objectPool.Remove(idx);
+        /// call from native
+        public static object RemoveObj(RealStatePtr L, int idx){
+            var translator = ObjectTranslatorPool.Instance.Find(L);
+            if (translator != null)
+            {
+                return translator.objects.Remove(idx);
+            }
+            return null;
         }
 
         /// <summary>
@@ -426,7 +435,7 @@ namespace XLua.IL2CPP
                         }
                     }
                 }
-                if (NativeAPI.RegisterLuaClass(typeInfo))
+                if (NativeAPI.RegisterLuaClass(typeInfo, type.FullName))
                 {
                     return typeId;
                 }

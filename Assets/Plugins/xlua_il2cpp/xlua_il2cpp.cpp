@@ -12,10 +12,7 @@
 /// objIndexer 1 obj 2 param1(key) 3 param2(value)
 
 //#TODO@benp 资源释放 malloc new
-//#TODO@benp gc delegate tostring 函数参数默认值
-//#TODO@benp 继承实现
 //#TODO@benp 静态变量初始化 IL2CPP_RUNTIME_CLASS_INIT
-//#TODO@benp klass 2 runtimeType
 
 #include "il2cpp-config.h"
 #include "codegen/il2cpp-codegen.h"
@@ -612,7 +609,7 @@ namespace xlua
                 return obj->klass;
             }
 
-            CSharpStructInLua* css = lapi_xlua_tocss(L, index);
+            CSharpStruct* css = lapi_xlua_tocss(L, index);
             if(css){
                 return (Il2CppClass*)css->typeId;
             }
@@ -748,7 +745,7 @@ namespace xlua
             }
             case IL2CPP_TYPE_STRING:
             {
-                auto str = lapi_lua_tolstring(L, index);
+                auto str = lapi_lua_tostring(L, index);
                 if (str)
                 {
                     return (Il2CppObject*)il2cpp::vm::String::NewWrapper(str);
@@ -1673,7 +1670,7 @@ namespace xlua
     
 
     void* LuaStr2CSharpString(lua_State*L, int index){
-        const char* str = lapi_lua_tolstring(L, index);
+        const char* str = lapi_lua_tostring(L, index);
         return String::NewWrapper(str);
     }
 
@@ -2020,7 +2017,7 @@ namespace xlua
                 return clsInfo;
             }
 
-            CSharpStructInLua* css = lapi_xlua_tocss(L, 1);
+            CSharpStruct* css = lapi_xlua_tocss(L, 1);
             if(css){
                 void * kclass = css->typeId;
                 auto clsInfo = xlua::GetLuaClsInfoByTypeId(kclass);
@@ -2032,8 +2029,8 @@ namespace xlua
     }
 
     static xlua::LuaClassInfo* GetLuaClsInfoByClsMeta(lua_State* L) {
-        if (lapi_lua_isuserdata(L, lapi_lua_upvalueindex(1))) {
-            const void* ptr = lapi_lua_topointer(L, lapi_lua_upvalueindex(1));
+        if (lapi_lua_isuserdata(L, lapi_lapi_lua_upvalueindex(1))) {
+            const void* ptr = lapi_lua_topointer(L, lapi_lapi_lua_upvalueindex(1));
             xlua::LuaClassInfo* clsInfo = xlua::GetLuaClsInfoByTypeId(ptr);
             // xlua:GLogFormatted("GetLuaClsInfoByClsMeta ptr %p clsInfo %p", ptr, clsInfo);
             return clsInfo;
@@ -2047,7 +2044,7 @@ namespace xlua
 
         while(clsInfo){
              if (lapi_lua_isstring(L, 2)) {
-                const char* key = lapi_lua_tolstring(L, 2); 
+                const char* key = lapi_lua_tostring(L, 2); 
 
                 auto propertyIter = clsInfo->PropertyMap.find(key);//#TODO@benp 这里会有char* => string的隐式转换
                 if (propertyIter != clsInfo->PropertyMap.end()) {
@@ -2085,8 +2082,8 @@ namespace xlua
     // luaStack 1 c#obj 2 param1 3param2
     int MethodCallbackLuaWrap(lua_State* L, int paramOffset = 2) {
         
-        if (lapi_lua_isuserdata(L, lapi_lua_upvalueindex(1))) {
-            const void* pointer = lapi_lua_topointer(L, lapi_lua_upvalueindex(1));
+        if (lapi_lua_isuserdata(L, lapi_lapi_lua_upvalueindex(1))) {
+            const void* pointer = lapi_lua_topointer(L, lapi_lapi_lua_upvalueindex(1));
             void* p1 = const_cast<void*>(pointer);
             xlua::WrapData** wrapDatas = reinterpret_cast<xlua::WrapData**>(p1);
             if (wrapDatas) {
@@ -2106,9 +2103,9 @@ namespace xlua
             //method
             //todo 考虑不使用closure 优势1 减少闭包的内存 2 减少对Lua堆栈的操作 后续测试确定
             // todo 这里先注释  里面有脏东西
-            //if (!lapi_lua_isnil(L, lapi_lua_upvalueindex(2))) {
+            //if (!lapi_lua_isnil(L, lapi_lapi_lua_upvalueindex(2))) {
             //    lapi_lua_pushvalue(L, 2);
-            //    lapi_lua_gettable(L, lapi_lua_upvalueindex(2));
+            //    lapi_lua_gettable(L, lapi_lapi_lua_upvalueindex(2));
             //    if (!lapi_lua_isnil(L, -1)) {//has method
             //        return 1;
             //    }
@@ -2118,7 +2115,7 @@ namespace xlua
             //find method or field
             if (lapi_lua_isstring(L, 2)) {
                 
-                const char* key = lapi_lua_tolstring(L, 2); //#TODO@benp 这里会有char* => string的隐式转换
+                const char* key = lapi_lua_tostring(L, 2); //#TODO@benp 这里会有char* => string的隐式转换
 
                 auto iter = clsInfo->MethodsMap.find(key);
                 if(iter != clsInfo->MethodsMap.end())
@@ -2131,7 +2128,7 @@ namespace xlua
                         // lapi_lua_pushcclosure(L, MethodCallbackLuaWrap, 1);
                         lapi_lua_pushcclosure(L, [](lua_State* L){return MethodCallbackLuaWrap(L, 1);}, 1);
                         //cache method
-                        lapi_lua_pushvalue(L, lapi_lua_upvalueindex(2)); //-1 table   -2closure 
+                        lapi_lua_pushvalue(L, lapi_lapi_lua_upvalueindex(2)); //-1 table   -2closure 
                         if(lapi_lua_type(L, lapi_lua_gettop(L)) == LUA_TTABLE){
                             lapi_lua_pushvalue(L, 2);   //-1 stringkey -2 table   -3closure 
                             lapi_lua_pushvalue(L, -3); //-1 closure -2 stringkey -3 table   -4closure 
@@ -2213,7 +2210,7 @@ namespace xlua
                  auto size = klass->native_size > 0 ? klass->native_size : (klass->instance_size - sizeof(Il2CppObject));
                 //auto size = klass->instance_size;
                 int32_t typeId = GetLuaClassRegister()->GetTypeIdByIl2cppClass(L, klass);
-                CSharpStructInLua* css = lapi_xlua_createstruct_pointer(L, size, typeId, (void*)klass);
+                CSharpStruct* css = lapi_xlua_createstruct_pointer(L, size, typeId, (void*)klass);
                 
                 if (clsInfo->CtorWrapDatas) {
                     //-1 obj -2 param
@@ -2235,8 +2232,8 @@ namespace xlua
 
 
     int FieldCallbackLuaWrap(lua_State *L){
-        if(lapi_lua_isuserdata(L, lapi_lua_upvalueindex(1))){
-            xlua::FieldWrapData* wrapData = (xlua::FieldWrapData*) (lapi_lua_topointer(L, lapi_lua_upvalueindex(1)));
+        if(lapi_lua_isuserdata(L, lapi_lapi_lua_upvalueindex(1))){
+            xlua::FieldWrapData* wrapData = (xlua::FieldWrapData*) (lapi_lua_topointer(L, lapi_lapi_lua_upvalueindex(1)));
             if(wrapData){
                 wrapData->Getter(L, ( FieldInfo*)wrapData->FieldInfo, wrapData->Offset, (Il2CppClass*)wrapData->TypeInfo);
                 return 1;
@@ -2246,8 +2243,8 @@ namespace xlua
     }
 
     int FieldGetCallbackLuaWrap(lua_State* L) {
-        if (lapi_lua_isuserdata(L, lapi_lua_upvalueindex(1))) {
-            xlua::FieldWrapData* wrapData = (xlua::FieldWrapData*)(lapi_lua_topointer(L, lapi_lua_upvalueindex(1)));
+        if (lapi_lua_isuserdata(L, lapi_lapi_lua_upvalueindex(1))) {
+            xlua::FieldWrapData* wrapData = (xlua::FieldWrapData*)(lapi_lua_topointer(L, lapi_lapi_lua_upvalueindex(1)));
             if (wrapData) {
                 wrapData->Getter(L, (FieldInfo*)wrapData->FieldInfo, wrapData->Offset, (Il2CppClass*)wrapData->TypeInfo);
                 return 1;
@@ -2272,7 +2269,7 @@ namespace xlua
             //find method or field
             if (lapi_lua_isstring(L, 2)) {
 
-                const char* key = lapi_lua_tolstring(L, 2); //#TODO@benp 这里会有char* => string的隐式转换
+                const char* key = lapi_lua_tostring(L, 2); //#TODO@benp 这里会有char* => string的隐式转换
 
                 auto propertyInfoIter = clsInfo->PropertyMap.find(key);
                 if (propertyInfoIter != clsInfo->PropertyMap.end()) {
@@ -2336,9 +2333,9 @@ namespace xlua
         //method
         //todo 考虑不使用closure 优势1 减少闭包的内存 2 减少对Lua堆栈的操作 后续测试确定
         // xlua::GLogFormatted("ObjGetCallBack");
-        if (!lapi_lua_isnil(L, lapi_lua_upvalueindex(2))) {
+        if (!lapi_lua_isnil(L, lapi_lapi_lua_upvalueindex(2))) {
             lapi_lua_pushvalue(L, 2);
-            lapi_lua_gettable(L, lapi_lua_upvalueindex(2));
+            lapi_lua_gettable(L, lapi_lapi_lua_upvalueindex(2));
             if (!lapi_lua_isnil(L, -1)) {//has method
                 return 1;
             }
@@ -2351,7 +2348,7 @@ namespace xlua
             //find method or field
             if (lapi_lua_isstring(L, 2)) {
                 
-                const char* key = lapi_lua_tolstring(L, 2); 
+                const char* key = lapi_lua_tostring(L, 2); 
 
                 auto iter = clsInfo->MethodsMap.find(key);//#TODO@benp 这里会有char* => string的隐式转换
                 if(iter != clsInfo->MethodsMap.end())
@@ -2364,7 +2361,7 @@ namespace xlua
                         lapi_lua_pushlightuserdata(L, p);
                         lapi_lua_pushcclosure(L, [](lua_State* L){return MethodCallbackLuaWrap(L, 2);}, 1);
                         //cache method
-                        lapi_lua_pushvalue(L, lapi_lua_upvalueindex(2)); //-1 table   -2closure 
+                        lapi_lua_pushvalue(L, lapi_lapi_lua_upvalueindex(2)); //-1 table   -2closure 
                         if(lapi_lua_type(L, lapi_lua_gettop(L)) == LUA_TTABLE){
                             lapi_lua_pushvalue(L, 2);   //-1 stringkey -2 table   -3closure 
                             lapi_lua_pushvalue(L, -3); //-1 closure -2 stringkey -3 table   -4closure 
@@ -2447,12 +2444,12 @@ namespace xlua
     }
 
     int LuaGCCallBack(lua_State *L){
-         if(lapi_lua_isuserdata(L, lapi_lua_upvalueindex(1))){
-            Il2CppClass* klass = static_cast<Il2CppClass*>(lapi_lua_touserdata(L, lapi_lua_upvalueindex(1)));
+         if(lapi_lua_isuserdata(L, lapi_lapi_lua_upvalueindex(1))){
+            Il2CppClass* klass = static_cast<Il2CppClass*>(lapi_lua_touserdata(L, lapi_lapi_lua_upvalueindex(1)));
             if(!klass->valuetype){
                 CSharpObject* obj = (CSharpObject*)lapi_lua_touserdata(L, 1);
                 if(obj && obj->poolIdx != -1){
-                    auto ptr = GetCppObjMapper()->RemoveFromPool(obj->poolIdx);
+                    auto ptr = GetCppObjMapper()->RemoveFromPool(L, obj->poolIdx);
                     xlua::GLogFormatted("RemoveFromPool idx[%d] return %p", obj->poolIdx, ptr);
                     obj->poolIdx = -1;
                 }
@@ -2639,8 +2636,13 @@ void HandleClsMetaTable(lua_State *L, int clstable_idx, Il2CppClass* typeId){
 }
 
 
-int RegisterLuaClass(xlua::LuaClassInfo *luaClsInfo)
-{
+int RegisterLuaClass(xlua::LuaClassInfo *luaClsInfo, const char* fullName){
+    Il2CppClass* klass = luaClsInfo->Class;
+    if(IsDelegate(klass)){
+
+    }else{
+        
+    }
     return xlua::GetLuaClassRegister()->RegisterClass(luaClsInfo);
 }
 

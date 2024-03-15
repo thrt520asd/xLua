@@ -98,7 +98,7 @@ struct LuaClassInfoHeader
 {
     const Il2CppClass* TypeId;
     const void* SuperTypeId;
-    TypeIdType* Class;
+    Il2CppClass* Class;
     bool IsValueType;
     MethodPointer DelegateBridge;
     WrapData** CtorWrapDatas;
