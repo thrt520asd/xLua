@@ -10,10 +10,12 @@
 /// objProperty set 1 obj 2 params ...
 /// objField 1 obj 2 key 3 params ...
 /// objIndexer 1 obj 2 param1(key) 3 param2(value)
-
+/// operation 
 //#TODO@benp 资源释放 malloc new
 //#TODO@benp 静态变量初始化 IL2CPP_RUNTIME_CLASS_INIT
-
+//#TODO@benp tostring 
+//#TODO@benp 可变参数
+//#TODO@benp 反射实现
 #include "il2cpp-config.h"
 #include "codegen/il2cpp-codegen.h"
 #include "il2cpp-api.h"
@@ -58,6 +60,30 @@ namespace xlua
 {
     static xlua::UnityExports g_unityExports;
     static int32_t errorFunc_ref = -1;
+    typedef void *((*DelegateCombineType)) (Il2CppDelegate *d1, Il2CppDelegate* d2, MethodInfo* methodInfo);
+    static DelegateCombineType DelegateCombineMethodPointer = nullptr;
+    static const MethodInfo* DelegateCombineMethodInfo = nullptr;
+
+    typedef void *((*DelegateRemoveType)) (Il2CppDelegate *d1, Il2CppDelegate* d2, MethodInfo* methodInfo);
+    static DelegateRemoveType DelegateRemoveMethodPointer = nullptr;
+    static const MethodInfo* DelegateRemoveMethodInfo = nullptr;
+
+    typedef Il2CppDelegate *((*GetCacheDelegateType)) (lua_State* L, int referenced, const MethodInfo* methodInfo);
+    static GetCacheDelegateType GetCacheDelegateMethodPointer = nullptr;
+    static const MethodInfo* GetCacheDelegateMethodInfo = nullptr;
+
+    typedef void ((*CacheDelegateType)) (lua_State* L, int referenced, RuntimeObject* obj, const MethodInfo* methodInfo);
+    static CacheDelegateType CacheDelegateMethodPointer = nullptr;
+    static const MethodInfo* CacheDelegateMethodInfo = nullptr;
+
+    Il2CppDelegate* GetCacheDelegate(lua_State* L, int referenced){
+       return GetCacheDelegateMethodPointer(L, referenced, GetCacheDelegateMethodInfo);
+    }
+
+    void CacheDelegate(lua_State* L, int referenced, Il2CppDelegate* delegate){
+        CacheDelegateMethodPointer(L, referenced, (RuntimeObject*)delegate, CacheDelegateMethodInfo);
+    }
+
     intptr_t GetMethodPointer(Il2CppReflectionMethod* method)
     {
         auto methodInfo = method->method;
@@ -480,9 +506,78 @@ namespace xlua
     //     return nullptr;
     // }
 
-    
+    static bool TryTranslatePrimitiveWithType(lua_State* L, void* ptr, const Il2CppType* type) {
+        int t = type->type;
+        switch (t)
+        {
+        case IL2CPP_TYPE_I1:
+        {
+            lapi_xlua_pushinteger(L, (int32_t)(*((int8_t*)ptr)));
+        }
+        case IL2CPP_TYPE_BOOLEAN:
+        {
+            lapi_lua_pushboolean(L, (int)(*((uint8_t*)ptr)));
+        }
+        case IL2CPP_TYPE_U1:
+        {
+            lapi_xlua_pushinteger(L, (uint32_t)(*((uint8_t*)ptr)));
+        }
+        case IL2CPP_TYPE_I2:
+        {
+            lapi_xlua_pushinteger(L, (int32_t)(*((int16_t*)ptr)));
+        }
+        case IL2CPP_TYPE_U2:
+        {
+            lapi_xlua_pushinteger(L, (uint32_t)(*((uint16_t*)ptr)));
+        }
+        case IL2CPP_TYPE_CHAR:
+        {
+            lapi_xlua_pushinteger(L, (int32_t)(*((Il2CppChar*)ptr)));
+        }
+#if IL2CPP_SIZEOF_VOID_P == 4
+        case IL2CPP_TYPE_I:
+#endif
+        case IL2CPP_TYPE_I4:
+        {
+            lapi_xlua_pushinteger(L, (int32_t)(*((int32_t*)ptr)));
+        }
+#if IL2CPP_SIZEOF_VOID_P == 4
+        case IL2CPP_TYPE_U:
+#endif
+        case IL2CPP_TYPE_U4:
+        {
+            lapi_xlua_pushinteger(L, (uint32_t)(*((uint32_t*)ptr)));
+        }
+#if IL2CPP_SIZEOF_VOID_P == 8
+        case IL2CPP_TYPE_I:
+#endif
+        case IL2CPP_TYPE_I8:
+        {
+            lapi_xlua_pushinteger(L, *((int64_t*)ptr));
+        }
+#if IL2CPP_SIZEOF_VOID_P == 8
+        case IL2CPP_TYPE_U:
+#endif
+        case IL2CPP_TYPE_U8:
+        {
+            lapi_xlua_pushinteger(L, *((uint64_t*)ptr));
+        }
+        case IL2CPP_TYPE_R4:
+        {
+            lapi_lua_pushnumber(L, (double)(*((float*)ptr)));
+        }
+        case IL2CPP_TYPE_R8:
+        {
+            lapi_lua_pushnumber(L, *((double*)ptr));
+        }
 
-    static bool TryTranslatePrimitiveWithClassAAA(lua_State* L, Il2CppObject* obj, Il2CppClass *klass = nullptr)
+        default:
+            return false;
+        }
+        return true;
+    }
+
+    static bool TryTranslatePrimitiveWithClass(lua_State* L, Il2CppObject* obj, Il2CppClass *klass = nullptr)
     {
         if (obj)
         {
@@ -496,79 +591,14 @@ namespace xlua
                 return true;
             }
             void* ptr = Object::Unbox(obj);
-            switch (t)
-            {
-                case IL2CPP_TYPE_I1:
-                {
-                    lapi_lua_pushinteger(L, (int32_t)(*((int8_t*)ptr)));
-                }
-                case IL2CPP_TYPE_BOOLEAN:
-                {
-                    lapi_lua_pushboolean(L, (int)(*((uint8_t*)ptr)));
-                }
-                case IL2CPP_TYPE_U1:
-                {
-                    lapi_lua_pushinteger(L, (uint32_t)(*((uint8_t*)ptr)));
-                }
-                case IL2CPP_TYPE_I2:
-                {
-                    lapi_lua_pushinteger(L, (int32_t)(*((int16_t*)ptr)));
-                }
-                case IL2CPP_TYPE_U2:
-                {
-                    lapi_lua_pushinteger(L, (uint32_t)(*((uint16_t*)ptr)));
-                }
-                case IL2CPP_TYPE_CHAR:
-                {
-                    lapi_lua_pushinteger(L, (int32_t)(*((Il2CppChar*)ptr)));
-                }
-        #if IL2CPP_SIZEOF_VOID_P == 4
-                case IL2CPP_TYPE_I:
-        #endif
-                case IL2CPP_TYPE_I4:
-                {
-                    lapi_lua_pushinteger(L, (int32_t)(*((int32_t*)ptr)));
-                }
-        #if IL2CPP_SIZEOF_VOID_P == 4
-                case IL2CPP_TYPE_U:
-        #endif
-                case IL2CPP_TYPE_U4:
-                {
-                    lapi_lua_pushinteger(L, (uint32_t)(*((uint32_t*)ptr)));
-                }
-        #if IL2CPP_SIZEOF_VOID_P == 8
-                case IL2CPP_TYPE_I:
-        #endif
-                case IL2CPP_TYPE_I8:
-                {
-                    lapi_lua_pushinteger(L, *((int64_t*)ptr));
-                }
-        #if IL2CPP_SIZEOF_VOID_P == 8
-                case IL2CPP_TYPE_U:
-        #endif
-                case IL2CPP_TYPE_U8:
-                {
-                    lapi_lua_pushinteger(L, *((uint64_t*)ptr));
-                }
-                case IL2CPP_TYPE_R4:
-                {
-                    lapi_lua_pushnumber(L, (double)(*((float*)ptr)));
-                }
-                case IL2CPP_TYPE_R8:
-                {
-                    lapi_lua_pushnumber(L, *((double*)ptr));
-                }
-                
-                default:
-                    return false;
-            }
+            return TryTranslatePrimitiveWithType(L, ptr, type);
         }
         return true;
     }
 
     bool TryTranslatePrimitive(lua_State* L, Il2CppObject* obj)
     {
-        return TryTranslatePrimitiveWithClassAAA(L, obj);
+        return TryTranslatePrimitiveWithClass(L, obj);
     }
 
     static bool CSValueToLuaValue(lua_State* L, void* klass, void* ptr, unsigned int size) {
@@ -586,24 +616,35 @@ namespace xlua
         return GetCppObjMapper()->TryPushObject(L, obj);
     }
 
-    static bool CSAnyToLuaValue(lua_State* L, void* Obj, void* klass = nullptr)
+    /// @brief C#obj传递到lua 处理struct copy 值类型装箱
+    /// @param L 
+    /// @param obj 
+    /// @param klass 
+    /// @return 
+    static bool CSAnyToLuaValue(lua_State* L, void* obj, void* klass = nullptr)
     {
-        Il2CppObject* il2cppObj = (Il2CppObject*)Obj;
+        if (!obj) {
+            std::string message = "obj null wrong for CSAnyToLuaValue: ";
+            Exception::Raise(Exception::GetInvalidOperationException(message.c_str()));
+            return false;
+        }
+        Il2CppObject* il2cppObj = (Il2CppObject*)obj;
         Il2CppClass* ilcppClass = (Il2CppClass*)(klass ? klass : il2cppObj->klass);
         bool suc = TryTranslatePrimitive(L, il2cppObj);
 
         if (!suc) {
             if (Class::IsValuetype(ilcppClass)) {
-                if (ilcppClass->enumtype) {
-                    auto t = Class::GetEnumBaseType(ilcppClass)->type;
-                    //#TODO@benp 处理枚举
+                if (il2cpp_class_is_enum(ilcppClass)) {
+                    auto t = Class::GetEnumBaseType(ilcppClass);
+                    void* ptr = Object::Unbox(il2cppObj);
+                    return TryTranslatePrimitiveWithType(L, ptr, t);
                 }
                 else {
                     return GetCppObjMapper()->TryPushStruct(L, ilcppClass, Object::Unbox(il2cppObj), GetValueTypeSize(ilcppClass));
                 }
             }
             else {
-                return GetCppObjMapper()->TryPushObject(L, Obj);
+                return GetCppObjMapper()->TryPushObject(L, obj);
             }
         }
         return true;
@@ -625,18 +666,37 @@ namespace xlua
         return nullptr;
     }
 
-    //从lua中构造一个C#的delegate
+    //从lua中构造一个C#的delegate  此处要考虑缓存
     Il2CppDelegate* CreateDelegateFromLua(lua_State*L, int32_t index, Il2CppClass* klass, bool throwIfFail){
         LuaClassInfo* clsInfo = GetLuaClassRegister()->GetOrLoadLuaClsInfoByTypeId(klass,  L);
         if(clsInfo){
+            lapi_lua_pushvalue(L, index);
+            lapi_lua_rawget(L, lapi_xlua_get_registry_index());
+            if(!lapi_lua_isnil(L, -1)){
+                int referenced = lapi_xlua_tointeger(L, -1);
+                lapi_lua_pop(L, 1);
+                auto delegate = GetCacheDelegate(L, referenced);
+                if(delegate){
+                    return delegate;
+                }
+            }
+            lapi_lua_pop(L, 1);
             void* target = nullptr;
             auto delegate = DelegateAllocate(klass, clsInfo->DelegateBridge, &target);
             if(delegate){
                 lapi_lua_pushvalue(L, index);
                 int reference = lapi_luaL_ref(L, lapi_xlua_get_registry_index());
+                lapi_lua_pushvalue(L, index);
+                lapi_lua_pushnumber(L, reference);
+                lapi_lua_rawset(L, lapi_xlua_get_registry_index());
+
                 PersistentObjectInfo* delegateInfo = (PersistentObjectInfo*)target;
+
                 delegateInfo->L = L;
                 delegateInfo->reference = reference;
+                delegateInfo->klass = klass;
+                CacheDelegate(L,reference, delegate);
+                xlua::GLogFormatted("create delegate %s lua_state %p refenence %d", delegate, delegateInfo->L, delegateInfo->reference);
                 return delegate;
             }
         }else{
@@ -1660,6 +1720,7 @@ namespace xlua
     {
         const char* Signature;
         MethodPointer Method;
+        DelegateWrapFunc WrapMethod;
     };
 
     struct WrapFuncInfo
@@ -1865,11 +1926,13 @@ namespace xlua
     }
 
     bool CheckIsClass(lua_State* L, int index, void* typeId){
-        auto ptr = lapi_xlua_getcsobj_ptr(L, index);
-        if(ptr){
-            void* kclass = *reinterpret_cast<void**>(ptr);
-            if(Class::IsAssignableFrom((Il2CppClass*)typeId, (Il2CppClass*)kclass)){
-                return true;
+        if (lapi_lua_isuserdata(L, index)) {
+            auto ptr = lapi_xlua_getcsobj_ptr(L, index);
+            if(ptr){
+                void* kclass = *reinterpret_cast<void**>(ptr);
+                if(Class::IsAssignableFrom((Il2CppClass*)typeId, (Il2CppClass*)kclass)){
+                    return true;
+                }
             }
         }
         
@@ -1950,7 +2013,7 @@ namespace xlua
 
 
     
-    MethodPointer FindBridgeFunc(Il2CppString * ilstring)
+    BridgeFuncInfo* FindBridgeFunc(Il2CppString * ilstring)
     {
         std::string str = ilstring2stdstring(ilstring);
         const char* signature = str.c_str();
@@ -1959,7 +2022,7 @@ namespace xlua
         auto end = &g_bridgeFuncInfos[sizeof(g_bridgeFuncInfos) / sizeof(BridgeFuncInfo) - 1];
         auto first = std::lower_bound(begin, end, signature, [](const BridgeFuncInfo& x, const char* signature) {return strcmp(x.Signature, signature) < 0;});
         if (first != end && strcmp(first->Signature, signature) == 0) {
-            return first->Method;
+            return first;
         }
         return nullptr;
     }
@@ -1997,11 +2060,11 @@ namespace xlua
         const Il2CppChar* utf16 = il2cpp::utils::StringUtils::GetChars(name);
         std::string str = il2cpp::utils::StringUtils::Utf16ToUtf8(utf16);
          xlua::GLogFormatted("CreateCSharpTypeInfo %s", str.c_str());
-        MethodPointer delegateBridge = nullptr;
+        BridgeFuncInfo* bridgeFuncInfo = nullptr ;
         if (isDelegate)
         {
-            delegateBridge = FindBridgeFunc(delegateSignature);
-            if (!delegateBridge) return nullptr;
+            bridgeFuncInfo = FindBridgeFunc(delegateSignature);
+            if (!bridgeFuncInfo) return nullptr;
         }
         LuaClassInfo* ret = new LuaClassInfo();
         ret->Name = str;
@@ -2009,8 +2072,11 @@ namespace xlua
         ret->SuperTypeId = super_type_id;
         ret->Class = static_cast<TypeIdType*>(klass);
         ret->IsValueType = isValueType;
-        ret->DelegateBridge = delegateBridge;
         
+        if(bridgeFuncInfo){
+            ret->DelegateBridge = bridgeFuncInfo->Method;
+            ret->DelegateWrapBridge = bridgeFuncInfo->WrapMethod;
+        }
         return ret;
     }
     
@@ -2124,6 +2190,11 @@ namespace xlua
             if (lapi_lua_isstring(L, 2)) {
                 
                 const char* key = lapi_lua_tostring(L, 2); //#TODO@benp 这里会有char* => string的隐式转换
+                if (strcmp(key, "UnderlyingSystemType") == 0) {
+                    auto reflectType = TypeIdToType(clsInfo->Class);
+                    GetCppObjMapper()->TryPushObject(L, (void*)reflectType);
+                    return 1;
+                }
 
                 auto iter = clsInfo->MethodsMap.find(key);
                 if(iter != clsInfo->MethodsMap.end())
@@ -2404,6 +2475,7 @@ namespace xlua
                     // find method  
                     auto field = fieldIter->second;
                     if(!field->IsStatic && field->Data->Getter){
+                        xlua::GLogFormatted("get field %s", field->Name);
                         field->Data->Getter(L, (FieldInfo*)field->Data->FieldInfo, field->Data->Offset, (Il2CppClass*)field->Data->TypeInfo);
                         return 1;
                     }
@@ -2449,6 +2521,22 @@ namespace xlua
         auto removeObjMethodInfo = xlua::GetMethodInfoPointer(*removeObjMethod);
         GetCppObjMapper()->InitObjPoolMethod((Il2CppReflectionMethod*)addObjMethod, (Il2CppMethodPointer*)addObjMethodPointer, (Il2CppReflectionMethod*)removeObjMethod, (Il2CppMethodPointer*)removeObjMethodPointer);
         
+        auto delegateCombineMethod = il2cpp_array_addr(methodArray, Il2CppReflectionMethod*, 3);
+        DelegateCombineMethodPointer = (DelegateCombineType)xlua::GetMethodPointer(*delegateCombineMethod);
+        DelegateCombineMethodInfo = (*delegateCombineMethod)->method;
+
+        auto delegateRemoveMethod = il2cpp_array_addr(methodArray, Il2CppReflectionMethod*, 4);
+        DelegateRemoveMethodPointer = (DelegateRemoveType)xlua::GetMethodPointer(*delegateRemoveMethod);
+        DelegateRemoveMethodInfo = (*delegateRemoveMethod)->method;
+
+        auto getCacheDelegateMethod = il2cpp_array_addr(methodArray, Il2CppReflectionMethod*, 5);
+        GetCacheDelegateMethodPointer = (GetCacheDelegateType)xlua::GetMethodPointer(*getCacheDelegateMethod);
+        GetCacheDelegateMethodInfo = (*getCacheDelegateMethod)->method;
+
+        auto CacheDelegateMethod = il2cpp_array_addr(methodArray, Il2CppReflectionMethod*, 6);
+        CacheDelegateMethodPointer = (CacheDelegateType)xlua::GetMethodPointer(*CacheDelegateMethod);
+        CacheDelegateMethodInfo = (*CacheDelegateMethod)->method;
+
     }
 
     int LuaGCCallBack(lua_State *L){
@@ -2466,6 +2554,7 @@ namespace xlua
         return 0;
     }
 
+    
     /// @brief 释放C#持有的lua引用
     void ReleaseLuaRef(RuntimeObject* obj){
         PersistentObjectInfo* persistentObj = (PersistentObjectInfo*)Object::Unbox(obj);
@@ -2567,14 +2656,13 @@ void SetLogCallback(xlua::LogCallback log)
 }
 
 int DelegateCallBack(lua_State* L) {
-    void* ptr = GetCppObjMapper()->ToCppObj(L, -1);
+    void* ptr = lapi_xlua_getcsobj_ptr(L, 1);
     if (ptr) {
         Il2CppDelegate* obj = reinterpret_cast<Il2CppDelegate*>(ptr);
-        //todo 动态invoke delegate
+        xlua::GLogFormatted("DelegateCallBack ptr %p", ptr);
         auto clsInfo = xlua::GetLuaClassRegister()->GetOrLoadLuaClsInfoByTypeId(obj->object.klass, L);
         if (clsInfo) {
-
-            obj->method_ptr();
+            return clsInfo->DelegateWrapBridge(L, obj, (const MethodInfo*) obj->method);
         }
         else {
             return xlua::throw_exception2lua(L, "obj is not delegate obj");
@@ -2586,6 +2674,55 @@ int DelegateCallBack(lua_State* L) {
     }
 }
 
+int DelegateCombineCallBack(lua_State* L){
+    Il2CppClass* klass = nullptr;
+    if (lapi_lua_isuserdata(L, 1)) {
+        auto ptr = lapi_xlua_getcsobj_ptr(L, 1);
+        if (ptr) {
+            
+            klass = (Il2CppClass*)*reinterpret_cast<void**>(ptr);
+        }
+    }
+    else if (lapi_lua_isuserdata(L, 2)) {
+        auto ptr = lapi_xlua_getcsobj_ptr(L, 2);
+        if (ptr) {
+            klass = (Il2CppClass*)*reinterpret_cast<void**>(ptr);
+        }
+    }
+    if (!klass) {
+        xlua::throw_exception2lua(L, "params wrong for delegate combine");
+        return 0;
+    }
+    void* delegate1 = xlua::LuaValueToCSRef(klass, L, 1);
+    void* delegate2 = xlua::LuaValueToCSRef(klass, L, 2);
+    if(delegate1 && delegate2){
+        auto ptr = xlua::DelegateCombineMethodPointer((Il2CppDelegate*)delegate1, (Il2CppDelegate*)delegate2, (MethodInfo*)xlua::DelegateCombineMethodInfo);
+        GetCppObjMapper()->TryPushObject(L, ptr);
+        xlua::GLogFormatted("DelegateCombine push to lua %p", ptr);
+        return 1;
+    }else{
+        return xlua::throw_exception2lua(L, "params wrong for delegate combine");
+    }
+}
+
+int DelegateRemoveCallBack(lua_State* L){
+    void* delegate1 = xlua::LuaValueToCSRef(il2cpp_defaults.delegate_class, L, 1);
+    if (!delegate1) {
+        return xlua::throw_exception2lua(L, "#1 parameter must be a delegate");
+    }
+    Il2CppClass* klass = ((Il2CppObject*)delegate1)->klass;
+    if (!klass) {
+        return xlua::throw_exception2lua(L, "#1 parameter must be a delegate error 2");
+    }
+    auto delegate2 = xlua::LuaValueToCSRef(klass, L, 2);
+    if (!delegate2) {
+        return xlua::throw_exception2lua(L, "#2 parameter must be a delegate or a function ");
+    }
+    auto ptr = xlua::DelegateRemoveMethodPointer((Il2CppDelegate*)delegate1, (Il2CppDelegate*)delegate2, (MethodInfo*)xlua::DelegateRemoveMethodInfo);
+    GetCppObjMapper()->TryPushObject(L, ptr);
+    return 1;
+}
+
 void HandleDeleagateMetatable(lua_State* L, int metatable_idx, Il2CppClass* typeId) {
     lapi_lua_pushstring(L, "__call");
     lapi_lua_pushcclosure(L, DelegateCallBack, 0);
@@ -2593,6 +2730,12 @@ void HandleDeleagateMetatable(lua_State* L, int metatable_idx, Il2CppClass* type
     lapi_lua_pushstring(L, "__gc");
     lapi_lua_pushlightuserdata(L, typeId);
     lapi_lua_pushcclosure(L, xlua::LuaGCCallBack, 1);
+    lapi_lua_settable(L, metatable_idx);
+    lapi_lua_pushstring(L, "__add");
+    lapi_lua_pushcclosure(L, DelegateCombineCallBack, 0);
+    lapi_lua_settable(L, metatable_idx);
+    lapi_lua_pushstring(L, "__sub");
+    lapi_lua_pushcclosure(L, DelegateRemoveCallBack, 0);
     lapi_lua_settable(L, metatable_idx);
     lapi_lua_pop(L, 1);
 }
