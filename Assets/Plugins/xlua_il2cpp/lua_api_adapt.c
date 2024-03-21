@@ -443,6 +443,20 @@ static lapi_xlua_touintType lapi_xlua_touint_ptr;
     return lapi_xlua_touint_ptr(L,idx);
 }
 
+//xlua_gl
+typedef void* (*lapi_xlua_glType)(lua_State *L);
+static lapi_xlua_glType lapi_xlua_gl_ptr;
+ void* lapi_xlua_gl(lua_State *L){
+    return lapi_xlua_gl_ptr(L);
+}
+
+//xlua_mainthread
+typedef void* (*lapi_xlua_mainthreadType)(lua_State *L);
+static lapi_xlua_mainthreadType lapi_xlua_mainthread_ptr;
+ void* lapi_xlua_mainthread(lua_State *L){
+    return lapi_xlua_mainthread_ptr(L);
+}
+
 //genEnd
 
 void lapi_init(lapi_func_ptr* func_array){
@@ -510,6 +524,8 @@ lapi_xlua_pushinteger_ptr = (lapi_xlua_pushintegerType)func_array[59];
 lapi_xlua_tointeger_ptr = (lapi_xlua_tointegerType)func_array[60];
 lapi_xlua_pushuint_ptr = (lapi_xlua_pushuintType)func_array[61];
 lapi_xlua_touint_ptr = (lapi_xlua_touintType)func_array[62];
+lapi_xlua_gl_ptr = (lapi_xlua_glType)func_array[63];
+lapi_xlua_mainthread_ptr = (lapi_xlua_mainthreadType)func_array[64];
 //end1
 }
 

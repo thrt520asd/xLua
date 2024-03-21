@@ -1304,6 +1304,10 @@ LUA_API CSharpStruct* xlua_tocss(lua_State *L, int index) {
 void xlua_call(lua_State*L, int nargs, int nresults){
     lua_call(L, nargs, nresults);
 }
+
+LUA_API void* xlua_mainthread(lua_State *L) {
+	return G(L)->mainthread;
+}
 //genBegin
 static lapi_func_ptr funcs[] = {
 (lapi_func_ptr) &lua_touserdata,//0
@@ -1369,6 +1373,8 @@ static lapi_func_ptr funcs[] = {
 (lapi_func_ptr) &xlua_tointeger,//60
 (lapi_func_ptr) &xlua_pushuint,//61
 (lapi_func_ptr) &xlua_touint,//62
+(lapi_func_ptr) &xlua_gl,//63
+(lapi_func_ptr) &xlua_mainthread,//64
 };
 //genEnd
 

@@ -16,6 +16,7 @@
 //#TODO@benp tostring 
 //#TODO@benp 可变参数
 //#TODO@benp 反射实现
+//#TODO@benp extensition method
 #include "il2cpp-config.h"
 #include "codegen/il2cpp-codegen.h"
 #include "il2cpp-api.h"
@@ -692,15 +693,16 @@ namespace xlua
 
                 PersistentObjectInfo* delegateInfo = (PersistentObjectInfo*)target;
 
-                delegateInfo->L = L;
+                delegateInfo->L = (lua_State*)lapi_xlua_mainthread(L);
                 delegateInfo->reference = reference;
                 delegateInfo->klass = klass;
                 CacheDelegate(L,reference, delegate);
-                xlua::GLogFormatted("create delegate %s lua_state %p refenence %d", delegate, delegateInfo->L, delegateInfo->reference);
+                xlua::GLogFormatted("create delegate %p lua_state %p refenence %d", delegate, delegateInfo->L, delegateInfo->reference);
                 return delegate;
             }
         }else{
-            //#TODO@benp throw error
+            throw_exception2lua(L, "expect function in index");
+            return nullptr;
         }
     }
 

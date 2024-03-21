@@ -648,11 +648,10 @@ $@"static int bw_{bridgeInfo.Signature}(lua_State* L, Il2CppDelegate* ildelegate
     
     {String.Join("\n\t", bridgeInfo.ParameterSignatures.Select((s, index) => WrapUtil.LuaValToCSVal(s, "p" + index,  RealParameterIndex(bridgeInfo.ParameterSignatures, index) + 2 , false)))}
     typedef {WrapUtil.SToCPPType(bridgeInfo.ReturnSignature)} (*FuncToCall)(void* target, {String.Join("", bridgeInfo.ParameterSignatures.Select((s, i) => $"{WrapUtil.SToCPPType(s)} p{i}, "))}const void* method);
+    {(bridgeInfo.ParameterSignatures.Count > 0 ? $@"void* params[{bridgeInfo.ParameterSignatures.Count}];":"")}
+    {string.Join("\n\t", bridgeInfo.ParameterSignatures.Select((s, index)=> $"params[{index}] = (void*)p{index};"))}
     
-    {$@"void* params[{bridgeInfo.ParameterSignatures.Count}];
-    {string.Join("\n\t", bridgeInfo.ParameterSignatures.Select((s, index)=> $"params[{index}] = (void*)p{index};"))}"}
-    
-    {(bridgeInfo.ReturnSignature != "v" ? $"{WrapUtil.SToCPPType(bridgeInfo.ReturnSignature)} ret = " : "")}il2cpp::vm::Runtime::DelegateInvoke(ildelegate, params, nullptr);
+    {(bridgeInfo.ReturnSignature != "v" ? $"{WrapUtil.SToCPPType(bridgeInfo.ReturnSignature)} ret = " : "")}il2cpp::vm::Runtime::DelegateInvoke(ildelegate, {(bridgeInfo.ParameterSignatures.Count > 0 ? "params":"nullptr")}, nullptr);
 
     {(bridgeInfo.ReturnSignature != "v" ? WrapUtil.ReturnToLua(bridgeInfo.ReturnSignature) : "")}
 

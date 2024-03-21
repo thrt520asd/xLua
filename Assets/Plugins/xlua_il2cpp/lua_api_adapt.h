@@ -180,6 +180,10 @@ int lapi_xlua_tointeger (lua_State *L, int idx);
 void lapi_xlua_pushuint (lua_State *L, uint32_t n);
 //xlua_touint
 uint32_t lapi_xlua_touint (lua_State *L, int idx);
+//xlua_gl
+void* lapi_xlua_gl(lua_State *L);
+//xlua_mainthread
+void* lapi_xlua_mainthread(lua_State *L);
 //genEnd
 
 #define lapi_lua_isboolean(L,n)	(lapi_lua_type(L, (n)) == LUA_TBOOLEAN)
