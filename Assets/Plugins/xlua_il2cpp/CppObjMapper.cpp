@@ -123,7 +123,7 @@ bool CppObjMapper::TryPushObject(lua_State *L, void * obj){
     if(metaId != -1){
         auto poolIdx = AddToPool(L, (Il2CppObject*)obj);
 
-        xlua::GLogFormatted("lapi_xlua_pushcsobj_ptr %p  metaId %d key %d cacheRef %d", obj, metaId, key, cacheRef);
+        xlua::GLogFormatted("lapi_xlua_pushcsobj_ptr %p  metaId %d key %d cacheRef %d %s", obj, metaId, key, cacheRef, kclass->name);
         lapi_xlua_pushcsobj_ptr(L, obj, metaId, key, 1, cacheRef, poolIdx);
         return true;
     }else{

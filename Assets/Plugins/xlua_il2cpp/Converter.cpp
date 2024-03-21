@@ -59,7 +59,7 @@ struct Converter;
     {
         static void toScript(lua_State* L, T value)
         {
-            lapi_lua_pushinteger(L, value);
+            lapi_xlua_pushinteger(L, value);
         }
 
         static T toCpp(lua_State* L, int index)

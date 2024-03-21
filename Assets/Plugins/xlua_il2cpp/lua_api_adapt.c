@@ -219,13 +219,6 @@ static lapi_lua_pushnumberType lapi_lua_pushnumber_ptr;
     return lapi_lua_pushnumber_ptr(L,n);
 }
 
-//lua_pushinteger
-typedef void        ((*lapi_lua_pushintegerType)) (lua_State *L, lua_Integer n);
-static lapi_lua_pushintegerType lapi_lua_pushinteger_ptr;
- void        (lapi_lua_pushinteger) (lua_State *L, lua_Integer n){
-    return lapi_lua_pushinteger_ptr(L,n);
-}
-
 //lua_pushnil
 typedef void        ((*lapi_lua_pushnilType)) (lua_State *L);
 static lapi_lua_pushnilType lapi_lua_pushnil_ptr;
@@ -422,6 +415,34 @@ static lapi_luaL_newmetatableType lapi_luaL_newmetatable_ptr;
     return lapi_luaL_newmetatable_ptr(L,tname);
 }
 
+//xlua_pushinteger
+typedef void (*lapi_xlua_pushintegerType) (lua_State *L, int n);
+static lapi_xlua_pushintegerType lapi_xlua_pushinteger_ptr;
+ void lapi_xlua_pushinteger (lua_State *L, int n){
+    return lapi_xlua_pushinteger_ptr(L,n);
+}
+
+//xlua_tointeger
+typedef int (*lapi_xlua_tointegerType) (lua_State *L, int idx);
+static lapi_xlua_tointegerType lapi_xlua_tointeger_ptr;
+ int lapi_xlua_tointeger (lua_State *L, int idx){
+    return lapi_xlua_tointeger_ptr(L,idx);
+}
+
+//xlua_pushuint
+typedef void (*lapi_xlua_pushuintType) (lua_State *L, uint32_t n);
+static lapi_xlua_pushuintType lapi_xlua_pushuint_ptr;
+ void lapi_xlua_pushuint (lua_State *L, uint32_t n){
+    return lapi_xlua_pushuint_ptr(L,n);
+}
+
+//xlua_touint
+typedef uint32_t (*lapi_xlua_touintType) (lua_State *L, int idx);
+static lapi_xlua_touintType lapi_xlua_touint_ptr;
+ uint32_t lapi_xlua_touint (lua_State *L, int idx){
+    return lapi_xlua_touint_ptr(L,idx);
+}
+
 //genEnd
 
 void lapi_init(lapi_func_ptr* func_array){
@@ -457,35 +478,38 @@ lapi_lua_pushboolean_ptr = (lapi_lua_pushbooleanType)func_array[27];
 lapi_lua_pushstring_ptr = (lapi_lua_pushstringType)func_array[28];
 lapi_lua_pushlstring_ptr = (lapi_lua_pushlstringType)func_array[29];
 lapi_lua_pushnumber_ptr = (lapi_lua_pushnumberType)func_array[30];
-lapi_lua_pushinteger_ptr = (lapi_lua_pushintegerType)func_array[31];
-lapi_lua_pushnil_ptr = (lapi_lua_pushnilType)func_array[32];
-lapi_lua_pushint64_ptr = (lapi_lua_pushint64Type)func_array[33];
-lapi_lua_pushuint64_ptr = (lapi_lua_pushuint64Type)func_array[34];
-lapi_luaL_error_ptr = (lapi_luaL_errorType)func_array[35];
-lapi_lua_remove_ptr = (lapi_lua_removeType)func_array[36];
-lapi_lua_insert_ptr = (lapi_lua_insertType)func_array[37];
-lapi_lua_replace_ptr = (lapi_lua_replaceType)func_array[38];
-lapi_lua_copy_ptr = (lapi_lua_copyType)func_array[39];
-lapi_xlua_createstruct_pointer_ptr = (lapi_xlua_createstruct_pointerType)func_array[40];
-lapi_xlua_pushstruct_pointer_ptr = (lapi_xlua_pushstruct_pointerType)func_array[41];
-lapi_xlua_tocss_ptr = (lapi_xlua_tocssType)func_array[42];
-lapi_xlua_getglobal_ptr = (lapi_xlua_getglobalType)func_array[43];
-lapi_xlua_setglobal_ptr = (lapi_xlua_setglobalType)func_array[44];
-lapi_lua_isint64_ptr = (lapi_lua_isint64Type)func_array[45];
-lapi_lua_isuint64_ptr = (lapi_lua_isuint64Type)func_array[46];
-lapi_lua_toint64_ptr = (lapi_lua_toint64Type)func_array[47];
-lapi_lua_touint64_ptr = (lapi_lua_touint64Type)func_array[48];
-lapi_load_error_func_ptr = (lapi_load_error_funcType)func_array[49];
-lapi_xlua_get_registry_index_ptr = (lapi_xlua_get_registry_indexType)func_array[50];
-lapi_xlua_rawgeti_ptr = (lapi_xlua_rawgetiType)func_array[51];
-lapi_xlua_rawseti_ptr = (lapi_xlua_rawsetiType)func_array[52];
-lapi_lua_pcall_ptr = (lapi_lua_pcallType)func_array[53];
-lapi_pcall_prepare_ptr = (lapi_pcall_prepareType)func_array[54];
-lapi_luaL_ref_ptr = (lapi_luaL_refType)func_array[55];
-lapi_xlua_tag_ptr = (lapi_xlua_tagType)func_array[56];
-lapi_lua_rawget_ptr = (lapi_lua_rawgetType)func_array[57];
-lapi_lua_rawset_ptr = (lapi_lua_rawsetType)func_array[58];
-lapi_luaL_newmetatable_ptr = (lapi_luaL_newmetatableType)func_array[59];
+lapi_lua_pushnil_ptr = (lapi_lua_pushnilType)func_array[31];
+lapi_lua_pushint64_ptr = (lapi_lua_pushint64Type)func_array[32];
+lapi_lua_pushuint64_ptr = (lapi_lua_pushuint64Type)func_array[33];
+lapi_luaL_error_ptr = (lapi_luaL_errorType)func_array[34];
+lapi_lua_remove_ptr = (lapi_lua_removeType)func_array[35];
+lapi_lua_insert_ptr = (lapi_lua_insertType)func_array[36];
+lapi_lua_replace_ptr = (lapi_lua_replaceType)func_array[37];
+lapi_lua_copy_ptr = (lapi_lua_copyType)func_array[38];
+lapi_xlua_createstruct_pointer_ptr = (lapi_xlua_createstruct_pointerType)func_array[39];
+lapi_xlua_pushstruct_pointer_ptr = (lapi_xlua_pushstruct_pointerType)func_array[40];
+lapi_xlua_tocss_ptr = (lapi_xlua_tocssType)func_array[41];
+lapi_xlua_getglobal_ptr = (lapi_xlua_getglobalType)func_array[42];
+lapi_xlua_setglobal_ptr = (lapi_xlua_setglobalType)func_array[43];
+lapi_lua_isint64_ptr = (lapi_lua_isint64Type)func_array[44];
+lapi_lua_isuint64_ptr = (lapi_lua_isuint64Type)func_array[45];
+lapi_lua_toint64_ptr = (lapi_lua_toint64Type)func_array[46];
+lapi_lua_touint64_ptr = (lapi_lua_touint64Type)func_array[47];
+lapi_load_error_func_ptr = (lapi_load_error_funcType)func_array[48];
+lapi_xlua_get_registry_index_ptr = (lapi_xlua_get_registry_indexType)func_array[49];
+lapi_xlua_rawgeti_ptr = (lapi_xlua_rawgetiType)func_array[50];
+lapi_xlua_rawseti_ptr = (lapi_xlua_rawsetiType)func_array[51];
+lapi_lua_pcall_ptr = (lapi_lua_pcallType)func_array[52];
+lapi_pcall_prepare_ptr = (lapi_pcall_prepareType)func_array[53];
+lapi_luaL_ref_ptr = (lapi_luaL_refType)func_array[54];
+lapi_xlua_tag_ptr = (lapi_xlua_tagType)func_array[55];
+lapi_lua_rawget_ptr = (lapi_lua_rawgetType)func_array[56];
+lapi_lua_rawset_ptr = (lapi_lua_rawsetType)func_array[57];
+lapi_luaL_newmetatable_ptr = (lapi_luaL_newmetatableType)func_array[58];
+lapi_xlua_pushinteger_ptr = (lapi_xlua_pushintegerType)func_array[59];
+lapi_xlua_tointeger_ptr = (lapi_xlua_tointegerType)func_array[60];
+lapi_xlua_pushuint_ptr = (lapi_xlua_pushuintType)func_array[61];
+lapi_xlua_touint_ptr = (lapi_xlua_touintType)func_array[62];
 //end1
 }
 

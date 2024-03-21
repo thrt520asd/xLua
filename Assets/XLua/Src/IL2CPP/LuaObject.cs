@@ -8,6 +8,7 @@ namespace XLua.IL2CPP
     public class LuaObject
     {
         IntPtr L;
+        IntPtr BridgeWrapFunc;
         int reference;
 
         [MethodImpl(MethodImplOptions.InternalCall)]

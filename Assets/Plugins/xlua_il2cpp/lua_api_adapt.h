@@ -34,7 +34,7 @@ typedef struct {
 #define LUA_NUMTYPES		9
 
 #define LUA_NUMBER	double
-#define LUA_INTEGER		long long
+
 
 #ifdef __cplusplus
 #define EXTERN_C_START \
@@ -49,10 +49,6 @@ typedef struct {
 EXTERN_C_START
 /* type of numbers in Lua */
 typedef LUA_NUMBER lua_Number;
-
-
-/* type for integer functions */
-typedef LUA_INTEGER lua_Integer;
 
 
 typedef void (*lapi_func_ptr)(void);
@@ -120,8 +116,6 @@ const char *(lapi_lua_pushstring) (lua_State *L, const char *s);
 const char *(lapi_lua_pushlstring) (lua_State *L, const char *s, size_t len);
 //lua_pushnumber
 void        (lapi_lua_pushnumber) (lua_State *L, lua_Number n);
-//lua_pushinteger
-void        (lapi_lua_pushinteger) (lua_State *L, lua_Integer n);
 //lua_pushnil
 void        (lapi_lua_pushnil) (lua_State *L);
 //lua_pushint64
@@ -178,6 +172,14 @@ int (lapi_lua_rawget) (lua_State *L, int idx);
 void  (lapi_lua_rawset) (lua_State *L, int idx);
 //luaL_newmetatable
 int   (lapi_luaL_newmetatable) (lua_State *L, const char *tname);
+//xlua_pushinteger
+void lapi_xlua_pushinteger (lua_State *L, int n);
+//xlua_tointeger
+int lapi_xlua_tointeger (lua_State *L, int idx);
+//xlua_pushuint
+void lapi_xlua_pushuint (lua_State *L, uint32_t n);
+//xlua_touint
+uint32_t lapi_xlua_touint (lua_State *L, int idx);
 //genEnd
 
 #define lapi_lua_isboolean(L,n)	(lapi_lua_type(L, (n)) == LUA_TBOOLEAN)
@@ -189,8 +191,6 @@ int   (lapi_luaL_newmetatable) (lua_State *L, const char *tname);
 #define lapi_lua_pop(L,n)		lapi_lua_settop(L, -(n)-1);
 
 #define lapi_lua_tostring(L,i)	lapi_lua_tolstring(L, (i), NULL)
-
-#define lapi_xlua_tointeger (int)(lapi_lua_tonumber(L, i))
 
 #define lapi_luaL_getmetatable(L, meta) lapi_lua_pushstring(L, meta); \
 lapi_lua_rawget(L, lapi_xlua_get_registry_index())

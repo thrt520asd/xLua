@@ -79,7 +79,6 @@ namespace Tutorial
 		public void TestFunc(int i)
 		{
 			Debug.Log("TestFunc(int i)");
-            
 		}
 
 		public void TestFunc(string i)
@@ -186,15 +185,15 @@ public class LuaCallCs : MonoBehaviour
 	string script = @"
         function demo()
             --new C#对象
-            --local newGameObj = CS.UnityEngine.GameObject()
-            --local newGameObj2 = CS.UnityEngine.GameObject('helloworld')
-            --print(newGameObj, newGameObj2)
+            local newGameObj = CS.UnityEngine.GameObject()
+            local newGameObj2 = CS.UnityEngine.GameObject('helloworld')
+            print(newGameObj, newGameObj2)
         
             --访问静态属性，方法
-            --local GameObject = CS.UnityEngine.GameObject
-            --print('UnityEngine.Time.deltaTime:', CS.UnityEngine.Time.deltaTime) --读静态属性
-            --CS.UnityEngine.Time.timeScale = 0.5 --写静态属性
-            --print('helloworld', GameObject.Find('helloworld')) --静态方法调用
+            local GameObject = CS.UnityEngine.GameObject
+            print('UnityEngine.Time.deltaTime:', CS.UnityEngine.Time.deltaTime) --读静态属性
+            CS.UnityEngine.Time.timeScale = 0.5 --写静态属性
+            print('helloworld', GameObject.Find('helloworld')) --静态方法调用
 
             --访问成员属性，方法
             local DerivedClass = CS.Tutorial.DerivedClass
@@ -272,15 +271,15 @@ public class LuaCallCs : MonoBehaviour
             print(type(l), l, l + 100, 10000 + l)
 
             --typeof
-            --newGameObj:AddComponent(typeof(CS.UnityEngine.ParticleSystem))
+            newGameObj:AddComponent(typeof(CS.UnityEngine.ParticleSystem))
 
             --cast
-            --local calc = testobj:GetCalc()
-            --print('assess instance of InnerCalc via reflection', calc:add(1, 2))
-            --assert(calc.id == 100)
-            --cast(calc, typeof(CS.Tutorial.ICalc))
-            --print('cast to interface ICalc', calc:add(1, 2))
-            --assert(calc.id == nil)
+            local calc = testobj:GetCalc()
+            print('assess instance of InnerCalc via reflection', calc:add(1, 2))
+            assert(calc.id == 100)
+            cast(calc, typeof(CS.Tutorial.ICalc))
+            print('cast to interface ICalc', calc:add(1, 2))
+            assert(calc.id == nil)
        end
 
        demo()

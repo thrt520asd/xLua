@@ -228,3 +228,6 @@ ref,in的处理方式一样 从lua栈直接取参数 然后把参数push到lua�
 
 lua function to c# create delegate 
 c# function to lua ?
+bridge wrap func 是delegate在C#侧被调用时的lua函数
+C#delegate在lua侧调用的时候还需要一个wrap
+enum的field 是staticField 不需要offset

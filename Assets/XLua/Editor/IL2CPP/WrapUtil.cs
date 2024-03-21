@@ -329,7 +329,7 @@ static int w_{signatureInfo.Signature}(void* method, MethodPointer methodPointer
             }
             else if (signature == "O")
             {
-                return "";
+                ret += $"!CheckIsClass(L, {index} + paramOffset, TIp{typeIndex})) return -1;";
             }
             else if ((signature.StartsWith(TypeUtils.TypeSignatures.StructPrefix) || signature.StartsWith(TypeUtils.TypeSignatures.NullableStructPrefix)) && signature.EndsWith("_"))
             {
@@ -392,7 +392,7 @@ $@"void* u{CSName} = nullptr; //out ref
             {
                 return
 $@"// string s
-    void* {CSName} = LuaStr2CSharpString(L, {index});";
+    void* {CSName} = LuaStr2CSharpString(L, {index}{ (needOffset?"+ paramOffset":"")} );";
             }
             //string ref
             else if (signature == "Ps")
@@ -591,51 +591,32 @@ $@"//LuaValToCSVal unknow type with default
 
             if (PrimitiveSignatureCppTypeMap.ContainsKey(signature))
             {   
-                if (signature == "b")
-                { // bool
-                    return $"lapi_lua_pushboolean(L, ret);";
-                }
-                else if (signature == "u1" || signature == "i1"
-                || signature == "u2" || signature == "i2"
-                || signature == "u4" || signature == "i4"
-                || signature == "u8" || signature == "i8"
-                || signature == "c"
-                )
-                {
-                    return $"lapi_lua_pushinteger(L, (long long)ret);";
-                }
-                else if (signature == "r8" || signature == "r4")
-                {
-                    return $"lapi_lua_pushnumber(L, (double)ret);";
-                }
-                // return "xlua::TryTranslatePrimitiveWithClass(L, ret);";
+                
+                return $"converter::Converter<{PrimitiveSignatureCppTypeMap[signature]}>::toScript(L, ret);";
             }
             else if (signature.StartsWith(TypeUtils.TypeSignatures.NullableStructPrefix) && signature.EndsWith("_"))
             {
-                // return "info.GetReturnValue().Set(CopyNullableValueType(isolate, context, TIret, &ret, ret.hasValue, sizeof(ret)));";
+                return "CopyNullableValueType(L, TIret, &ret, ret.hasValue, sizeof(ret));";
             }
             else if (signature.StartsWith(TypeUtils.TypeSignatures.StructPrefix) && signature.EndsWith("_"))
             {
-                return $"GetCppObjMapper()->TryPushStruct(L, TIret, &ret, sizeof({signature}));";
-                // return "info.GetReturnValue().Set(CopyValueType(isolate, context, TIret, &ret, sizeof(ret)));";
+                return $"CSValueToLuaValue(L, TIret, &ret, sizeof({signature}));";
             }
             else if (signature == "o")
-            { // classes except System.Object
-                return "GetCppObjMapper()->TryPushObject(L, ret);";
+            {
+                return "CSAnyToLuaValue(L, ret);";
             }
             else if (signature == "a")
             { // ArrayBuffer
-                return "GetCppObjMapper()->TryPushObject(L, ret);";
+                return "// error no implement";
             }
             else if (signature == "O")
             { // System.Object
-                return "GetCppObjMapper()->TryPushObject(L, ret);";
+                return "CSAnyToLuaValue(L, ret);";
             }
             else if (signature == "s")
             { // string
-                return $@"  const Il2CppChar* utf16Ret = il2cpp::utils::StringUtils::GetChars((Il2CppString*)ret);
-    std::string retStr = il2cpp::utils::StringUtils::Utf16ToUtf8(utf16Ret);
-    lapi_lua_pushstring(L, retStr.c_str());";
+                return "CSAnyToLuaValue(L, ret);";
             }
             else if (signature == "p" || signature == "Pv")
             { // IntPtr, void*
@@ -661,7 +642,24 @@ $@"{LuaValToCSVal(signature, "ret", -1)}
             
             var hasVarArgs = bridgeInfo.ParameterSignatures.Count > 0 && bridgeInfo.ParameterSignatures[bridgeInfo.ParameterSignatures.Count - 1][0] == 'V';
             return 
-$@"static {SToCPPType(bridgeInfo.ReturnSignature)} b_{bridgeInfo.Signature}(void* target, {
+$@"static int bw_{bridgeInfo.Signature}(lua_State* L, Il2CppDelegate* ildelegate,const MethodInfo* method) {{
+    {(bridgeInfo.ReturnSignature.NotNullOrEmpty() && !bridgeInfo.ReturnSignature.IsPrimitiveSignature() ? "auto TIret = GetReturnType(method);":"")}
+    {string.Join("\n", bridgeInfo.ParameterSignatures.Select((s,i)=>$"{(!s.IsPrimitiveSignature()? $"auto TIp{i} = GetParameterType(method, {i});":"")}"))}
+    
+    {String.Join("\n\t", bridgeInfo.ParameterSignatures.Select((s, index) => WrapUtil.LuaValToCSVal(s, "p" + index,  RealParameterIndex(bridgeInfo.ParameterSignatures, index) + 2 , false)))}
+    typedef {WrapUtil.SToCPPType(bridgeInfo.ReturnSignature)} (*FuncToCall)(void* target, {String.Join("", bridgeInfo.ParameterSignatures.Select((s, i) => $"{WrapUtil.SToCPPType(s)} p{i}, "))}const void* method);
+    
+    {$@"void* params[{bridgeInfo.ParameterSignatures.Count}];
+    {string.Join("\n\t", bridgeInfo.ParameterSignatures.Select((s, index)=> $"params[{index}] = (void*)p{index};"))}"}
+    
+    {(bridgeInfo.ReturnSignature != "v" ? $"{WrapUtil.SToCPPType(bridgeInfo.ReturnSignature)} ret = " : "")}il2cpp::vm::Runtime::DelegateInvoke(ildelegate, params, nullptr);
+
+    {(bridgeInfo.ReturnSignature != "v" ? WrapUtil.ReturnToLua(bridgeInfo.ReturnSignature) : "")}
+
+    {String.Join("", bridgeInfo.ParameterSignatures.Select((s, i) => WrapUtil.refSetback(s, i, bridgeInfo)))}
+    return {GetFuncRetCnt(bridgeInfo)};
+}}
+static void b_{bridgeInfo.Signature}(void* target, {
     string.Join("",bridgeInfo.ParameterSignatures.Select((s,i)=>$"{SToCPPType(s)} p{i},"))
 }MethodInfo* method) {{
     {(bridgeInfo.ReturnSignature.NotNullOrEmpty() && !bridgeInfo.ReturnSignature.IsPrimitiveSignature() ? "auto TIret = GetReturnType(method);":"")}

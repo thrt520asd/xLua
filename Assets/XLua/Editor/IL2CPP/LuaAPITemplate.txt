@@ -29,7 +29,7 @@ LUA_API void  (lua_pushboolean) (lua_State *L, int b);
 LUA_API const char *(lua_pushstring) (lua_State *L, const char *s);
 LUA_API const char *(lua_pushlstring) (lua_State *L, const char *s, size_t len);
 LUA_API void        (lua_pushnumber) (lua_State *L, lua_Number n);
-LUA_API void        (lua_pushinteger) (lua_State *L, lua_Integer n);
+
 LUA_API void        (lua_pushnil) (lua_State *L);
 LUALIB_API void lua_pushint64(lua_State* L, int64_t n);
 LUALIB_API void lua_pushuint64(lua_State* L, uint64_t n);
@@ -58,3 +58,7 @@ LUA_API void *xlua_tag ()
 LUA_API int (lua_rawget) (lua_State *L, int idx);
 LUA_API void  (lua_rawset) (lua_State *L, int idx);
 LUALIB_API int   (luaL_newmetatable) (lua_State *L, const char *tname);
+LUA_API void xlua_pushinteger (lua_State *L, int n);
+LUA_API int xlua_tointeger (lua_State *L, int idx);
+LUA_API void xlua_pushuint (lua_State *L, uint32_t n);
+LUA_API uint32_t xlua_touint (lua_State *L, int idx);

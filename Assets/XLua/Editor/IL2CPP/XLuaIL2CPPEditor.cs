@@ -56,6 +56,7 @@ namespace XLua.IL2CPP.Editor{
                     var methods = type.GetMethods(flag);
                     var properties = type.GetProperties(flag);
                     var fields = type.GetFields(flag);
+                    var extensionMethods = Utils.GetExtensionMethodsOf(type);
                     if(ctors != null){
                         Debug.Log("======================ctor======================");
                         foreach (var item in ctors)
@@ -90,6 +91,14 @@ namespace XLua.IL2CPP.Editor{
                         {   
                             string signature = (field.IsStatic ? "" : "t") + TypeUtils.GetTypeSignature(field.FieldType);
                             Debug.Log(signature+"|"+ field.Name + "|" + field.IsStatic);
+                        }
+                    }
+
+                    if(extensionMethods != null){
+                        Debug.Log("======================extensionMethods======================");
+                        foreach (var item in extensionMethods)
+                        {   
+                            Debug.Log(item+"|"+ item.Name+ "|"+TypeUtils.GetMethodSignature(item, false, false)+"|"+item.IsStatic);
                         }
                     }
                 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using XLua.IL2CPP.Editor.Generator;
@@ -21,18 +22,20 @@ public static class LuaAPIAdaptGenerator{
     const string GenEndSignature = "//genEnd";
     public static void Gen(){
         var lines = File.ReadAllLines(templateFilePath);
+        List<string> lineList = lines.Where((s)=>s.NotNullOrEmpty() && !s.StartsWith("//")).ToList();
+        
         // ClearOldContent();
         ReplaceGenerate(XLuaC, 
 $@"static lapi_func_ptr funcs[] = {{
-{string.Join("\n", lines.Select((s,i)=>$"(lapi_func_ptr) &{GetAPIName(s)},//{i}"))}
+{string.Join("\n", lineList.Select((s,i)=>$"(lapi_func_ptr) &{GetAPIName(s)},//{i}"))}
 }};"
 );
         ReplaceGenerate(Header, 
-$"{string.Join("\n",lines.Select(s=>$@"//{s.GetAPIName()}{"\n"}{s.GetHeader()}"))}");
+$"{string.Join("\n",lineList.Select(s=>$@"//{s.GetAPIName()}{"\n"}{s.GetHeader()}"))}");
 
-        ReplaceGenerate(Body, $@"{string.Join("\n", lines.Select(s=>GetDeclare(s)))}");
+        ReplaceGenerate(Body, $@"{string.Join("\n", lineList.Select(s=>GetDeclare(s)))}");
 
-        ReplaceGenerate(Body, $@"{string.Join("\n", lines.Select((s, i)=>
+        ReplaceGenerate(Body, $@"{string.Join("\n", lineList.Select((s, i)=>
 $@"{s.GetAPINameWithLAPI()}_ptr = ({s.GetAPINameWithLAPI()}Type)func_array[{i}];"))}", 
 "//gen1", "//end1");
     }

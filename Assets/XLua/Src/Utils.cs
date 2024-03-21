@@ -11,6 +11,8 @@ using System;
 using System.Reflection;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Diagnostics;
+
 
 #if USE_UNI_LUA
 using LuaAPI = UniLua.Lua;
@@ -326,7 +328,7 @@ namespace XLua
 				}
 			};
 		}
-
+        //todo 更好的reflection方案
 		public static IEnumerable<MethodInfo> GetExtensionMethodsOf(Type type_to_be_extend)
 		{
 			if (InternalGlobals.extensionMethodMap == null)
@@ -340,9 +342,9 @@ namespace XLua
 					Type type = enumerator.Current;
 					if (type.IsDefined(typeof(ExtensionAttribute), false) && (
 							type.IsDefined(typeof(ReflectionUseAttribute), false)
-#if UNITY_EDITOR || XLUA_GENERAL
+// #if UNITY_EDITOR || XLUA_GENERAL
 							|| type.IsDefined(typeof(LuaCallCSharpAttribute), false)
-#endif
+// #endif
 						))
 					{
 						type_def_extention_method.Add(type);
@@ -355,9 +357,9 @@ namespace XLua
 					{
 						var field = fields[i];
 						if ((field.IsDefined(typeof(ReflectionUseAttribute), false)
-#if UNITY_EDITOR || XLUA_GENERAL
+// #if UNITY_EDITOR || XLUA_GENERAL
 							|| field.IsDefined(typeof(LuaCallCSharpAttribute), false)
-#endif
+// #endif
 							) && (typeof(IEnumerable<Type>)).IsAssignableFrom(field.FieldType))
 						{
 							type_def_extention_method.AddRange((field.GetValue(null) as IEnumerable<Type>)
@@ -370,9 +372,9 @@ namespace XLua
 					{
 						var prop = props[i];
 						if ((prop.IsDefined(typeof(ReflectionUseAttribute), false)
-#if UNITY_EDITOR || XLUA_GENERAL
+// #if UNITY_EDITOR || XLUA_GENERAL
 							|| prop.IsDefined(typeof(LuaCallCSharpAttribute), false)
-#endif
+// #endif
 							) && (typeof(IEnumerable<Type>)).IsAssignableFrom(prop.PropertyType))
 						{
 							type_def_extention_method.AddRange((prop.GetValue(null, null) as IEnumerable<Type>)
@@ -380,8 +382,9 @@ namespace XLua
 						}
 					}
 				}
-				enumerator.Dispose();
 
+				enumerator.Dispose();
+                
 				InternalGlobals.extensionMethodMap = (from type in type_def_extention_method
 													  from method in type.GetMethods(BindingFlags.Static | BindingFlags.Public)
 													  where method.IsDefined(typeof(ExtensionAttribute), false) && IsSupportedMethod(method)

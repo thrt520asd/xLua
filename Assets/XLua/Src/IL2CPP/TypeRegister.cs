@@ -35,6 +35,25 @@ namespace XLua.IL2CPP
             return null;
         }
 
+        /// call from native
+        public static object GetCacheDelegate(RealStatePtr L, int referenced){
+            var translator = ObjectTranslatorPool.Instance.Find(L);
+            if (translator != null)
+            {
+                return translator.GetCacheDelegate(L, referenced);
+            }
+            return null;
+        }
+
+        /// call from native
+        public static void CacheDelegate(RealStatePtr L, int referenced, object cppDelegate){
+            var translator = ObjectTranslatorPool.Instance.Find(L);
+            if (translator != null)
+            {
+                translator.CacheDelegate(L, referenced, cppDelegate);
+            }
+        }
+
         /// <summary>
         /// call from native
         /// </summary>
@@ -85,11 +104,18 @@ namespace XLua.IL2CPP
                 
                 NativeAPI.SetXLuaRef(new int[]{translator.cacheRef, translator.luaEnv.errorFuncRef});
                 var StaticGetTypeIdMethod = typeof(TypeRegister).GetMethod("StaticGetTypeId", BindingFlags.Static | BindingFlags.Public);
+
                 var AddObjMethod = typeof(TypeRegister).GetMethod("AddObj", BindingFlags.Static | BindingFlags.Public);
                 var RemoveObjMethod = typeof(TypeRegister).GetMethod("RemoveObj", BindingFlags.Static | BindingFlags.Public);
-                
-                NativeAPI.SetCSharpAPI(new MethodBase[]{StaticGetTypeIdMethod, AddObjMethod, RemoveObjMethod});
 
+                var CombineDelegateMethod = typeof(Delegate).GetMethod("Combine",new Type[] {typeof(Delegate), typeof(Delegate)});
+                var RemoveDelegateMethod = typeof(Delegate).GetMethod("Remove", BindingFlags.Static | BindingFlags.Public);
+
+                var GetCacheDelegateMethod = typeof(TypeRegister).GetMethod("GetCacheDelegate", BindingFlags.Static | BindingFlags.Public);
+                var CacheDelegateMethod = typeof(TypeRegister).GetMethod("CacheDelegate", BindingFlags.Static | BindingFlags.Public);
+
+                NativeAPI.SetCSharpAPI(new MethodBase[]{StaticGetTypeIdMethod, AddObjMethod, RemoveObjMethod, CombineDelegateMethod, RemoveDelegateMethod, GetCacheDelegateMethod, CacheDelegateMethod});
+                
                 NativeAPI.SetGlobalType_LuaObject(typeof(LuaObject));
             }
             BindingFlags flag = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public;

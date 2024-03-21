@@ -12,6 +12,7 @@ typedef void* (*ObjectAllocateFunc)(Il2CppClass *klass);
 typedef void (*ValueTypeDeallocateFunc)(void* ptr);
 struct PersistentObjectInfo {
     lua_State* L;
+    Il2CppClass* klass;
     int reference;
 };
 typedef void* (*DelegateAllocateFunc)(Il2CppClass* klass, MethodPointer methodPointer, PersistentObjectInfo** outDelegateInfo);
@@ -82,6 +83,8 @@ typedef void (*ThrowInvalidOperationExceptionFunc)(const char* msg);
 
 // typedef void (*SetRuntimeObjectToPersistentObjectFunc)(pesapi_env env, pesapi_value pvalue, void* runtimeObject);
 
+typedef int(*DelegateWrapFunc)(lua_State* L, Il2CppDelegate* ilDelegate, const MethodInfo* method);
+
 struct WrapData 
 {
     WrapFuncPtr Wrap;
@@ -101,6 +104,7 @@ struct LuaClassInfoHeader
     Il2CppClass* Class;
     bool IsValueType;
     MethodPointer DelegateBridge;
+    DelegateWrapFunc DelegateWrapBridge;
     WrapData** CtorWrapDatas;
 };
 

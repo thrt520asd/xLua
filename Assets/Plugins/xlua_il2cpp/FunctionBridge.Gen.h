@@ -63,7 +63,7 @@ static int w_OoO(void* method, MethodPointer methodPointer, lua_State *L, bool c
     if(checkLuaArgument){
         if (length != paramOffset + 1) return -1;
         if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return -1;
-		
+		if (!CheckIsClass(L, 1 + paramOffset, TIp1)) return -1;
     }
     
     // object
@@ -74,7 +74,7 @@ static int w_OoO(void* method, MethodPointer methodPointer, lua_State *L, bool c
     typedef void* (*FuncToCall)(void* p0, void* p1, const void* method);
     void* ret = ((FuncToCall)methodPointer)( p0, p1, method);
 
-    GetCppObjMapper()->TryPushObject(L, ret);
+    CSAnyToLuaValue(L, ret);
 
     
     return 1;
@@ -99,7 +99,7 @@ static int w_Ooi1(void* method, MethodPointer methodPointer, lua_State *L, bool 
     typedef void* (*FuncToCall)(void* p0, int8_t p1, const void* method);
     void* ret = ((FuncToCall)methodPointer)( p0, p1, method);
 
-    GetCppObjMapper()->TryPushObject(L, ret);
+    CSAnyToLuaValue(L, ret);
 
     
     return 1;
@@ -124,7 +124,7 @@ static int w_Ooi2(void* method, MethodPointer methodPointer, lua_State *L, bool 
     typedef void* (*FuncToCall)(void* p0, int16_t p1, const void* method);
     void* ret = ((FuncToCall)methodPointer)( p0, p1, method);
 
-    GetCppObjMapper()->TryPushObject(L, ret);
+    CSAnyToLuaValue(L, ret);
 
     
     return 1;
@@ -149,7 +149,7 @@ static int w_Ooi4(void* method, MethodPointer methodPointer, lua_State *L, bool 
     typedef void* (*FuncToCall)(void* p0, int32_t p1, const void* method);
     void* ret = ((FuncToCall)methodPointer)( p0, p1, method);
 
-    GetCppObjMapper()->TryPushObject(L, ret);
+    CSAnyToLuaValue(L, ret);
 
     
     return 1;
@@ -174,7 +174,7 @@ static int w_Ooi8(void* method, MethodPointer methodPointer, lua_State *L, bool 
     typedef void* (*FuncToCall)(void* p0, int64_t p1, const void* method);
     void* ret = ((FuncToCall)methodPointer)( p0, p1, method);
 
-    GetCppObjMapper()->TryPushObject(L, ret);
+    CSAnyToLuaValue(L, ret);
 
     
     return 1;
@@ -195,12 +195,12 @@ static int w_Oos(void* method, MethodPointer methodPointer, lua_State *L, bool c
     // object
     void* p0 = (void*)xlua::LuaValueToCSRef((Il2CppClass*)TIp0, L, 0+ paramOffset);
 	// string s
-    void* p1 = LuaStr2CSharpString(L, 1);
+    void* p1 = LuaStr2CSharpString(L, 1+ paramOffset );
     
     typedef void* (*FuncToCall)(void* p0, void* p1, const void* method);
     void* ret = ((FuncToCall)methodPointer)( p0, p1, method);
 
-    GetCppObjMapper()->TryPushObject(L, ret);
+    CSAnyToLuaValue(L, ret);
 
     
     return 1;
@@ -222,14 +222,14 @@ static int w_Oosb(void* method, MethodPointer methodPointer, lua_State *L, bool 
     // object
     void* p0 = (void*)xlua::LuaValueToCSRef((Il2CppClass*)TIp0, L, 0+ paramOffset);
 	// string s
-    void* p1 = LuaStr2CSharpString(L, 1);
+    void* p1 = LuaStr2CSharpString(L, 1+ paramOffset );
 	//signature b
     bool p2 = converter::Converter<bool>::toCpp(L, 2+ paramOffset);
     
     typedef void* (*FuncToCall)(void* p0, void* p1, bool p2, const void* method);
     void* ret = ((FuncToCall)methodPointer)( p0, p1, p2, method);
 
-    GetCppObjMapper()->TryPushObject(L, ret);
+    CSAnyToLuaValue(L, ret);
 
     
     return 1;
@@ -254,7 +254,7 @@ static int w_Oou1(void* method, MethodPointer methodPointer, lua_State *L, bool 
     typedef void* (*FuncToCall)(void* p0, uint8_t p1, const void* method);
     void* ret = ((FuncToCall)methodPointer)( p0, p1, method);
 
-    GetCppObjMapper()->TryPushObject(L, ret);
+    CSAnyToLuaValue(L, ret);
 
     
     return 1;
@@ -279,7 +279,7 @@ static int w_Oou2(void* method, MethodPointer methodPointer, lua_State *L, bool 
     typedef void* (*FuncToCall)(void* p0, uint16_t p1, const void* method);
     void* ret = ((FuncToCall)methodPointer)( p0, p1, method);
 
-    GetCppObjMapper()->TryPushObject(L, ret);
+    CSAnyToLuaValue(L, ret);
 
     
     return 1;
@@ -304,7 +304,7 @@ static int w_Oou4(void* method, MethodPointer methodPointer, lua_State *L, bool 
     typedef void* (*FuncToCall)(void* p0, uint32_t p1, const void* method);
     void* ret = ((FuncToCall)methodPointer)( p0, p1, method);
 
-    GetCppObjMapper()->TryPushObject(L, ret);
+    CSAnyToLuaValue(L, ret);
 
     
     return 1;
@@ -329,7 +329,7 @@ static int w_Oou8(void* method, MethodPointer methodPointer, lua_State *L, bool 
     typedef void* (*FuncToCall)(void* p0, uint64_t p1, const void* method);
     void* ret = ((FuncToCall)methodPointer)( p0, p1, method);
 
-    GetCppObjMapper()->TryPushObject(L, ret);
+    CSAnyToLuaValue(L, ret);
 
     
     return 1;
@@ -349,7 +349,7 @@ static int w_S_i4i4_(void* method, MethodPointer methodPointer, lua_State *L, bo
     typedef struct S_i4i4_ (*FuncToCall)(const void* method);
     struct S_i4i4_ ret = ((FuncToCall)methodPointer)( method);
 
-    GetCppObjMapper()->TryPushStruct(L, TIret, &ret, sizeof(S_i4i4_));
+    CSValueToLuaValue(L, TIret, &ret, sizeof(S_i4i4_));
 
     
     return 1;
@@ -369,7 +369,7 @@ static int w_S_r4r4r4_(void* method, MethodPointer methodPointer, lua_State *L, 
     typedef struct S_r4r4r4_ (*FuncToCall)(const void* method);
     struct S_r4r4r4_ ret = ((FuncToCall)methodPointer)( method);
 
-    GetCppObjMapper()->TryPushStruct(L, TIret, &ret, sizeof(S_r4r4r4_));
+    CSValueToLuaValue(L, TIret, &ret, sizeof(S_r4r4r4_));
 
     
     return 1;
@@ -392,7 +392,7 @@ static int w_S_r4r4r4_S_r4r4r4_(void* method, MethodPointer methodPointer, lua_S
     typedef struct S_r4r4r4_ (*FuncToCall)(struct S_r4r4r4_ p0, const void* method);
     struct S_r4r4r4_ ret = ((FuncToCall)methodPointer)( p0, method);
 
-    GetCppObjMapper()->TryPushStruct(L, TIret, &ret, sizeof(S_r4r4r4_));
+    CSValueToLuaValue(L, TIret, &ret, sizeof(S_r4r4r4_));
 
     
     return 1;
@@ -420,7 +420,7 @@ static int w_S_r4r4r4_S_r4r4r4_S_r4r4r4_(void* method, MethodPointer methodPoint
     typedef struct S_r4r4r4_ (*FuncToCall)(struct S_r4r4r4_ p0, struct S_r4r4r4_ p1, const void* method);
     struct S_r4r4r4_ ret = ((FuncToCall)methodPointer)( p0, p1, method);
 
-    GetCppObjMapper()->TryPushStruct(L, TIret, &ret, sizeof(S_r4r4r4_));
+    CSValueToLuaValue(L, TIret, &ret, sizeof(S_r4r4r4_));
 
     
     return 1;
@@ -461,7 +461,7 @@ static int w_S_r4r4r4_S_r4r4r4_S_r4r4r4_PS_r4r4r4_r4(void* method, MethodPointer
     typedef struct S_r4r4r4_ (*FuncToCall)(struct S_r4r4r4_ p0, struct S_r4r4r4_ p1, struct S_r4r4r4_* p2, float p3, const void* method);
     struct S_r4r4r4_ ret = ((FuncToCall)methodPointer)( p0, p1, p2, p3, method);
 
-    GetCppObjMapper()->TryPushStruct(L, TIret, &ret, sizeof(S_r4r4r4_));
+    CSValueToLuaValue(L, TIret, &ret, sizeof(S_r4r4r4_));
 
     CSValueToLuaValue(L, TIp2, p2, sizeof(S_r4r4r4_));//refsetback S_r4r4r4_
 	
@@ -506,7 +506,7 @@ static int w_S_r4r4r4_S_r4r4r4_S_r4r4r4_PS_r4r4r4_r4r4(void* method, MethodPoint
     typedef struct S_r4r4r4_ (*FuncToCall)(struct S_r4r4r4_ p0, struct S_r4r4r4_ p1, struct S_r4r4r4_* p2, float p3, float p4, const void* method);
     struct S_r4r4r4_ ret = ((FuncToCall)methodPointer)( p0, p1, p2, p3, p4, method);
 
-    GetCppObjMapper()->TryPushStruct(L, TIret, &ret, sizeof(S_r4r4r4_));
+    CSValueToLuaValue(L, TIret, &ret, sizeof(S_r4r4r4_));
 
     CSValueToLuaValue(L, TIp2, p2, sizeof(S_r4r4r4_));//refsetback S_r4r4r4_
 	
@@ -554,7 +554,7 @@ static int w_S_r4r4r4_S_r4r4r4_S_r4r4r4_PS_r4r4r4_r4r4r4(void* method, MethodPoi
     typedef struct S_r4r4r4_ (*FuncToCall)(struct S_r4r4r4_ p0, struct S_r4r4r4_ p1, struct S_r4r4r4_* p2, float p3, float p4, float p5, const void* method);
     struct S_r4r4r4_ ret = ((FuncToCall)methodPointer)( p0, p1, p2, p3, p4, p5, method);
 
-    GetCppObjMapper()->TryPushStruct(L, TIret, &ret, sizeof(S_r4r4r4_));
+    CSValueToLuaValue(L, TIret, &ret, sizeof(S_r4r4r4_));
 
     CSValueToLuaValue(L, TIp2, p2, sizeof(S_r4r4r4_));//refsetback S_r4r4r4_
 	
@@ -586,7 +586,7 @@ static int w_S_r4r4r4_S_r4r4r4_S_r4r4r4_r4(void* method, MethodPointer methodPoi
     typedef struct S_r4r4r4_ (*FuncToCall)(struct S_r4r4r4_ p0, struct S_r4r4r4_ p1, float p2, const void* method);
     struct S_r4r4r4_ ret = ((FuncToCall)methodPointer)( p0, p1, p2, method);
 
-    GetCppObjMapper()->TryPushStruct(L, TIret, &ret, sizeof(S_r4r4r4_));
+    CSValueToLuaValue(L, TIret, &ret, sizeof(S_r4r4r4_));
 
     
     return 1;
@@ -620,7 +620,7 @@ static int w_S_r4r4r4_S_r4r4r4_S_r4r4r4_r4r4(void* method, MethodPointer methodP
     typedef struct S_r4r4r4_ (*FuncToCall)(struct S_r4r4r4_ p0, struct S_r4r4r4_ p1, float p2, float p3, const void* method);
     struct S_r4r4r4_ ret = ((FuncToCall)methodPointer)( p0, p1, p2, p3, method);
 
-    GetCppObjMapper()->TryPushStruct(L, TIret, &ret, sizeof(S_r4r4r4_));
+    CSValueToLuaValue(L, TIret, &ret, sizeof(S_r4r4r4_));
 
     
     return 1;
@@ -646,7 +646,7 @@ static int w_S_r4r4r4_S_r4r4r4_r4(void* method, MethodPointer methodPointer, lua
     typedef struct S_r4r4r4_ (*FuncToCall)(struct S_r4r4r4_ p0, float p1, const void* method);
     struct S_r4r4r4_ ret = ((FuncToCall)methodPointer)( p0, p1, method);
 
-    GetCppObjMapper()->TryPushStruct(L, TIret, &ret, sizeof(S_r4r4r4_));
+    CSValueToLuaValue(L, TIret, &ret, sizeof(S_r4r4r4_));
 
     
     return 1;
@@ -672,7 +672,7 @@ static int w_S_r4r4r4_r4S_r4r4r4_(void* method, MethodPointer methodPointer, lua
     typedef struct S_r4r4r4_ (*FuncToCall)(float p0, struct S_r4r4r4_ p1, const void* method);
     struct S_r4r4r4_ ret = ((FuncToCall)methodPointer)( p0, p1, method);
 
-    GetCppObjMapper()->TryPushStruct(L, TIret, &ret, sizeof(S_r4r4r4_));
+    CSValueToLuaValue(L, TIret, &ret, sizeof(S_r4r4r4_));
 
     
     return 1;
@@ -692,7 +692,7 @@ static int w_S_r4r4r4_t(void* method, MethodPointer methodPointer, lua_State *L,
     typedef struct S_r4r4r4_ (*FuncToCall)(void*, const void* method);
     struct S_r4r4r4_ ret = ((FuncToCall)methodPointer)(self,  method);
 
-    GetCppObjMapper()->TryPushStruct(L, TIret, &ret, sizeof(S_r4r4r4_));
+    CSValueToLuaValue(L, TIret, &ret, sizeof(S_r4r4r4_));
 
     
     return 1;
@@ -719,7 +719,7 @@ static int w_bS_r4r4r4_S_r4r4r4_(void* method, MethodPointer methodPointer, lua_
     typedef bool (*FuncToCall)(struct S_r4r4r4_ p0, struct S_r4r4r4_ p1, const void* method);
     bool ret = ((FuncToCall)methodPointer)( p0, p1, method);
 
-    lapi_lua_pushboolean(L, ret);
+    converter::Converter<bool>::toScript(L, ret);
 
     
     return 1;
@@ -733,7 +733,7 @@ static int w_boO(void* method, MethodPointer methodPointer, lua_State *L, bool c
     if(checkLuaArgument){
         if (length != paramOffset + 1) return -1;
         if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return -1;
-		
+		if (!CheckIsClass(L, 1 + paramOffset, TIp1)) return -1;
     }
     
     // object
@@ -744,7 +744,7 @@ static int w_boO(void* method, MethodPointer methodPointer, lua_State *L, bool c
     typedef bool (*FuncToCall)(void* p0, void* p1, const void* method);
     bool ret = ((FuncToCall)methodPointer)( p0, p1, method);
 
-    lapi_lua_pushboolean(L, ret);
+    converter::Converter<bool>::toScript(L, ret);
 
     
     return 1;
@@ -756,7 +756,7 @@ static int w_btO(void* method, MethodPointer methodPointer, lua_State *L, bool c
     auto length = lapi_lua_gettop(L);
     if(checkLuaArgument){
         if (length != paramOffset + 0) return -1;
-        
+        if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return -1;
     }
     auto self = GetCppObjMapper()->ToCppObj(L, 1);
     // object
@@ -765,7 +765,7 @@ static int w_btO(void* method, MethodPointer methodPointer, lua_State *L, bool c
     typedef bool (*FuncToCall)(void*, void* p0, const void* method);
     bool ret = ((FuncToCall)methodPointer)(self,  p0, method);
 
-    lapi_lua_pushboolean(L, ret);
+    converter::Converter<bool>::toScript(L, ret);
 
     
     return 1;
@@ -787,7 +787,7 @@ static int w_btS_r4r4r4_(void* method, MethodPointer methodPointer, lua_State *L
     typedef bool (*FuncToCall)(void*, struct S_r4r4r4_ p0, const void* method);
     bool ret = ((FuncToCall)methodPointer)(self,  p0, method);
 
-    lapi_lua_pushboolean(L, ret);
+    converter::Converter<bool>::toScript(L, ret);
 
     
     return 1;
@@ -808,7 +808,7 @@ static int w_bto(void* method, MethodPointer methodPointer, lua_State *L, bool c
     typedef bool (*FuncToCall)(void*, void* p0, const void* method);
     bool ret = ((FuncToCall)methodPointer)(self,  p0, method);
 
-    lapi_lua_pushboolean(L, ret);
+    converter::Converter<bool>::toScript(L, ret);
 
     
     return 1;
@@ -828,7 +828,7 @@ static int w_i4(void* method, MethodPointer methodPointer, lua_State *L, bool ch
     typedef int32_t (*FuncToCall)(const void* method);
     int32_t ret = ((FuncToCall)methodPointer)( method);
 
-    lapi_lua_pushinteger(L, (long long)ret);
+    converter::Converter<int32_t>::toScript(L, ret);
 
     
     return 1;
@@ -848,7 +848,7 @@ static int w_i4t(void* method, MethodPointer methodPointer, lua_State *L, bool c
     typedef int32_t (*FuncToCall)(void*, const void* method);
     int32_t ret = ((FuncToCall)methodPointer)(self,  method);
 
-    lapi_lua_pushinteger(L, (long long)ret);
+    converter::Converter<int32_t>::toScript(L, ret);
 
     
     return 1;
@@ -860,7 +860,7 @@ static int w_i4tO(void* method, MethodPointer methodPointer, lua_State *L, bool 
     auto length = lapi_lua_gettop(L);
     if(checkLuaArgument){
         if (length != paramOffset + 0) return -1;
-        
+        if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return -1;
     }
     auto self = GetCppObjMapper()->ToCppObj(L, 1);
     // object
@@ -869,7 +869,7 @@ static int w_i4tO(void* method, MethodPointer methodPointer, lua_State *L, bool 
     typedef int32_t (*FuncToCall)(void*, void* p0, const void* method);
     int32_t ret = ((FuncToCall)methodPointer)(self,  p0, method);
 
-    lapi_lua_pushinteger(L, (long long)ret);
+    converter::Converter<int32_t>::toScript(L, ret);
 
     
     return 1;
@@ -890,7 +890,7 @@ static int w_i4ti4(void* method, MethodPointer methodPointer, lua_State *L, bool
     typedef int32_t (*FuncToCall)(void*, int32_t p0, const void* method);
     int32_t ret = ((FuncToCall)methodPointer)(self,  p0, method);
 
-    lapi_lua_pushinteger(L, (long long)ret);
+    converter::Converter<int32_t>::toScript(L, ret);
 
     
     return 1;
@@ -912,7 +912,7 @@ static int w_oo(void* method, MethodPointer methodPointer, lua_State *L, bool ch
     typedef void* (*FuncToCall)(void* p0, const void* method);
     void* ret = ((FuncToCall)methodPointer)( p0, method);
 
-    GetCppObjMapper()->TryPushObject(L, ret);
+    CSAnyToLuaValue(L, ret);
 
     
     return 1;
@@ -938,7 +938,7 @@ static int w_ooo(void* method, MethodPointer methodPointer, lua_State *L, bool c
     typedef void* (*FuncToCall)(void* p0, void* p1, const void* method);
     void* ret = ((FuncToCall)methodPointer)( p0, p1, method);
 
-    GetCppObjMapper()->TryPushObject(L, ret);
+    CSAnyToLuaValue(L, ret);
 
     
     return 1;
@@ -958,7 +958,7 @@ static int w_ot(void* method, MethodPointer methodPointer, lua_State *L, bool ch
     typedef void* (*FuncToCall)(void*, const void* method);
     void* ret = ((FuncToCall)methodPointer)(self,  method);
 
-    GetCppObjMapper()->TryPushObject(L, ret);
+    CSAnyToLuaValue(L, ret);
 
     
     return 1;
@@ -980,7 +980,7 @@ static int w_r4S_r4r4r4_(void* method, MethodPointer methodPointer, lua_State *L
     typedef float (*FuncToCall)(struct S_r4r4r4_ p0, const void* method);
     float ret = ((FuncToCall)methodPointer)( p0, method);
 
-    lapi_lua_pushnumber(L, (double)ret);
+    converter::Converter<float>::toScript(L, ret);
 
     
     return 1;
@@ -1007,7 +1007,7 @@ static int w_r4S_r4r4r4_S_r4r4r4_(void* method, MethodPointer methodPointer, lua
     typedef float (*FuncToCall)(struct S_r4r4r4_ p0, struct S_r4r4r4_ p1, const void* method);
     float ret = ((FuncToCall)methodPointer)( p0, p1, method);
 
-    lapi_lua_pushnumber(L, (double)ret);
+    converter::Converter<float>::toScript(L, ret);
 
     
     return 1;
@@ -1039,7 +1039,7 @@ static int w_r4S_r4r4r4_S_r4r4r4_S_r4r4r4_(void* method, MethodPointer methodPoi
     typedef float (*FuncToCall)(struct S_r4r4r4_ p0, struct S_r4r4r4_ p1, struct S_r4r4r4_ p2, const void* method);
     float ret = ((FuncToCall)methodPointer)( p0, p1, p2, method);
 
-    lapi_lua_pushnumber(L, (double)ret);
+    converter::Converter<float>::toScript(L, ret);
 
     
     return 1;
@@ -1059,7 +1059,7 @@ static int w_r4t(void* method, MethodPointer methodPointer, lua_State *L, bool c
     typedef float (*FuncToCall)(void*, const void* method);
     float ret = ((FuncToCall)methodPointer)(self,  method);
 
-    lapi_lua_pushnumber(L, (double)ret);
+    converter::Converter<float>::toScript(L, ret);
 
     
     return 1;
@@ -1080,7 +1080,7 @@ static int w_r4ti4(void* method, MethodPointer methodPointer, lua_State *L, bool
     typedef float (*FuncToCall)(void*, int32_t p0, const void* method);
     float ret = ((FuncToCall)methodPointer)(self,  p0, method);
 
-    lapi_lua_pushnumber(L, (double)ret);
+    converter::Converter<float>::toScript(L, ret);
 
     
     return 1;
@@ -1118,7 +1118,7 @@ static int w_r8tS_i4s_Pi4UPsoUPo(void* method, MethodPointer methodPointer, lua_
     typedef double (*FuncToCall)(void*, struct S_i4s_ p0, int32_t* p1, void** p2, void* p3, void** p4, const void* method);
     double ret = ((FuncToCall)methodPointer)(self,  p0, p1, p2, p3, p4, method);
 
-    lapi_lua_pushnumber(L, (double)ret);
+    converter::Converter<double>::toScript(L, ret);
 
     converter::Converter<int32_t>::toScript(L, *p1);//refsetback i4
 	CSAnyToLuaValue(L, *p2, TIp2);//refsetback s
@@ -1136,7 +1136,7 @@ static int w_soO(void* method, MethodPointer methodPointer, lua_State *L, bool c
     if(checkLuaArgument){
         if (length != paramOffset + 1) return -1;
         if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return -1;
-		
+		if (!CheckIsClass(L, 1 + paramOffset, TIp1)) return -1;
     }
     
     // object
@@ -1147,9 +1147,7 @@ static int w_soO(void* method, MethodPointer methodPointer, lua_State *L, bool c
     typedef void* (*FuncToCall)(void* p0, void* p1, const void* method);
     void* ret = ((FuncToCall)methodPointer)( p0, p1, method);
 
-      const Il2CppChar* utf16Ret = il2cpp::utils::StringUtils::GetChars((Il2CppString*)ret);
-    std::string retStr = il2cpp::utils::StringUtils::Utf16ToUtf8(utf16Ret);
-    lapi_lua_pushstring(L, retStr.c_str());
+    CSAnyToLuaValue(L, ret);
 
     
     return 1;
@@ -1165,7 +1163,7 @@ static int w_soOs(void* method, MethodPointer methodPointer, lua_State *L, bool 
     if(checkLuaArgument){
         if (length != paramOffset + 2) return -1;
         if (!CheckIsClass(L, 0 + paramOffset, TIp0)) return -1;
-		
+		if (!CheckIsClass(L, 1 + paramOffset, TIp1)) return -1;
 		if (!lapi_lua_isstring(L, 2 + paramOffset)) return -1;
     }
     
@@ -1174,14 +1172,12 @@ static int w_soOs(void* method, MethodPointer methodPointer, lua_State *L, bool 
 	// object
     void* p1 = (void*)xlua::LuaValueToCSRef((Il2CppClass*)TIp1, L, 1+ paramOffset);
 	// string s
-    void* p2 = LuaStr2CSharpString(L, 2);
+    void* p2 = LuaStr2CSharpString(L, 2+ paramOffset );
     
     typedef void* (*FuncToCall)(void* p0, void* p1, void* p2, const void* method);
     void* ret = ((FuncToCall)methodPointer)( p0, p1, p2, method);
 
-      const Il2CppChar* utf16Ret = il2cpp::utils::StringUtils::GetChars((Il2CppString*)ret);
-    std::string retStr = il2cpp::utils::StringUtils::Utf16ToUtf8(utf16Ret);
-    lapi_lua_pushstring(L, retStr.c_str());
+    CSAnyToLuaValue(L, ret);
 
     
     return 1;
@@ -1201,9 +1197,7 @@ static int w_st(void* method, MethodPointer methodPointer, lua_State *L, bool ch
     typedef void* (*FuncToCall)(void*, const void* method);
     void* ret = ((FuncToCall)methodPointer)(self,  method);
 
-      const Il2CppChar* utf16Ret = il2cpp::utils::StringUtils::GetChars((Il2CppString*)ret);
-    std::string retStr = il2cpp::utils::StringUtils::Utf16ToUtf8(utf16Ret);
-    lapi_lua_pushstring(L, retStr.c_str());
+    CSAnyToLuaValue(L, ret);
 
     
     return 1;
@@ -1225,9 +1219,7 @@ static int w_sto(void* method, MethodPointer methodPointer, lua_State *L, bool c
     typedef void* (*FuncToCall)(void*, void* p0, const void* method);
     void* ret = ((FuncToCall)methodPointer)(self,  p0, method);
 
-      const Il2CppChar* utf16Ret = il2cpp::utils::StringUtils::GetChars((Il2CppString*)ret);
-    std::string retStr = il2cpp::utils::StringUtils::Utf16ToUtf8(utf16Ret);
-    lapi_lua_pushstring(L, retStr.c_str());
+    CSAnyToLuaValue(L, ret);
 
     
     return 1;
@@ -1244,14 +1236,12 @@ static int w_sts(void* method, MethodPointer methodPointer, lua_State *L, bool c
     }
     auto self = GetCppObjMapper()->ToCppObj(L, 1);
     // string s
-    void* p0 = LuaStr2CSharpString(L, 0);
+    void* p0 = LuaStr2CSharpString(L, 0+ paramOffset );
     
     typedef void* (*FuncToCall)(void*, void* p0, const void* method);
     void* ret = ((FuncToCall)methodPointer)(self,  p0, method);
 
-      const Il2CppChar* utf16Ret = il2cpp::utils::StringUtils::GetChars((Il2CppString*)ret);
-    std::string retStr = il2cpp::utils::StringUtils::Utf16ToUtf8(utf16Ret);
-    lapi_lua_pushstring(L, retStr.c_str());
+    CSAnyToLuaValue(L, ret);
 
     
     return 1;
@@ -1270,16 +1260,14 @@ static int w_stso(void* method, MethodPointer methodPointer, lua_State *L, bool 
     }
     auto self = GetCppObjMapper()->ToCppObj(L, 1);
     // string s
-    void* p0 = LuaStr2CSharpString(L, 0);
+    void* p0 = LuaStr2CSharpString(L, 0+ paramOffset );
 	// object
     void* p1 = (void*)xlua::LuaValueToCSRef((Il2CppClass*)TIp1, L, 1+ paramOffset);
     
     typedef void* (*FuncToCall)(void*, void* p0, void* p1, const void* method);
     void* ret = ((FuncToCall)methodPointer)(self,  p0, p1, method);
 
-      const Il2CppChar* utf16Ret = il2cpp::utils::StringUtils::GetChars((Il2CppString*)ret);
-    std::string retStr = il2cpp::utils::StringUtils::Utf16ToUtf8(utf16Ret);
-    lapi_lua_pushstring(L, retStr.c_str());
+    CSAnyToLuaValue(L, ret);
 
     
     return 1;
@@ -1300,7 +1288,7 @@ static int w_u8ti8(void* method, MethodPointer methodPointer, lua_State *L, bool
     typedef uint64_t (*FuncToCall)(void*, int64_t p0, const void* method);
     uint64_t ret = ((FuncToCall)methodPointer)(self,  p0, method);
 
-    lapi_lua_pushinteger(L, (long long)ret);
+    converter::Converter<uint64_t>::toScript(L, ret);
 
     
     return 1;
@@ -1446,7 +1434,7 @@ static int w_vs(void* method, MethodPointer methodPointer, lua_State *L, bool ch
     }
     
     // string s
-    void* p0 = LuaStr2CSharpString(L, 0);
+    void* p0 = LuaStr2CSharpString(L, 0+ paramOffset );
     
     typedef void (*FuncToCall)(void* p0, const void* method);
     ((FuncToCall)methodPointer)( p0, method);
@@ -1725,7 +1713,7 @@ static int w_vts(void* method, MethodPointer methodPointer, lua_State *L, bool c
     }
     auto self = GetCppObjMapper()->ToCppObj(L, 1);
     // string s
-    void* p0 = LuaStr2CSharpString(L, 0);
+    void* p0 = LuaStr2CSharpString(L, 0+ paramOffset );
     
     typedef void (*FuncToCall)(void*, void* p0, const void* method);
     ((FuncToCall)methodPointer)(self,  p0, method);
@@ -1806,6 +1794,23 @@ static WrapFuncInfo g_wrapFuncInfos[] = {
     {nullptr, nullptr}
 };
 
+static int bw_v(lua_State* L, Il2CppDelegate* ildelegate,const MethodInfo* method) {
+    
+    
+    
+    
+    typedef void (*FuncToCall)(void* target, const void* method);
+    
+    void* params[0];
+    
+    
+    il2cpp::vm::Runtime::DelegateInvoke(ildelegate, params, nullptr);
+
+    
+
+    
+    return 0;
+}
 static void b_v(void* target, MethodInfo* method) {
     
     
@@ -1830,6 +1835,24 @@ static void b_v(void* target, MethodInfo* method) {
     lapi_lua_settop(L, errFunc-1);
 }
 
+static int bw_vs(lua_State* L, Il2CppDelegate* ildelegate,const MethodInfo* method) {
+    
+    auto TIp0 = GetParameterType(method, 0);
+    
+    // string s
+    void* p0 = LuaStr2CSharpString(L, 2 );
+    typedef void (*FuncToCall)(void* target, void* p0, const void* method);
+    
+    void* params[1];
+    params[0] = (void*)p0;
+    
+    il2cpp::vm::Runtime::DelegateInvoke(ildelegate, params, nullptr);
+
+    
+
+    
+    return 0;
+}
 static void b_vs(void* target, void* p0,MethodInfo* method) {
     
     auto TIp0 = GetParameterType(method, 0);
@@ -1855,9 +1878,9 @@ static void b_vs(void* target, void* p0,MethodInfo* method) {
 }
 ;
 static BridgeFuncInfo g_bridgeFuncInfos[] = {
-    {"v", (MethodPointer)b_v},
-	{"vs", (MethodPointer)b_vs},
-    {nullptr, nullptr}
+    {"v", (MethodPointer)b_v, (DelegateWrapFunc)bw_v}, 
+	{"vs", (MethodPointer)b_vs, (DelegateWrapFunc)bw_vs}, 
+    {nullptr, nullptr, nullptr}
 };
 
 
@@ -1867,7 +1890,7 @@ static void ifg_S_i4i4_(lua_State* L, void* fieldInfo, size_t offset, void* TIre
 
     struct S_i4i4_ ret;
     xlua:GetFieldValue(nullptr, (FieldInfo*)fieldInfo, offset, &ret);
-    GetCppObjMapper()->TryPushStruct(L, TIret, &ret, sizeof(S_i4i4_));            
+    CSValueToLuaValue(L, TIret, &ret, sizeof(S_i4i4_));            
                 
 }
 
@@ -1889,7 +1912,7 @@ static void ifg_i4(lua_State* L, void* fieldInfo, size_t offset, void* TIret) {
 
     xlua:GetFieldValue(nullptr, (FieldInfo*)fieldInfo, offset, &ret);
     
-    lapi_lua_pushinteger(L, (long long)ret);
+    converter::Converter<int32_t>::toScript(L, ret);
 }
 
 static void ifs_i4(lua_State* L, void* fieldInfo, size_t offset, void* TIp) {
@@ -1909,7 +1932,7 @@ static void ifg_r4(lua_State* L, void* fieldInfo, size_t offset, void* TIret) {
 
     xlua:GetFieldValue(nullptr, (FieldInfo*)fieldInfo, offset, &ret);
     
-    lapi_lua_pushnumber(L, (double)ret);
+    converter::Converter<float>::toScript(L, ret);
 }
 
 static void ifs_r4(lua_State* L, void* fieldInfo, size_t offset, void* TIp) {
@@ -1927,7 +1950,7 @@ static void ifg_tS_i4i4_(lua_State* L, void* fieldInfo, size_t offset, void* TIr
 
     struct S_i4i4_ ret;
     xlua:GetFieldValue(self, (FieldInfo*)fieldInfo, offset, &ret);
-    GetCppObjMapper()->TryPushStruct(L, TIret, &ret, sizeof(S_i4i4_));            
+    CSValueToLuaValue(L, TIret, &ret, sizeof(S_i4i4_));            
                 
 }
 
@@ -1949,7 +1972,7 @@ static void ifg_ti4(lua_State* L, void* fieldInfo, size_t offset, void* TIret) {
 
     xlua:GetFieldValue(self, (FieldInfo*)fieldInfo, offset, &ret);
     
-    lapi_lua_pushinteger(L, (long long)ret);
+    converter::Converter<int32_t>::toScript(L, ret);
 }
 
 static void ifs_ti4(lua_State* L, void* fieldInfo, size_t offset, void* TIp) {
@@ -1969,7 +1992,7 @@ static void ifg_to(lua_State* L, void* fieldInfo, size_t offset, void* TIret) {
 
     xlua:GetFieldValue(self, (FieldInfo*)fieldInfo, offset, &ret);
     
-    GetCppObjMapper()->TryPushObject(L, ret);
+    CSAnyToLuaValue(L, ret);
 }
 
 static void ifs_to(lua_State* L, void* fieldInfo, size_t offset, void* TIp) {
@@ -1989,7 +2012,7 @@ static void ifg_tr4(lua_State* L, void* fieldInfo, size_t offset, void* TIret) {
 
     xlua:GetFieldValue(self, (FieldInfo*)fieldInfo, offset, &ret);
     
-    lapi_lua_pushnumber(L, (double)ret);
+    converter::Converter<float>::toScript(L, ret);
 }
 
 static void ifs_tr4(lua_State* L, void* fieldInfo, size_t offset, void* TIp) {
