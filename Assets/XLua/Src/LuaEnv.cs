@@ -486,7 +486,6 @@ namespace XLua
             function metatable:__index(key) 
                 local fqn = rawget(self,'.fqn')
                 fqn = ((fqn and fqn .. '.') or '') .. key
-                print('metatable:__index', key, debug.traceback())
                 local obj = import_type(fqn)
                 if obj == nil then
                     -- It might be an assembly, so we load it too.

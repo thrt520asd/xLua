@@ -855,7 +855,6 @@ namespace XLua
                 
                 ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
                 string className = LuaAPI.lua_tostring(L, 1);
-                UnityEngine.Debug.Log("ImportType:"+className);
                 Type type = translator.FindType(className);
                 if (type != null)
                 {

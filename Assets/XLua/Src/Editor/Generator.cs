@@ -1126,8 +1126,9 @@ namespace CSObjectWrapEditor
                                     from method in t.GetMethods(BindingFlags.Static | BindingFlags.Public)
                                     where isDefined(method, typeof(ExtensionAttribute)) && !isObsolete(method)
                                     where !method.ContainsGenericParameters || isSupportedGenericMethod(method)
-                                    select makeGenericMethodIfNeeded(method))
-                                    .Where(method => !lookup.ContainsKey(method.GetParameters()[0].ParameterType));
+                                    select makeGenericMethodIfNeeded(method));
+                                    // .Where(method => !lookup.ContainsKey(method.GetParameters()[0].ParameterType));
+                                    //#TODO@benp 这里需要整理
 
             var extension_methods = (from t in ReflectionUse
                                      where isDefined(t, typeof(ExtensionAttribute))

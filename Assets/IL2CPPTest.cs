@@ -59,6 +59,9 @@ public class IL2CPPTest :IL2CPPTestBase
         }
     }
 
+    public void RefTest(in int a, out int b, ref int c){
+        b = 0;
+    }
 
     // public int Item{
     //     get{
@@ -148,8 +151,8 @@ public struct Il2CppTestStruct{
     }
 
     
-
     public static int staticField1 = 0;
+
     public static int StaticPropertyInt{get;set;}
     
     public static Il2CppTestStruct StaticStruct;

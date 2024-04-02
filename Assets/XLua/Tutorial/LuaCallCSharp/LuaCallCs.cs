@@ -157,20 +157,23 @@ namespace Tutorial
 		int add(int a, int b);
 	}
 
-	[LuaCallCSharp]
+    [LuaCallCSharpAttribute]
 	public static class DerivedClassExtensions
     {
+        [LuaCallCSharp]
 		public static int GetSomeData(this DerivedClass obj)
 		{
 			Debug.Log("GetSomeData ret = " + obj.DMF);
 			return obj.DMF;
 		}
+        [LuaCallCSharp]
 
 		public static int GetSomeBaseData(this BaseClass obj)
 		{
 			Debug.Log("GetSomeBaseData ret = " + obj.BMF);
 			return obj.BMF;
 		}
+        [LuaCallCSharp]
 
 		public static void GenericMethodOfString(this DerivedClass obj)
 		{

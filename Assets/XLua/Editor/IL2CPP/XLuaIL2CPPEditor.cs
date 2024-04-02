@@ -6,6 +6,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using XLua.IL2CPP;
+using XLua.IL2CPP.Editor.Generator;
 namespace XLua.IL2CPP.Editor{
     public class XLuaIL2CPPEditor
     {
@@ -43,10 +44,12 @@ namespace XLua.IL2CPP.Editor{
             EditorGUILayout.LabelField("TypeName");
             m_TypeName = EditorGUILayout.TextField(m_TypeName);
             
-            if(GUILayout.Button("Generate")){
+            if(GUILayout.Button("TypeInfo")){
                 var type = System.AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes()).First((Type x)=>{
                     return x.Name == m_TypeName;
                 });
+                string str = "UPS_pu4_";
+                Debug.Log(WrapUtil.SToCPPType(str));
                 if(type != null){
                     Debug.Log("======================selfSignature======================");
                     var thisSignature = TypeUtils.GetTypeSignature(type);
@@ -102,6 +105,9 @@ namespace XLua.IL2CPP.Editor{
                         }
                     }
                 }
+            }
+            if(GUILayout.Button("SToCPPType")){
+                Debug.Log(WrapUtil.SToCPPType(m_TypeName));
             }
         }
 

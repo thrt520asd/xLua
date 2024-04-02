@@ -5,10 +5,9 @@
 #include "il2cpp-object-internals.h"
 #include <string>
 #include "unordered_map"
-typedef int (*CSharpGetTypeIdFunc)( lua_State *L, Il2CppReflectionType * type, void* method);
-namespace xlua{
-
-
+typedef int (*CSharpGetTypeIdFunc)(lua_State *L, Il2CppReflectionType *type, void *method);
+namespace xlua
+{
     class LuaClassRegister
     {
     public:
@@ -20,9 +19,9 @@ namespace xlua{
         int CSharpGetTypeId(lua_State *L, Il2CppReflectionType *reflectionType);
         LuaClassInfo *GetLuaClsInfoByTypeId(const void *typeId);
 
-        int RegisterClass( LuaClassInfo *luaClsInfo);
-        void UnRegisterClass( std::string name);
-        void SetGetTypeIdFuncPtr(CSharpGetTypeIdFunc methodPtr, void* method);
+        int RegisterClass(LuaClassInfo *luaClsInfo);
+        void UnRegisterClass(std::string name);
+        void SetGetTypeIdFuncPtr(CSharpGetTypeIdFunc methodPtr, void *method);
         void SetTypeId(void *kclass, int32_t metaId);
         int GetClassMetaId(void *kclass);
 
@@ -30,14 +29,13 @@ namespace xlua{
 
     private:
         CSharpGetTypeIdFunc cSharpGetTypeMethodPtr = nullptr;
-        void* cSharpGetTypeMethod = nullptr;
-        std::map<std::string, LuaClassInfo*> clsName2ClsInfo;
-        std::map<const void*, LuaClassInfo*> clsId2ClsDef;
-        std::unordered_map<void*, int32_t> ilclass2luaMetaId;
+        void *cSharpGetTypeMethod = nullptr;
+        std::map<std::string, LuaClassInfo *> clsName2ClsInfo;
+        std::map<const void *, LuaClassInfo *> clsId2ClsDef;
+        std::unordered_map<void *, int32_t> ilclass2luaMetaId;
     };
 
-    LuaClassRegister* GetLuaClassRegister();
-    xlua::LuaClassInfo* GetLuaClsInfoByTypeId(const void* typeId);
-    
+    LuaClassRegister *GetLuaClassRegister();
+    xlua::LuaClassInfo *GetLuaClsInfoByTypeId(const void *typeId);
 
 }

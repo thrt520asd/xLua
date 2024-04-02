@@ -144,7 +144,6 @@ namespace XLua
         Dictionary<Type, bool> loaded_types = new Dictionary<Type, bool>();
         public bool TryDelayWrapLoader(RealStatePtr L, Type type)
         {
-            UnityEngine.Debug.Log("TryDelayWrapLoader:"+type);
             if (loaded_types.ContainsKey(type)) return true;
             loaded_types.Add(type, true);
 

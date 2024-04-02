@@ -231,3 +231,19 @@ c# function to lua ?
 bridge wrap func 是delegate在C#侧被调用时的lua函数
 C#delegate在lua侧调用的时候还需要一个wrap
 enum的field 是staticField 不需要offset
+
+il2cpp delegate invoke流程
+invokeMethod = GetInvokeMethod(reflect)
+invokeMethod 生成在Il2CppInvokerTable 封装了参数unpack 装箱拆箱等 可跳过
+重点是methodPointer
+invokeMethod{
+    typedef 
+    methodPointer(delegate, args[0], arg[1],...., methodMetadata)
+}
+methodPointer仅指action的实现 生成在Generics.cpp
+判断是否多个delegate 按照规则调用delegate
+
+
+引用传递的参数
+1 out的传递是值传递 从puerTs的实现来看
+ref/int 是指针传递  例如 GetTileData 

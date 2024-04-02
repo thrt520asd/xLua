@@ -75,7 +75,7 @@ namespace xlua
     int LuaClassRegister::RegisterClass(LuaClassInfo *luaClsInfo)
     {
         xlua::GLogFormatted(luaClsInfo->Name.c_str());
-        auto iter = clsId2ClsDef.find(luaClsInfo->TypeId);
+        auto iter = clsId2ClsDef.find(luaClsInfo->klass);
         if(iter == clsId2ClsDef.end()){
             
             for(auto& method: luaClsInfo->Methods){
@@ -94,7 +94,7 @@ namespace xlua
 
             luaClsInfo->Ctors.push_back(nullptr);
             luaClsInfo->CtorWrapDatas = luaClsInfo->Ctors.data();
-            clsId2ClsDef[luaClsInfo->TypeId] = luaClsInfo;
+            clsId2ClsDef[luaClsInfo->klass] = luaClsInfo;
             clsName2ClsInfo[luaClsInfo->Name] = luaClsInfo;
             return 1;
         }else{

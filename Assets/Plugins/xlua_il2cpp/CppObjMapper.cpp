@@ -112,18 +112,12 @@ bool CppObjMapper::TryPushObject(lua_State *L, void * obj){
     int32_t key = objCache.size();
     objCache[obj] = key;
     Il2CppClass* kclass = (Il2CppClass*)*reinterpret_cast<void**>(obj);
-    int32_t metaId = -1;
-    /*if(IsDelegate(kclass)){
-        int a = 1;
-    }else{*/
-        metaId = xlua::GetLuaClassRegister()->GetTypeIdByIl2cppClass(L, kclass);
-    //}
-    
+    int32_t metaId = xlua::GetLuaClassRegister()->GetTypeIdByIl2cppClass(L, kclass);;
     
     if(metaId != -1){
         auto poolIdx = AddToPool(L, (Il2CppObject*)obj);
 
-        xlua::GLogFormatted("lapi_xlua_pushcsobj_ptr %p  metaId %d key %d cacheRef %d %s", obj, metaId, key, cacheRef, kclass->name);
+        xlua::GLogFormatted("lapi_xlua_pushcsobj_ptr %s %p  metaId %d key %d cacheRef %d poolIdx ", kclass->name, obj, metaId, key, cacheRef, poolIdx);
         lapi_xlua_pushcsobj_ptr(L, obj, metaId, key, 1, cacheRef, poolIdx);
         return true;
     }else{

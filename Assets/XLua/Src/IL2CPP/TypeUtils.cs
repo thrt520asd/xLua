@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
+using UnityEngine;
 
 namespace XLua.IL2CPP
 {
@@ -155,7 +156,7 @@ namespace XLua.IL2CPP
             return sb.ToString();
         }
 
-        public static string GetTypeSignature(Type type)
+        public static string GetTypeSignature(Type type, bool isOut = false)
         {
             if (type == typeof(void))
             {
@@ -233,6 +234,9 @@ namespace XLua.IL2CPP
             }
             else if (type.IsByRef || type.IsPointer)
             {
+                if(isOut){
+                    return TypeSignatures.OutParameterPrefix + GetTypeSignature(type.GetElementType());
+                }
                 return TypeSignatures.RefOrPointerPrefix + GetTypeSignature(type.GetElementType());
             }
             else if (type.IsEnum)
@@ -271,7 +275,11 @@ namespace XLua.IL2CPP
             }
 
             if(parameterInfo.IsOut){
-                return TypeSignatures.OutParameterPrefix + GetTypeSignature(parameterInfo.ParameterType);
+                var signature = GetTypeSignature(parameterInfo.ParameterType, true);
+                // if(parameterInfo.ParameterType.IsValueType){
+                //     signature = TypeUtils.TypeSignatures.OutParameterPrefix + signature;
+                // }
+                return signature;
             }
             
             return GetTypeSignature(parameterInfo.ParameterType);
