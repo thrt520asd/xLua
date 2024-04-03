@@ -64,3 +64,4 @@ LUA_API void xlua_pushuint (lua_State *L, uint32_t n);
 LUA_API uint32_t xlua_touint (lua_State *L, int idx);
 LUA_API void* xlua_gl(lua_State *L);
 LUA_API void* xlua_mainthread(lua_State *L);
+LUA_API uint32_t xlua_objlen (lua_State *L, int idx);

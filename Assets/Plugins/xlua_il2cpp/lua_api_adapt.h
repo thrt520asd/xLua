@@ -184,6 +184,8 @@ uint32_t lapi_xlua_touint (lua_State *L, int idx);
 void* lapi_xlua_gl(lua_State *L);
 //xlua_mainthread
 void* lapi_xlua_mainthread(lua_State *L);
+//xlua_objlen
+uint32_t lapi_xlua_objlen (lua_State *L, int idx);
 //genEnd
 
 #define lapi_lua_isboolean(L,n)	(lapi_lua_type(L, (n)) == LUA_TBOOLEAN)

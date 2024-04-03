@@ -456,7 +456,7 @@ $@"//LuaValToCSVal struct
                 if(signature.IsPrimitiveSignature()){
                    return
 $@"{signature.CSTypeNoPointer()}* {CSName} = nullptr; // {signature} out
-    {signature.CSTypeNoPointer()} u{CSName} = {GetArgValue(signature.Substring(1), index, true, false)};
+    {signature.CSTypeNoPointer()} u{CSName} = {(signature.Substring(1) == "b" ? "false" : "0")};
     {CSName} = &u{CSName};";
                 }else if(signature.Substring(1).IsStruct()){
                     //此处后续可以深究

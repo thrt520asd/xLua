@@ -149,6 +149,14 @@ namespace Tutorial
 		{
 			Debug.Log("GenericMethod<" + typeof(T) + ">");
 		}
+
+        public int[] TestArray(int[] array){
+            for (int i = 0; i < array.Length; i++)
+            {
+                Debug.Log("TestArray"+array[i]);
+            }
+            return new int[]{1,2,3,4,5};
+        }
 	}
 
 	[LuaCallCSharp]

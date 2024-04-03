@@ -338,17 +338,9 @@ namespace XLua.IL2CPP
                         }
                     }
 
-                    //extension method
-                    var extensionMethods = Utils.GetExtensionMethodsOf(type);
-                    if (extensionMethods != null)
-                    {
-                        foreach (var method in extensionMethods)
-                        {
-                            AddMethodToType(method.Name, method as MethodInfo, false, false, true);
-                        }
-                    }
+                    
 
-                    // add method delegate
+                    // add property delegate
                     Action<string, MethodInfo, bool> AddPropertyToType = (string name, MethodInfo method, bool isGetter) =>
                     {
                         method = TypeUtils.HandleMaybeGenericMethod(method);
@@ -408,6 +400,23 @@ namespace XLua.IL2CPP
                             NativeAPI.SetTypeInfo(wrapData, i, usedTypeId);
                         }
                     };
+
+
+                    //extension method  
+                    var extensionMethods = Utils.GetExtensionMethodsOf(type);
+                    if (extensionMethods != null)
+                    {
+                        
+                        foreach (var method in extensionMethods)
+                        {
+                            if(type.IsArray || type == typeof(System.Array) && (method.Name == ("get_Item") || method.Name == "set_Item" )){
+                                Debug.Log("TypeReigster Add Array indexer "+method.ToString());
+                                AddPropertyToType("Item", method, method.Name == "get_Item");
+                            }else{
+                                AddMethodToType(method.Name, method as MethodInfo, false, false, true);
+                            }
+                        }
+                    }
 
                     if (properties != null)
                     {

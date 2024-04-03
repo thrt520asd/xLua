@@ -92,6 +92,7 @@ namespace xlua
         std::map<std::string, CSharpMethodInfo *> MethodsMap;
         std::map<std::string, CSharpFieldInfo *> FieldMap;
         std::map<std::string, PropertyWrapData *> PropertyMap;
+        PropertyWrapData* Indexer;
     };
 
     /// @brief UnityLog

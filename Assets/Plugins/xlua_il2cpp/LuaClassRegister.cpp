@@ -89,6 +89,9 @@ namespace xlua
             }
 
             for (auto& propertyInfo : luaClsInfo->Properties) {
+                if (propertyInfo.Name == "Item") {
+                    luaClsInfo->Indexer = &propertyInfo;
+                }
                 luaClsInfo->PropertyMap[propertyInfo.Name] = &propertyInfo;
             }
 

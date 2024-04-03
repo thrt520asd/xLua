@@ -6,6 +6,8 @@ using System.Text;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using System.CodeDom;
+using Packages.Rider.Editor.Util;
 // using Mono.Cecil;
 // using Mono.Cecil.Cil;
 
@@ -376,24 +378,7 @@ $@"struct {Signature}{{
                     textWriter.Write(content);
                     textWriter.Flush();
                 }
-                //#TODO@benp gen code
-                // using (var jsEnv = new Puerts.JsEnv())
-                // {
-                //     jsEnv.UsingFunc<CppWrappersInfo, string>();
-                //     var cppWrapRender = jsEnv.ExecuteModule<Func<CppWrappersInfo, string>>("puerts/templates/cppwrapper.tpl.mjs", "default");
-                //     using (StreamWriter textWriter = new StreamWriter(Path.Combine(saveTo, "FunctionBridge.Gen.h"), false, Encoding.UTF8))
-                //     {
-                //         string fileContext = cppWrapRender(new CppWrappersInfo
-                //         {
-                //             ValueTypeInfos = valueTypeInfos,
-                //             WrapperInfos = wrapperInfos,
-                //             BridgeInfos = bridgeInfos,
-                //             FieldWrapperInfos = fieldWrapperInfos
-                //         });
-                //         textWriter.Write(fileContext);
-                //         textWriter.Flush();
-                //     }
-                // }
+                Debug.LogWarning("build success");
             }
 
             public static void GenExtensionMethodInfos(string outDir)
