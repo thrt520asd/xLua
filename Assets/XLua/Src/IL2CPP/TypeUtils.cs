@@ -211,19 +211,10 @@ namespace XLua.IL2CPP
                 return TypeSignatures.Float;
             }
             
-            //todo@benp
-            //else if (type == typeof(Puerts.ArrayBuffer))
-            //{
-            //    return TypeSignatures.ArrayBuffer;
-            //}
             else if (type == typeof(IntPtr) || type == typeof(UIntPtr))
             {
                 return TypeSignatures.IntPtr;
             }
-            //else if (type == typeof(DateTime)) //是否要支持？
-            //{
-            //    return "d";
-            //}
             else if (type == typeof(string))
             {
                 return TypeSignatures.String;

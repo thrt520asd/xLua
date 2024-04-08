@@ -13,8 +13,8 @@ namespace xlua
 {
 
 #define MethodPointer Il2CppMethodPointer
-    
-    typedef int (*WrapFuncPtr)(MethodInfo* method, Il2CppMethodPointer methodPointer, lua_State *L, bool checkArgument, struct WrapData *wrapData, int paramOffset);
+
+    typedef int (*WrapFuncPtr)(MethodInfo *method, Il2CppMethodPointer methodPointer, lua_State *L, bool checkArgument, struct WrapData *wrapData, int paramOffset);
     typedef void (*FieldWrapFuncPtr)(lua_State L, FieldInfo *field, size_t offset, Il2CppClass *fieldType);
 
     typedef int (*DelegateWrapFunc)(lua_State *L, Il2CppDelegate *ilDelegate, const MethodInfo *method);
@@ -23,13 +23,14 @@ namespace xlua
     typedef Il2CppDelegate *((*GetCacheDelegateType))(lua_State *L, int referenced, const MethodInfo *methodInfo);
     typedef void((*CacheDelegateType))(lua_State *L, int referenced, RuntimeObject *obj, const MethodInfo *methodInfo);
 
+    typedef Il2CppString *((*Bytes2StringType))(void *bytes, const MethodInfo *methodInfo);
+
     struct PersistentObjectInfo
     {
         lua_State *L;
         Il2CppClass *klass;
         int reference;
     };
-    
 
     struct WrapData
     {
@@ -42,7 +43,6 @@ namespace xlua
         int OptionalNum;
         void *TypeInfos[0];
     };
-
 
     struct CSharpMethodInfo
     {
@@ -92,7 +92,8 @@ namespace xlua
         std::map<std::string, CSharpMethodInfo *> MethodsMap;
         std::map<std::string, CSharpFieldInfo *> FieldMap;
         std::map<std::string, PropertyWrapData *> PropertyMap;
-        PropertyWrapData* Indexer;
+        std::map<std::string, CSharpMethodInfo*> StaticMethodsMap;
+        PropertyWrapData *Indexer;
     };
 
     /// @brief UnityLog

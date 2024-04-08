@@ -28,6 +28,7 @@ namespace XLua
     using System.Diagnostics;
     using System.Linq;
     using System.Numerics;
+    using XLua.IL2CPP;
 
     class ReferenceEqualsComparer : IEqualityComparer<object>
     {
@@ -134,13 +135,7 @@ namespace XLua
         {
             interfaceBridgeCreators.Add(type, creator);
         }
-        static List<Type> IL2CPPTestType = new List<Type>(){
-            typeof(IL2CPPTest),
-            typeof(IL2CPPTestBase),
-            typeof(Il2CppTestStruct),
-            typeof(UnityEngine.Vector3),
-            typeof(DirectionEnum),
-        };
+
         Dictionary<Type, bool> loaded_types = new Dictionary<Type, bool>();
         public bool TryDelayWrapLoader(RealStatePtr L, Type type)
         {
@@ -843,7 +838,6 @@ namespace XLua
 		
 		internal object GetObject(RealStatePtr L,int index)
 		{
-            //#TODO@benp 替换为C++实现
             return (objectCasters.GetCaster(typeof(object))(L, index, null));
         }
 
@@ -893,10 +887,48 @@ namespace XLua
 
             return objectCheckers.GetChecker(type)(L, index);
         }
+#if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
+        internal object getLuaTable(RealStatePtr L, int idx)
+        {
+            if (LuaAPI.lua_type(L, idx) == LuaTypes.LUA_TUSERDATA)
+            {
+                object obj = SafeGetCSObj(L, idx);
+                return (obj != null && obj is LuaTable) ? obj : null;
+            }
+            if (!LuaAPI.lua_istable(L, idx))
+            {
+                return null;
+            }
+            LuaAPI.lua_pushvalue(L, idx);
+            return new LuaTable(LuaAPI.luaL_ref(L), luaEnv);
+        }
 
+        internal object getLuaFunction(RealStatePtr L, int idx)
+        {
+            if (LuaAPI.lua_type(L, idx) == LuaTypes.LUA_TUSERDATA)
+            {
+                object obj = SafeGetCSObj(L, idx);
+                return (obj != null && obj is LuaFunction) ? obj : null;
+            }
+            if (!LuaAPI.lua_isfunction(L, idx))
+            {
+                return null;
+            }
+            LuaAPI.lua_pushvalue(L, idx);
+            return new LuaFunction(LuaAPI.luaL_ref(L), luaEnv);
+        }
+#endif
         public object GetObject(RealStatePtr L, int index, Type type)
         {
-            //#TODO@benp 替换为C++实现
+            #if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
+            if(type == typeof(LuaTable)){
+                return getLuaTable(L, index);
+            }else if(type == typeof(LuaFunction)){
+                return getLuaFunction(L, index);
+            }
+            
+            return NativeAPI.GetObjectFromLua(L, index, type);
+            #endif
             int udata = LuaAPI.xlua_tocsobj_safe(L, index);
 
             if (udata != -1)
@@ -1171,6 +1203,19 @@ namespace XLua
 
         public void PushAny(RealStatePtr L, object o)
         {
+            #if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
+            
+            if (o.GetType().IsPrimitive())
+            {
+                pushPrimitive(L, o);
+            }
+            else if(!(o is LuaBase)){
+                NativeAPI.PushAnyToLua(L, o);
+            }else{
+                (o as LuaBase).push(L);
+            }
+            return;
+            #endif
             if (o == null)
             {
                 LuaAPI.lua_pushnil(L);

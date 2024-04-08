@@ -94,6 +94,10 @@ bool CppObjMapper::TryPushStruct(lua_State *L, void* typeId, void* pointer, unsi
 }
 
 bool CppObjMapper::TryPushObject(lua_State *L, void * obj){
+    if (!obj) {
+        lapi_lua_pushnil(L);
+        return true;
+    }
     auto iter = objCache.find(obj);
     if(cacheRef == 0){
         xlua::GLogFormatted("[error]please set cacheRef first");

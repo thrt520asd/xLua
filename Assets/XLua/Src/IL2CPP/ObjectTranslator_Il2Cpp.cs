@@ -16,6 +16,8 @@ namespace XLua
                 {
                     UnityEngine.Debug.Log("GetCacheDelegate" + referenced + "success");
                     return weakReference.Target;
+                }else{
+                    delegate_cache[referenced] = null;
                 }
             }
             UnityEngine.Debug.Log("GetCacheDelegate" + referenced + "failed");

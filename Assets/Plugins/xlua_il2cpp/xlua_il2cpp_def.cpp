@@ -18,7 +18,7 @@ namespace xlua{
         va_end(args);
         
         if(GLogCallback){
-            GLogCallback(buffer);
+            //GLogCallback(buffer);
         }
     }
 }

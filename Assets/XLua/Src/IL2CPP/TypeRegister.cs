@@ -11,6 +11,7 @@ using XLua.LuaDLL;
 using LuaAPI = XLua.LuaDLL.Lua;
 using UnityEngine;
 using LuaCSFunction = XLua.LuaDLL.lua_CSFunction;
+using System.Text;
 namespace XLua.IL2CPP
 {
     public class TypeRegister
@@ -92,12 +93,20 @@ namespace XLua.IL2CPP
             NativeAPI.SetClassMetaId(typeId, metaId);
         }
 
+        public static string Bytes2String(byte[] bytes){
+            return Encoding.UTF8.GetString(bytes);
+        }
 
+        private static HashSet<Type> loaded_type = new HashSet<Type>();
         private static bool setcache = false;
         public static void Register(RealStatePtr L, Type type, bool includeNonPublic, bool throwIfMemberFail = false)
         {
-            UnityEngine.Debug.Log($"Register {L} {type} {includeNonPublic} {throwIfMemberFail}");
             var translator = ObjectTranslatorPool.Instance.Find(L);
+            UnityEngine.Debug.Log($"Register {L} {type} {includeNonPublic} {throwIfMemberFail} {translator.luaEnv.rawL}");
+            if(loaded_type.Contains(type)){
+                return;
+            }
+            
             if (!setcache)
             {
                 setcache = true;
@@ -110,11 +119,13 @@ namespace XLua.IL2CPP
 
                 var CombineDelegateMethod = typeof(Delegate).GetMethod("Combine",new Type[] {typeof(Delegate), typeof(Delegate)});
                 var RemoveDelegateMethod = typeof(Delegate).GetMethod("Remove", BindingFlags.Static | BindingFlags.Public);
-
+                
                 var GetCacheDelegateMethod = typeof(TypeRegister).GetMethod("GetCacheDelegate", BindingFlags.Static | BindingFlags.Public);
                 var CacheDelegateMethod = typeof(TypeRegister).GetMethod("CacheDelegate", BindingFlags.Static | BindingFlags.Public);
+                
+                var Bytes2StringMethod = typeof(TypeRegister).GetMethod("Bytes2String", BindingFlags.Static | BindingFlags.Public);
 
-                NativeAPI.SetCSharpAPI(new MethodBase[]{StaticGetTypeIdMethod, AddObjMethod, RemoveObjMethod, CombineDelegateMethod, RemoveDelegateMethod, GetCacheDelegateMethod, CacheDelegateMethod});
+                NativeAPI.SetCSharpAPI(new MethodBase[]{StaticGetTypeIdMethod, AddObjMethod, RemoveObjMethod, CombineDelegateMethod, RemoveDelegateMethod, GetCacheDelegateMethod, CacheDelegateMethod, Bytes2StringMethod});
                 
                 NativeAPI.SetGlobalType_LuaObject(typeof(LuaObject));
             }
@@ -130,6 +141,7 @@ namespace XLua.IL2CPP
             {
                 //push to lua
                 Register2Lua(type, 0, cppClsDef, translator, L);
+                loaded_type.Add(type);
             }
         }
 
@@ -223,7 +235,7 @@ namespace XLua.IL2CPP
                                 UnityEngine.Debug.LogWarning(string.Format("wrapper{1} is null for {0}", type, signature));
                                 continue;
                             }
-                            UnityEngine.Debug.Log(string.Format("add ctor {0}, usedTypes count: {1}", ctor, usedTypes.Count));
+                            // UnityEngine.Debug.Log(string.Format("add ctor {0}, usedTypes count: {1}", ctor, usedTypes.Count));
 
                             var methodInfoPointer = NativeAPI.GetMethodInfoPointer(ctor);
                             var methodPointer = NativeAPI.GetMethodPointer(ctor);
@@ -260,7 +272,7 @@ namespace XLua.IL2CPP
                             for (int i = 0; i < usedTypes.Count; ++i)
                             {
                                 var typeInfoPointer = NativeAPI.GetTypeId(usedTypes[i]);
-                                UnityEngine.Debug.Log(string.Format("set used type for ctor {0}: {1}={2}, typeId:{3}", ctor, i, usedTypes[i], typeInfoPointer));
+                                // UnityEngine.Debug.Log(string.Format("set used type for ctor {0}: {1}={2}, typeId:{3}", ctor, i, usedTypes[i], typeInfoPointer));
                                 NativeAPI.SetTypeInfo(wrapData, i, typeInfoPointer);
                             }
                         }
@@ -323,7 +335,7 @@ namespace XLua.IL2CPP
                         for (int i = 0; i < usedTypes.Count; ++i)
                         {
                             var usedTypeId = NativeAPI.GetTypeId(usedTypes[i]);
-                            UnityEngine.Debug.Log(string.Format("set used type for method {0}: {1}={2}, typeId:{3}", method, i, usedTypes[i], usedTypeId));
+                            // UnityEngine.Debug.Log(string.Format("set used type for method {0}: {1}={2}, typeId:{3}", method, i, usedTypes[i], usedTypeId));
                             NativeAPI.SetTypeInfo(wrapData, i, usedTypeId);
                         }
                     };
@@ -396,7 +408,7 @@ namespace XLua.IL2CPP
                         for (int i = 0; i < usedTypes.Count; ++i)
                         {
                             var usedTypeId = NativeAPI.GetTypeId(usedTypes[i]);
-                            UnityEngine.Debug.Log(string.Format("set used type for method {0}: {1}={2}, typeId:{3}", method, i, usedTypes[i], usedTypeId));
+                            // UnityEngine.Debug.Log(string.Format("set used type for method {0}: {1}={2}, typeId:{3}", method, i, usedTypes[i], usedTypeId));
                             NativeAPI.SetTypeInfo(wrapData, i, usedTypeId);
                         }
                     };
@@ -410,7 +422,7 @@ namespace XLua.IL2CPP
                         foreach (var method in extensionMethods)
                         {
                             if(type.IsArray || type == typeof(System.Array) && (method.Name == ("get_Item") || method.Name == "set_Item" )){
-                                Debug.Log("TypeReigster Add Array indexer "+method.ToString());
+                                // Debug.Log("TypeReigster Add Array indexer "+method.ToString());
                                 AddPropertyToType("Item", method, method.Name == "get_Item");
                             }else{
                                 AddMethodToType(method.Name, method as MethodInfo, false, false, true);
@@ -468,7 +480,7 @@ namespace XLua.IL2CPP
                                 }
                                 throw new Exception(string.Format("add field for {0}:{1} fail, signature:{2}", type, field, signature));
                             }
-                            UnityEngine.Debug.Log(string.Format("AddField {0} of {1} ok offset={2}", field, type, NativeAPI.GetFieldOffset(field, type.IsValueType)));
+                            // UnityEngine.Debug.Log(string.Format("AddField {0} of {1} ok offset={2}", field, type, NativeAPI.GetFieldOffset(field, type.IsValueType)));
                         }
                     }
                 }
@@ -483,7 +495,7 @@ namespace XLua.IL2CPP
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.Log("Register 2 CPP Excepitoni " + e.ToString());
+                UnityEngine.Debug.Log("Register 2 CPP Exception " + e.ToString());
                 NativeAPI.ReleaseCSharpTypeInfo(typeInfo);
                 throw e;
             }

@@ -54,6 +54,12 @@ namespace XLua.IL2CPP
         public static IntPtr FindWrapFunc(string signature){
             throw new NotImplementedException();
         }
+        
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern bool PushAnyToLua(IntPtr L, object obj);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern object GetObjectFromLua(IntPtr L, int index, Type t);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern IntPtr FindFieldWrap(string signature);

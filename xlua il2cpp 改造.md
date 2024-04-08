@@ -247,3 +247,26 @@ methodPointer仅指action的实现 生成在Generics.cpp
 引用传递的参数
 1 out的传递是值传递 从puerTs的实现来看
 ref/int 是指针传递  例如 GetTileData 
+
+unity导出的vs工程没有 SIZEOF_VOID_P定义 需要手动添加
+todo 
+string=>bytes (lua=>C#)
+VariableParam
+number判断接口改动
+enum cast
+反射构造obj
+参数检测之number
+前提 table的访问下标是string格式 如table[1] key其实是"1" 
+如果用lua_type(L, 2) == LUA_TNUMBER 检测会failed
+如果用lua_isnumber(L,2) 
+public static int OverLoad2(int x, float y)
+{
+    return 3;
+}
+
+public static int OverLoad2(string x, string y)
+{
+    return 4;
+}
+这种形式的会都执行到OverLoad2(int x, float y)
+解决方案 indexer的的key类型强制转换为number 有点丑陋

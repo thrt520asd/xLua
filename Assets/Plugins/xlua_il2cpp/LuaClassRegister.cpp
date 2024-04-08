@@ -80,8 +80,12 @@ namespace xlua
             
             for(auto& method: luaClsInfo->Methods){
                 method.OverloadDatas.push_back(nullptr);
-                
-               luaClsInfo->MethodsMap[method.Name] = &method;
+                if (method.IsStatic) {
+                    luaClsInfo->StaticMethodsMap[method.Name] = &method;
+                }
+                else {
+                    luaClsInfo->MethodsMap[method.Name] = &method;
+                }
             }
 
             for(auto& field: luaClsInfo->Fields){
@@ -101,7 +105,7 @@ namespace xlua
             clsName2ClsInfo[luaClsInfo->Name] = luaClsInfo;
             return 1;
         }else{
-            //#TODO@benp throw error
+            
             return 0;
         }
     }

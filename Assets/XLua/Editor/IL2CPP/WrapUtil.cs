@@ -274,7 +274,7 @@ static int w_{signatureInfo.Signature}(void* method, MethodPointer methodPointer
         private static string GenArgsLenCheck(List<string> parameterSignatures){
             var requireNum = 0;
             
-            for (; requireNum < parameterSignatures.Count && parameterSignatures[requireNum][0] != 'V' && parameterSignatures[requireNum][0] != 'D'; ++requireNum) { }
+            for (; requireNum < parameterSignatures.Count && parameterSignatures[requireNum][0] != 'V' && parameterSignatures[requireNum][0] != 'D' && !parameterSignatures[requireNum].IsOutParameter(); ++requireNum) { }
             return requireNum != parameterSignatures.Count ? $"length < paramOffset + {requireNum - 1} " : $"length != paramOffset + {parameterSignatures.Count - 1}";
         }
 
@@ -310,18 +310,26 @@ static int w_{signatureInfo.Signature}(void* method, MethodPointer methodPointer
                     ret += $"!lapi_lua_isboolean(L, {index} + paramOffset)) return -1;";
                 }
                 else if (signature == "u1" || signature == "i1" || signature == "i2" || signature == "u2" || signature == "u4" || signature == "i4"
-                 || signature == "u8" || signature == "i8"
                 )
                 {
-                    ret += $"!lapi_lua_isnumber(L, {index} + paramOffset)) return -1;";
+                    ret += $"!(lapi_lua_type(L, {index} + paramOffset) == LUA_TNUMBER)) return -1;";
+                    // ret += $"!lapi_lua_isnumber(L, {index} + paramOffset)) return -1;";
+                }
+                else if(signature == "i8"){
+                    ret += $"!lapi_lua_isint64(L, {index} + paramOffset)) return -1;";
+                }
+                else if(signature == "u8"){
+                    ret += $"!lapi_lua_isuint64(L, {index} + paramOffset)) return -1;";
                 }
                 else if (signature == "c")
                 {
-                    ret += $"!lapi_lua_isnumber(L, {index} + paramOffset)) return -1;";
+                    ret += $"!(lapi_lua_type(L, {index} + paramOffset) == LUA_TNUMBER)) return -1;";
+                    // ret += $"!lapi_lua_isnumber(L, {index} + paramOffset)) return -1;";
                 }
                 else if (signature == "r8" || signature == "r4")
                 {
-                    ret += $"!lapi_lua_isnumber(L, {index} + paramOffset)) return -1;";
+                    ret += $"!(lapi_lua_type(L, {index} + paramOffset) == LUA_TNUMBER)) return -1;";
+                    // ret += $"!lapi_lua_isnumber(L, {index} + paramOffset)) return -1;";
                 }else{
                     ret = $"// invalid check lua args signature {signature}";
                 }
@@ -372,6 +380,7 @@ static int w_{signatureInfo.Signature}(void* method, MethodPointer methodPointer
             {
                 return index;
             }
+            
         }
         /// struct 什么时候需要offset 需要调用struct的成员方法时 该struct需要offset 其他时刻均不需要
         public static string GetThis(string signature, bool field = false)
@@ -382,7 +391,7 @@ static int w_{signatureInfo.Signature}(void* method, MethodPointer methodPointer
             }
             else if (signature == "T")
             {
-                return $"auto self = GetCppObjMapper()->ToCppObj{(field?"_Field":"")}(L, 1);";
+                return $"auto self = LuaValueToCSRef(GetLuaObjCls(L,1), L, 1);";
             }
             else if (signature == "s" ){
                 return $"auto self = GetCppObjMapper()->ToCppObj{(field?"_Field":"")}(L, 1);";
@@ -755,7 +764,7 @@ static {SToCPPType(bridgeInfo.ReturnSignature)} b_{bridgeInfo.Signature}(void* t
     int errFunc = lapi_pcall_prepare(L, errorFunc_ref, delegateInfo->reference);
     
     {string.Join("\n",bridgeInfo.ParameterSignatures.Select((s,i)=>CSValToLuaVal(s, "p"+i)))}
-    int n = lapi_lua_pcall(L, {bridgeInfo.ParameterSignatures.Count}, 0, errFunc);
+    int n = lapi_lua_pcall(L, {bridgeInfo.ParameterSignatures.Count}, {(bridgeInfo.ReturnSignature.IsVoid() ? 0 : 1)}, errFunc);
     if(!n){{
         {ReturnToCS(bridgeInfo.ReturnSignature)}
     }}else{{
