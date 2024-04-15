@@ -71,6 +71,14 @@ namespace XLua.IL2CPP
             return -1;
         }
 
+        public static object FallBackLua2CSObj(RealStatePtr L,int index,  Type t){
+            var translator = ObjectTranslatorPool.Instance.Find(L);
+            if (t != null)
+            {
+                return translator.objectCasters.GetCaster(t)(L, index, null);
+            }
+            return null;
+        }
         
 
         //#TODO@benp C++类型释放
@@ -125,7 +133,9 @@ namespace XLua.IL2CPP
                 
                 var Bytes2StringMethod = typeof(TypeRegister).GetMethod("Bytes2String", BindingFlags.Static | BindingFlags.Public);
 
-                NativeAPI.SetCSharpAPI(new MethodBase[]{StaticGetTypeIdMethod, AddObjMethod, RemoveObjMethod, CombineDelegateMethod, RemoveDelegateMethod, GetCacheDelegateMethod, CacheDelegateMethod, Bytes2StringMethod});
+                var FallBackLua2CSObjMethod = typeof(TypeRegister).GetMethod("FallBackLua2CSObj", BindingFlags.Static | BindingFlags.Public);
+
+                NativeAPI.SetCSharpAPI(new MethodBase[]{StaticGetTypeIdMethod, AddObjMethod, RemoveObjMethod, CombineDelegateMethod, RemoveDelegateMethod, GetCacheDelegateMethod, CacheDelegateMethod, Bytes2StringMethod, FallBackLua2CSObjMethod});
                 
                 NativeAPI.SetGlobalType_LuaObject(typeof(LuaObject));
             }

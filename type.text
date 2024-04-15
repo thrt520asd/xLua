@@ -6093,6 +6093,7 @@ TableAutoTransComplexStructReflect
 TestTableAutoTransClassReflect
 ReferTestClassReflect
 Main
+Main_il2cpp
 IL2CppTestMono
 ExampleGenConfig
 LuaCallCs
@@ -6165,6 +6166,9 @@ XLua.LuaDLL.lua_CSFunction
 XLua.LuaDLL.Lua
 XLua.IL2CPP.ArrayExtension
 XLua.IL2CPP.LuaObject
+XLua.IL2CPP.MonoPInvokeCallbackAttribute
+XLua.IL2CPP.NativeAPI
+XLua.IL2CPP.TypeRegister
 XLua.IL2CPP.ExtensionMethodInfo
 XLua.IL2CPP.TypeUtils
 XLua.CSObjectWrap.AClassWrap

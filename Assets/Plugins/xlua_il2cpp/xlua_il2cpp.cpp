@@ -74,9 +74,20 @@ namespace xlua
     static Bytes2StringType Bytes2StringMethodPointer = nullptr;
     static const MethodInfo *Bytes2StringMethodInfo = nullptr;
 
+    static FallBackLua2CSObjType FallBackLua2CSObjMethodPointer = nullptr;
+    static const MethodInfo *FallBackLua2CSObjMethodInfo = nullptr;
+
     static Il2CppClass *g_typeofLuaObj;
 
     Il2CppObject *LuaValueToCSRef(Il2CppClass *klass, lua_State *L, int index);
+
+    Il2CppObject* FallBackLua2CSObj(lua_State *L, int index, Il2CppClass* klass){
+        auto reflectType = Reflection::GetTypeObject(Class::GetType(klass));
+        if(reflectType){
+            return FallBackLua2CSObjMethodPointer(L, index, reflectType, FallBackLua2CSObjMethodInfo);
+        }
+        return nullptr;
+    }
 
     Il2CppString* Bytes2String(void* bytes){
         return Bytes2StringMethodPointer(bytes, Bytes2StringMethodInfo);
@@ -85,6 +96,57 @@ namespace xlua
     Il2CppDelegate *GetCacheDelegate(lua_State *L, int referenced)
     {
         return GetCacheDelegateMethodPointer(L, referenced, GetCacheDelegateMethodInfo);
+    }
+
+    void* GetCSharpStructPointer(lua_State* L, int index, void* typeId)
+    {
+        auto css = lapi_xlua_tocss(L, index);
+        if (css && css->fake_id == -1 && (typeId ? typeId == css->typeId : true))
+        {
+            return &css->data[0];
+        }
+        return {};
+    }
+
+    template <typename T>
+    static T* GetCSharpStructPointerFromLua(lua_State* L, int index, void* typeId)
+    {
+        auto css = lapi_xlua_tocss(L, index);
+        if (css && css->fake_id == -1 && (typeId ? true : typeId == css->typeId))
+        {
+            return reinterpret_cast<T*>(&css->data[0]);
+        }
+        else {
+            if (lapi_lua_type(L, index) == LUA_TTABLE) {
+                Il2CppObject* obj = FallBackLua2CSObj(L, index, (Il2CppClass*)typeId);
+                if (obj) {
+                    return reinterpret_cast<T*>(Object::Unbox(obj));
+                }
+            }
+        }
+        return nullptr;
+    }
+
+    /// <summary>
+    /// 获取对象指针 
+    /// tips 非extension 值类型返回带offset的指针 extension 返回不带offset的指针
+    /// </summary>
+    /// <param name="L"></param>
+    /// <param name="index"></param>
+    /// <param name="isExtensionMethod"></param>
+    /// <returns></returns>
+    void* GetThisPointer(lua_State *L,  bool isExtensionMethod) {
+        if (lapi_lua_isuserdata(L, 1)) {
+            void* ptr = lapi_xlua_getcsobj_ptr(L, 1);
+            if (!ptr) {
+                ptr = GetCSharpStructPointer(L, 1, nullptr);
+                if (!isExtensionMethod) {
+                    ptr = ((char*)ptr) - sizeof(RuntimeObject);
+                }
+            }
+            return ptr;
+        }
+        return nullptr;
     }
 
     void CacheDelegate(lua_State *L, int referenced, Il2CppDelegate *delegate)
@@ -111,6 +173,7 @@ namespace xlua
 
     void *LuaStr2CSharpString(lua_State *L, int index)
     {
+        if (lapi_lua_isnil(L, index)) { return nullptr; }
         const char *str = lapi_lua_tostring(L, index);
         return String::NewWrapper(str);
     }
@@ -171,26 +234,7 @@ namespace xlua
         }
     }
 
-    void *GetCSharpStructPointer(lua_State *L, int index, void *typeId)
-    {
-        auto css = lapi_xlua_tocss(L, index);
-        if (css && css->fake_id == -1 && (typeId ? true : typeId == css->typeId))
-        {
-            return &css->data[0];
-        }
-        return {};
-    }
 
-    template <typename T>
-    static T *GetCSharpStructPointerFromLua(lua_State *L, int index, void *typeId)
-    {
-        auto css = lapi_xlua_tocss(L, index);
-        if (css && css->fake_id == -1 && (typeId ? true : typeId == css->typeId))
-        {
-            return reinterpret_cast<T *>(&css->data[0]);
-        }
-        return nullptr;
-    }
 
     static int throw_exception2lua(lua_State *L, const char *msg)
     {
@@ -821,20 +865,27 @@ namespace xlua
                 }
                 else
                 {
-                    auto objClass = GetLuaObjCls(L, -1);
-                    if (!Class::IsAssignableFrom(klass->element_class, objClass))
-                    {
-                        break;
-                    }
-                    void *p = GetCSharpStructPointer(L, -1, nullptr);
-                    if (p)
-                    {
-                        auto size = GetValueTypeSize(elementKlass);
-                        il2cpp_array_setrefwithsize(array, size, i, p);
+                    //这里可以考虑实现成递归 递归要处理装箱拆箱的情况
+                    if(lapi_lua_isuserdata(L, -1)){
+                        auto objClass = GetLuaObjCls(L, -1);
+                        if (!Class::IsAssignableFrom(klass->element_class, objClass))
+                        {
+                            break;
+                        }
+                        void *p = GetCSharpStructPointer(L, -1, nullptr);
+                        if (p)
+                        {
+                            auto size = GetValueTypeSize(elementKlass);
+                            il2cpp_array_setrefwithsize(array, size, i, p);
+                        }
                     }
                     else
                     {
-                        // #TODO@benp reflection
+                        auto obj = FallBackLua2CSObj(L, index, klass->element_class);
+                        if(obj){
+                            auto size = GetValueTypeSize(elementKlass);
+                            il2cpp_array_setrefwithsize(array, size, i, Object::Unbox(obj));
+                        }
                     }
                 }
                 break;
@@ -992,7 +1043,6 @@ namespace xlua
         }
         case IL2CPP_TYPE_CLASS:
         case IL2CPP_TYPE_OBJECT:
-            // #TODO@benp reflection
         case IL2CPP_TYPE_FNPTR:
         case IL2CPP_TYPE_PTR:
         {
@@ -1005,57 +1055,57 @@ namespace xlua
                 return nullptr;
             }
 
-            auto ptr = GetCppObjMapper()->ToCppObj(L, index);
-            ;
-            if (!ptr)
-            {
-                if (klass == il2cpp_defaults.object_class)
-                {
-                    if (lapi_lua_isstring(L, index))
+            if(lapi_lua_isuserdata(L, index)){
+                auto ptr = GetCppObjMapper()->ToCppObj(L, index); //原生C#对象    
+                if(ptr){
+                    auto objClass = GetLuaObjCls(L, index);
+                    if (Class::IsAssignableFrom(klass, objClass))
                     {
-                        t = IL2CPP_TYPE_STRING;
-                        klass = il2cpp_defaults.string_class;
+                        return Class::IsValuetype(objClass) ? Object::Box(objClass, ptr) : (Il2CppObject *)ptr;
                     }
-                    else if (lapi_lua_isnumber(L, index))
-                    {
-                        t = IL2CPP_TYPE_R8;
-                        klass = il2cpp_defaults.double_class;
-                    }
-                    else if (lapi_lua_isinteger(L, index))
-                    {
-                        t = IL2CPP_TYPE_I4;
-                        klass = il2cpp_defaults.int32_class;
-                    }
-                    else if (lapi_lua_isint64(L, index))
-                    {
-                        t = IL2CPP_TYPE_I8;
-                        klass = il2cpp_defaults.int64_class;
-                    }
-                    else if (lapi_lua_isuint64(L, index))
-                    {
-                        t = IL2CPP_TYPE_U8;
-                        klass = il2cpp_defaults.uint64_class;
-                    }
-                    else if (lapi_lua_isboolean(L, index))
-                    {
-                        t = IL2CPP_TYPE_BOOLEAN;
-                        klass = il2cpp_defaults.boolean_class;
-                    }
-                    else
-                    {
-                        goto return_nothing;
-                    }
-                    goto handle_underlying;
                 }
-            return_nothing:
-                return nullptr;
             }
-            auto objClass = GetLuaObjCls(L, index);
-            if (Class::IsAssignableFrom(klass, objClass))
+            if (klass == il2cpp_defaults.object_class)
             {
-                return Class::IsValuetype(objClass) ? Object::Box(objClass, ptr) : (Il2CppObject *)ptr;
+                if (lapi_lua_isstring(L, index))
+                {
+                    t = IL2CPP_TYPE_STRING;
+                    klass = il2cpp_defaults.string_class;
+                }
+                else if (lapi_lua_isnumber(L, index))
+                {
+                    t = IL2CPP_TYPE_R8;
+                    klass = il2cpp_defaults.double_class;
+                }
+                else if (lapi_lua_isinteger(L, index))
+                {
+                    t = IL2CPP_TYPE_I4;
+                    klass = il2cpp_defaults.int32_class;
+                }
+                else if (lapi_lua_isint64(L, index))
+                {
+                    t = IL2CPP_TYPE_I8;
+                    klass = il2cpp_defaults.int64_class;
+                }
+                else if (lapi_lua_isuint64(L, index))
+                {
+                    t = IL2CPP_TYPE_U8;
+                    klass = il2cpp_defaults.uint64_class;
+                }
+                else if (lapi_lua_isboolean(L, index))
+                {
+                    t = IL2CPP_TYPE_BOOLEAN;
+                    klass = il2cpp_defaults.boolean_class;
+                }
+                else
+                {
+                    return nullptr;
+                }
+                goto handle_underlying;
             }
-            return nullptr;
+
+            
+            return FallBackLua2CSObj(L, index, klass);
         }
         case IL2CPP_TYPE_VALUETYPE:
             /* note that 't' and 'type->type' can be different */
@@ -1066,19 +1116,23 @@ namespace xlua
             }
             else
             {
-                auto objClass = GetLuaObjCls(L, index);
-                if (!Class::IsAssignableFrom(klass, objClass))
-                {
-                    return nullptr;
-                }
-                toBox = GetCSharpStructPointer(L, index, nullptr);
-                if (!toBox)
-                {
-                    std::string message = "expect ValueType: ";
-                    message += klass->name;
-                    message += ", by got null";
-                    Exception::Raise(Exception::GetInvalidOperationException(message.c_str()));
-                    return nullptr;
+                if(lapi_lua_isuserdata(L, index)){
+                    auto objClass = GetLuaObjCls(L, index);
+                    if (!Class::IsAssignableFrom(klass, objClass))
+                    {
+                        return nullptr;
+                    }
+                    toBox = GetCSharpStructPointer(L, index, nullptr);
+                    if (!toBox)
+                    {
+                        std::string message = "expect ValueType: ";
+                        message += klass->name;
+                        message += ", by got null";
+                        Exception::Raise(Exception::GetInvalidOperationException(message.c_str()));
+                        return nullptr;
+                    }
+                }else{
+                    return FallBackLua2CSObj(L, index, klass);
                 }
             }
             break;
@@ -1293,12 +1347,22 @@ namespace xlua
         return nullptr;
     }
 
-    bool CheckIsStruct(lua_State *L, int index, void *typeId)
+    bool CheckIsString(lua_State *L, int index) {
+        int type = lapi_lua_type(L, index);
+        return type == LUA_TSTRING || type == LUA_TNIL;
+    }
+
+    bool CheckIsStruct(lua_State* L, int index, void* typeId)
     {
         auto css = lapi_xlua_tocss(L, index);
 
         return css && css->typeId == typeId;
     }
+
+    bool CheckIsNullableStruct(lua_State *L, int index, void* typeId) {
+        return CheckIsStruct(L, index, typeId) || lapi_lua_isnil(L, index);
+    }
+    
 
     bool CheckIsClass(lua_State *L, int index, void *typeId)
     {
@@ -1564,10 +1628,10 @@ namespace xlua
         {
             const void *pointer = lapi_lua_topointer(L, lapi_lapi_lua_upvalueindex(1));
             void *p1 = const_cast<void *>(pointer);
-            xlua::WrapData **wrapDatas = reinterpret_cast<xlua::WrapData **>(p1);
+            WrapData **wrapDatas = reinterpret_cast<WrapData **>(p1);
             if (wrapDatas)
             {
-                return xlua::MethodCallback(L, wrapDatas, paramOffset);
+                return MethodCallback(L, wrapDatas, paramOffset);
             }
         }
 
@@ -1715,7 +1779,8 @@ namespace xlua
                     if (clsInfo->CtorWrapDatas)
                     {
                         // #TODO@benp 构造函数失败  清除引用
-                        if (MethodCallback(L, clsInfo->CtorWrapDatas, 2) >= 0)
+                        int count = MethodCallback(L, clsInfo->CtorWrapDatas, 2);//目前不支持 构造函数的参数是ref类型的
+                        if ( count >= 0)
                         {
                             lapi_lua_settop(L, 1);
                             return 1;
@@ -1739,7 +1804,7 @@ namespace xlua
                 int32_t typeId = GetLuaClassRegister()->GetTypeIdByIl2cppClass(L, klass);
                 CSharpStruct *css = lapi_xlua_createstruct_pointer(L, size, typeId, (void *)klass);
 
-                if (clsInfo->CtorWrapDatas)
+                if (clsInfo->CtorWrapDatas && * clsInfo->CtorWrapDatas)
                 {
                     //-1 obj -2 param
                     lapi_lua_replace(L, 1);
@@ -1994,6 +2059,10 @@ namespace xlua
         auto Bytes2StringMethod = il2cpp_array_addr(methodArray, Il2CppReflectionMethod *, 7);
         Bytes2StringMethodPointer = (Bytes2StringType)xlua::GetMethodPointer(*Bytes2StringMethod);
         Bytes2StringMethodInfo = (*Bytes2StringMethod)->method;
+
+        auto FallBackLua2CSObjMethod = il2cpp_array_addr(methodArray, Il2CppReflectionMethod*, 8);
+        FallBackLua2CSObjMethodPointer = (FallBackLua2CSObjType)xlua::GetMethodPointer(*FallBackLua2CSObjMethod);
+        FallBackLua2CSObjMethodInfo = (*FallBackLua2CSObjMethod)->method;
     }
 
     int LuaGCCallBack(lua_State *L)

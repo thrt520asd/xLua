@@ -15,15 +15,20 @@ namespace xlua
 #define MethodPointer Il2CppMethodPointer
 
     typedef int (*WrapFuncPtr)(MethodInfo *method, Il2CppMethodPointer methodPointer, lua_State *L, bool checkArgument, struct WrapData *wrapData, int paramOffset);
+
     typedef void (*FieldWrapFuncPtr)(lua_State L, FieldInfo *field, size_t offset, Il2CppClass *fieldType);
 
     typedef int (*DelegateWrapFunc)(lua_State *L, Il2CppDelegate *ilDelegate, const MethodInfo *method);
 
     typedef void *((*DelegateCombineType))(Il2CppDelegate *d1, Il2CppDelegate *d2, MethodInfo *methodInfo);
+
     typedef Il2CppDelegate *((*GetCacheDelegateType))(lua_State *L, int referenced, const MethodInfo *methodInfo);
+
     typedef void((*CacheDelegateType))(lua_State *L, int referenced, RuntimeObject *obj, const MethodInfo *methodInfo);
 
     typedef Il2CppString *((*Bytes2StringType))(void *bytes, const MethodInfo *methodInfo);
+
+    typedef Il2CppObject *((*FallBackLua2CSObjType))(lua_State *L, int index, const Il2CppReflectionType* reflectType, const MethodInfo *methodInfo);
 
     struct PersistentObjectInfo
     {

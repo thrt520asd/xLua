@@ -248,7 +248,7 @@ methodPointer仅指action的实现 生成在Generics.cpp
 1 out的传递是值传递 从puerTs的实现来看
 ref/int 是指针传递  例如 GetTileData 
 
-unity导出的vs工程没有 SIZEOF_VOID_P定义 需要手动添加
+unity导出的vs工程没有有概率 SIZEOF_VOID_P定义 需要手动添加 
 todo 
 string=>bytes (lua=>C#)
 VariableParam
@@ -270,3 +270,10 @@ public static int OverLoad2(string x, string y)
 }
 这种形式的会都执行到OverLoad2(int x, float y)
 解决方案 indexer的的key类型强制转换为number 有点丑陋
+
+反射构造 支持interface
+todo enum导入问题
+
+问题 struct什么时候需要offset 什么时候不需要
+调用成员函数，属性，字段的时候 需要offset
+作为参数传递的时候 需要offset extension方法不需要offset

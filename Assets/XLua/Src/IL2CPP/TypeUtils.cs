@@ -206,6 +206,10 @@ namespace XLua.IL2CPP
             {
                 return TypeSignatures.Double;
             }
+            // else if (type == typeof(decimal)) //decimal 也按照double处理 
+            // {
+            //     return TypeSignatures.Double;
+            // }
             else if (type == typeof(float))
             {
                 return TypeSignatures.Float;
