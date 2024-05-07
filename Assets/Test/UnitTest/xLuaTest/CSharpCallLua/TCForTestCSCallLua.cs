@@ -230,6 +230,7 @@ public class TCForTestCSCallLua{
 		end 
 
 		function func_multi_params3(b, a)
+            print('func_multi_params3', b , a)
 			local sum = 0
 		    if a == true
 			then

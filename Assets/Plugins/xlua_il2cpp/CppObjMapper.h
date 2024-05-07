@@ -16,8 +16,8 @@ private:
 public:
     CppObjMapper(/* args */);
     ~CppObjMapper();
-    void SetTypeId(void *kclass, int32_t metaId);
-    int GetClassMetaId(void *kclass);
+    
+    bool TryPushStruct(lua_State* L, Il2CppClass* klass, void* pointer, unsigned int size);
     bool TryPushObject(lua_State*L, void *obj);
     void FreeObj(Il2CppObject* obj);
     void SetCacheRef(int32_t cache_ref);
@@ -30,8 +30,6 @@ public:
     void *ToCppObj(lua_State *L, int index);
 
     void* ToCppObj_Field(lua_State* L, int index);
-
-    bool TryPushStruct(lua_State *L, void *typeId, void *pointer, unsigned int size);
 };
 
 CppObjMapper* GetCppObjMapper();

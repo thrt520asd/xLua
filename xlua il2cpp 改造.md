@@ -131,9 +131,6 @@ class 特性测试{
     property get/set
     inheirt
 }
-
-
-
 ----------------结构类型----------------
 
 class
@@ -200,7 +197,7 @@ C# 构造struct copyvalue2lua(memcpy 2 userData)
 lua => C#
 luaUd copyvalue2C#(memcpy 2 struct) 没有装箱拆箱问题
 gc问题交给C#和lua的gc机制管理 无需特殊处理 不需存池 
-不清楚puerTS为什么设计缓存
+上面只适用于 没有引用的struct
 另一种思路设计缓存 
 ====================================核心代码END====================================
 需要锁吗，不需要 对lua的访问有C#的锁来保证
@@ -218,7 +215,10 @@ il2cpp Alloc{
     AllocateSpec
     Allocate
 }
-可以用GCHandle来持有引用 不能用gchandler  gchandler是重新申请内存 还是要走C#池
+
+GCHandler
+gchandler是重新申请内存 相当于new一个对象
+
 
 todo xlua_il2cpp 和xlua的整合统一
 
@@ -241,21 +241,14 @@ invokeMethod{
     methodPointer(delegate, args[0], arg[1],...., methodMetadata)
 }
 methodPointer仅指action的实现 生成在Generics.cpp
-判断是否多个delegate 按照规则调用delegate
 
 
-引用传递的参数
-1 out的传递是值传递 从puerTs的实现来看
-ref/int 是指针传递  例如 GetTileData 
+问题 bytes
+bytes(C#) to string(lua)
+string=>bytes (lua=>C#) hard code
 
-unity导出的vs工程没有有概率 SIZEOF_VOID_P定义 需要手动添加 
-todo 
-string=>bytes (lua=>C#)
-VariableParam
-number判断接口改动
-enum cast
-反射构造obj
-参数检测之number
+
+问题  indexer支持
 前提 table的访问下标是string格式 如table[1] key其实是"1" 
 如果用lua_type(L, 2) == LUA_TNUMBER 检测会failed
 如果用lua_isnumber(L,2) 
@@ -271,9 +264,24 @@ public static int OverLoad2(string x, string y)
 这种形式的会都执行到OverLoad2(int x, float y)
 解决方案 indexer的的key类型强制转换为number 有点丑陋
 
-反射构造 支持interface
-todo enum导入问题
 
 问题 struct什么时候需要offset 什么时候不需要
 调用成员函数，属性，字段的时候 需要offset
 作为参数传递的时候 需要offset extension方法不需要offset
+
+
+
+
+todo {
+    CaseVisitExtensionMethodForStruct
+    使用hasReference 还是 Blittable 
+    可变参数支持
+    userData引用释放
+    目前有两个池C++维护了一个map C#维护了一个objPool维持引用 可以考虑整合成一个
+    LuaBase（C#）push到lua
+}
+
+better{
+    代码整理
+    unity导出的vs工程没有有概率 SIZEOF_VOID_P定义 需要手动添加 
+}

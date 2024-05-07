@@ -56,7 +56,7 @@ public class PerfMain : MonoBehaviour {
 
 	void OnGUI()
 	{
-		if (GUI.Button (new Rect (10, 100, 300, 150), "Start")) {
+		if (GUI.Button (new Rect (100, 100, 300, 150), "Start")) {
             FileStream fs = new FileStream(resultPath, FileMode.Create);
             sw = new StreamWriter(fs);
 

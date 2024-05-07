@@ -32,7 +32,7 @@ co = coroutine.create(function()
 	InitLTest(tInitPara)
 
 	AddLTestSuite(CMyTestCaseLuaCallCS:new(), "CMyTestCaseLuaCallCS", "Case")
-	-- AddLTestSuite(CMyTestCaseLuaCallCSReflect:new(), "CMyTestCaseLuaCallCSReflect", "Case")
+	AddLTestSuite(CMyTestCaseLuaCallCSReflect:new(), "CMyTestCaseLuaCallCSReflect", "Case")
 	--AddLTestSuite(CMyTestCaseGenCode:new(), "CMyTestCaseGenCode", "Case")
 	AddLTestSuite(CMyTestCaseCSCallLua:new(), "CMyTestCaseCSCallLua", "test")
 	--AddLTestSuite(CMyTestCaseLuaTdr:new(), "CMyTestCaseLuaTdr", "Case")

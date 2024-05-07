@@ -22,18 +22,16 @@ namespace xlua
 
     typedef void *((*DelegateCombineType))(Il2CppDelegate *d1, Il2CppDelegate *d2, MethodInfo *methodInfo);
 
-    typedef Il2CppDelegate *((*GetCacheDelegateType))(lua_State *L, int referenced, const MethodInfo *methodInfo);
-
-    typedef void((*CacheDelegateType))(lua_State *L, int referenced, RuntimeObject *obj, const MethodInfo *methodInfo);
-
     typedef Il2CppString *((*Bytes2StringType))(void *bytes, const MethodInfo *methodInfo);
 
     typedef Il2CppObject *((*FallBackLua2CSObjType))(lua_State *L, int index, const Il2CppReflectionType* reflectType, const MethodInfo *methodInfo);
 
-    struct PersistentObjectInfo
+    typedef Il2CppDelegate *((*GetDelegateType))(lua_State *L, int index, const Il2CppReflectionType* reflectType, intptr_t methodPointer, const MethodInfo *methodInfo);
+
+    struct DelegateMiddlerware
     {
         lua_State *L;
-        Il2CppClass *klass;
+        Il2CppMethodPointer FuncPtr;
         int reference;
     };
 
@@ -106,5 +104,6 @@ namespace xlua
 
     void SetLogHandler(LogCallback log);
     void GLogFormatted(const char *format, ...);
+    void GWarnFormatted(const char* format, ...);
 
 }

@@ -1245,6 +1245,7 @@ int lapi_lua_upvalueindex(int index){
 typedef struct {
 	int poolIdx;
 	void* pointer;
+    int* tag;
 } CSharpObject;
 
 
@@ -1252,7 +1253,7 @@ LUA_API void xlua_pushcsobj_ptr(lua_State* L, void* ptr, int meta_ref, int key, 
     CSharpObject* pointer = (CSharpObject*)lua_newuserdata(L, sizeof(CSharpObject));
 	pointer->poolIdx = poolIdx;
 	pointer->pointer = ptr; 
-	
+	pointer->tag = &tag;
 	if (need_cache) cacheud(L, key, cache_ref);
 
     lua_rawgeti(L, LUA_REGISTRYINDEX, meta_ref);
@@ -1263,7 +1264,7 @@ LUA_API void xlua_pushcsobj_ptr(lua_State* L, void* ptr, int meta_ref, int key, 
 
 LUA_API void* xlua_getcsobj_ptr(lua_State* L,int index){
     CSharpObject* pointer = (CSharpObject*)lua_touserdata(L, index);
-    if(pointer && pointer->poolIdx > -1){
+    if(pointer && pointer->tag == &tag){
         return pointer->pointer;
     }
 	return NULL;
@@ -1301,7 +1302,7 @@ LUA_API CSharpStruct* xlua_tocss(lua_State *L, int index) {
 	return NULL;
 }
 
-void xlua_call(lua_State*L, int nargs, int nresults){
+LUA_API xlua_call(lua_State*L, int nargs, int nresults){
     lua_call(L, nargs, nresults);
 }
 

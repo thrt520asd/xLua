@@ -53,24 +53,43 @@ namespace converter
         }
     };
 
-    // int/uint
+    // int
     template <typename T>
-    struct Converter<T, typename std::enable_if<std::is_integral<T>::value && sizeof(T) < 8>::type>
+    struct Converter < T, typename std::enable_if<std::is_integral<T>::value && sizeof(T) <8 && std::is_signed<T>::value > ::type>
     {
-        static void toScript(lua_State *L, T value)
+        static void toScript(lua_State* L, T value)
         {
             lapi_xlua_pushinteger(L, value);
         }
 
+        static T toCpp(lua_State* L, int index)
+        {
+            return (T)lapi_lua_tonumber(L, index);
+        }
+
+        static bool accept(lua_State* L, int index)
+        {
+            return lapi_lua_isnumber(L, index);
+        }
+    };
+
+    // uint
+    template <typename T>
+    struct Converter < T, typename std::enable_if<std::is_integral<T>::value && sizeof(T) < 8 && std::is_unsigned<T>::value > ::type>
+    {
+        static void toScript(lua_State *L, T value)
+        {
+            lapi_xlua_pushuint(L, value);
+        }
+
         static T toCpp(lua_State *L, int index)
         {
-
-            return (int)lapi_lua_tonumber(L, index);
+            return (T)lapi_lua_tonumber(L, index);
         }
 
         static bool accept(lua_State *L, int index)
         {
-            return lapi_lua_isinteger(L, index);
+            return lapi_lua_isnumber(L, index);
         }
     };
 

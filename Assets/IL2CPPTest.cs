@@ -8,7 +8,6 @@ using XLua;
 public class IL2CPPTestBase{
     private string m_name = "";
     public IL2CPPTestBase(string name){
-        Debug.Log("IL2CPPTestBase constructor "+ name);
         m_name = name;
     }
 
@@ -24,7 +23,7 @@ public class IL2CPPTestBase{
     public int baseInt = 1;
 
 }
-
+[LuaCallCSharp]
 public class IL2CPPTest :IL2CPPTestBase
 {
     public Il2CppTestStruct il2CppTestStruct;

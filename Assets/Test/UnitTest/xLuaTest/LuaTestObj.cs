@@ -36,7 +36,6 @@ public delegate int TestEvtHandler2(byte y, float z);
 [LuaCallCSharp]
 public class LuaTestObj
 {
-    
 	public static LuaEnv luaEnv = LuaEnvSingletonForTest.Instance;
     public int testVar { get; set; }
     public int[] testArr = new int[3];
@@ -284,6 +283,7 @@ public class LuaTestObj
 	public static int CalcAdd(int x)
 	{
 		initNumber += x;
+        Debug.Log("CalcAdd" + (initNumber));
 		return initNumber;
 	}
 
@@ -296,12 +296,14 @@ public class LuaTestObj
 	public static int CalcDel(int x)
 	{
 		initNumber -= x;
+        Debug.Log("CalcDel" + (initNumber));
 		return initNumber;
 	}
 
 	public static int CalcMul(int x)
 	{
 		initNumber *= x;
+        Debug.Log("CalcMul" + (initNumber));
 		return initNumber;
 	}
 
@@ -525,7 +527,6 @@ public class LuaTestObj
 #if !XLUA_GENERAL
     public static LayerMask TestImplicit()
     {
-        
         return new LayerMask();
     }
 #endif

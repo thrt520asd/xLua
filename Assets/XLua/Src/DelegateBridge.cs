@@ -19,6 +19,7 @@ using LuaCSFunction = XLua.LuaDLL.lua_CSFunction;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace XLua
 {
@@ -81,6 +82,12 @@ namespace XLua
         public virtual Delegate GetDelegateByType(Type type)
         {
             return null;
+        }
+
+        public override void Dispose(bool disposeManagedResources)
+        {
+            base.Dispose(disposeManagedResources);
+            UnityEngine.Debug.Log("Dispose DelegateBridge " + this.luaReference);
         }
     }
 

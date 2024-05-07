@@ -19,6 +19,7 @@ using LuaCSFunction = XLua.LuaDLL.lua_CSFunction;
 using System.Collections.Generic;
 using System;
 using System.Reflection;
+using UnityEngine.SocialPlatforms;
 
 namespace XLua
 {
@@ -172,7 +173,7 @@ namespace XLua
             }
 
             return paramsType != null ? (luaStackPos < luaTop + 1 ? 
-                checkArray[checkArray.Length - 1](L, luaStackPos) : true) : luaStackPos == luaTop + 1;
+                checkArray[checkArray.Length - 1](L, luaStackPos) : true) : luaStackPos <= luaTop + 1;
         }
 
         public int Call(RealStatePtr L)
@@ -295,7 +296,28 @@ namespace XLua
             try
             {
                 if (overloads.Count == 1 && !overloads[0].HasDefalutValue && !forceCheck) return overloads[0].Call(L);
-
+                if(methodName == "DefaultParaFuncMulti"){
+                    var suc = false;
+                    for (int i = 0; i < overloads.Count; ++i)
+                    {
+                        var overload = overloads[i];
+                        if (overload.Check(L))
+                        {
+                            suc = true;
+                        }
+                    }
+                    if(!suc){
+                        int j = 10;
+                        for (int i = 0; i < overloads.Count; ++i)
+                        {
+                            var overload = overloads[i];
+                            if (overload.Check(L))
+                            {
+                                suc = true;
+                            }
+                        }
+                    }
+                }
                 for (int i = 0; i < overloads.Count; ++i)
                 {
                     var overload = overloads[i];

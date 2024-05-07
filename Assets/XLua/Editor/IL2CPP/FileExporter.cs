@@ -161,11 +161,45 @@ $@"struct {Signature}{{
                 const BindingFlags flagForPuer = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
                 // types = new List<Type>(){typeof(IL2CPPTest), typeof(IL2CPPTestBase), typeof(Vector3), typeof(Il2CppTestStruct), typeof(DirectionEnum), typeof(Enum), typeof(Tutorial.DerivedClass), typeof(Tutorial.BaseClass), typeof(System.Action), typeof(int[]), typeof(LuaTestObj)};
                 
-                File.WriteAllText(Application.dataPath+"/../type.text",  String.Join("\n", types.Select(s=>s.FullName)));
+                
                 //#TODO@benp 白名单处理
                 var typeExcludeDelegate = types
-                    .Where(t => !typeof(MulticastDelegate).IsAssignableFrom(t));
-
+                    .Where(t => !(typeof(MulticastDelegate).IsAssignableFrom(t)
+                    ||t.FullName.StartsWith("UnityEditor")
+                    ||t.FullName.StartsWith("Microsoft.")
+                    ||t.FullName.StartsWith("System.Reflection.")
+                    ||t.FullName.StartsWith("System.Globalization")
+                    ||t.FullName.StartsWith("System.Threading")
+                    ||t.FullName.StartsWith("System.Security")
+                    ||t.FullName.StartsWith("System.Runtime.Remoting")
+                    ||t.FullName.StartsWith("Unity.IO")
+                    ||t.FullName.StartsWith("JetBrains")
+                    ||t.FullName.StartsWith("UnityEngine.iOS")
+                    ||t.FullName.StartsWith("UnityEngine.Experimental")
+                    ||t.FullName.StartsWith("UnityEngine.UIElements")
+                    ||t.FullName.StartsWith("UnityEngine.Networking")
+                    ||t.FullName.StartsWith("UnityEngine.XR")
+                    ||t.FullName.StartsWith("XLua.CSObjectWrap")
+                    ||t.FullName.StartsWith("TMPro.")
+                    ||t.FullName.StartsWith("NUnit.")
+                    ||t.FullName.StartsWith("System.Xml.")
+                    ||t.FullName.StartsWith("System.Diagnostics.")
+                    ||t.FullName.StartsWith("System.Linq.")
+                    ||t.FullName.StartsWith("System.Management.")
+                    ||t.FullName.StartsWith("System.Diagnostics.")
+                    ||t.FullName.StartsWith("System.Dynamic.")
+                    ||t.FullName.StartsWith("System.ComponentModel.")
+                    ||t.FullName.StartsWith("System.Net.")
+                    ||t.FullName.StartsWith("System.CodeDom.")
+                    ||t.FullName.StartsWith("System.Configuration.")
+                    ||t.FullName.StartsWith("Mono.Security.")
+                    ||t.FullName.StartsWith("UnityEngine.TestTools.")
+                    ||t.FullName.StartsWith("Packages.Rider.")
+                    ||t.FullName.StartsWith("Mono.Cecil.")
+                    ||t.FullName.StartsWith("ICSharpCode.NRefactory.")
+                    
+                    ));
+                File.WriteAllText(Application.dataPath+"/../type.text",  String.Join("\n", typeExcludeDelegate.Select(s=>s.FullName)));
                 var ctorToWrapper = typeExcludeDelegate
                     .SelectMany(t => t.GetConstructors(t.FullName.Contains("Puer") ? flagForPuer : flag));
                 // .Where(m => Utils.getBindingMode(m) != Puerts.BindingMode.DontBinding);

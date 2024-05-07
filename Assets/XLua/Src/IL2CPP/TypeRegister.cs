@@ -37,22 +37,13 @@ namespace XLua.IL2CPP
         }
 
         /// call from native
-        public static object GetCacheDelegate(RealStatePtr L, int referenced){
+        public static Delegate GetDelegate(RealStatePtr L, int referenced, Type type, IntPtr funcptr){
             var translator = ObjectTranslatorPool.Instance.Find(L);
             if (translator != null)
             {
-                return translator.GetCacheDelegate(L, referenced);
+                return translator.GetDelegate(L, referenced, type, funcptr);
             }
             return null;
-        }
-
-        /// call from native
-        public static void CacheDelegate(RealStatePtr L, int referenced, object cppDelegate){
-            var translator = ObjectTranslatorPool.Instance.Find(L);
-            if (translator != null)
-            {
-                translator.CacheDelegate(L, referenced, cppDelegate);
-            }
         }
 
         /// <summary>
@@ -85,13 +76,11 @@ namespace XLua.IL2CPP
 
         private static IntPtr GetFieldWrapper(string name, bool isStatic, string signature)
         {
-            //todo@benp reflectionWrap
             return NativeAPI.FindFieldWrap(signature);
         }
 
         private static IntPtr GetWrapperFunc(MemberInfo member, string signature)
         {
-            //todo@benp reflectionWrap
             return NativeAPI.FindWrapFunc(signature);
         }
 
@@ -107,11 +96,14 @@ namespace XLua.IL2CPP
 
         private static HashSet<Type> loaded_type = new HashSet<Type>();
         private static bool setcache = false;
+        //#TODO@benp 待整理
         public static void Register(RealStatePtr L, Type type, bool includeNonPublic, bool throwIfMemberFail = false)
         {
             var translator = ObjectTranslatorPool.Instance.Find(L);
             UnityEngine.Debug.Log($"Register {L} {type} {includeNonPublic} {throwIfMemberFail} {translator.luaEnv.rawL}");
             if(loaded_type.Contains(type)){
+                var typeId = NativeAPI.GetTypeId(type);
+                Register2Lua(type, 0, typeId, translator, L);
                 return;
             }
             
@@ -135,9 +127,11 @@ namespace XLua.IL2CPP
 
                 var FallBackLua2CSObjMethod = typeof(TypeRegister).GetMethod("FallBackLua2CSObj", BindingFlags.Static | BindingFlags.Public);
 
-                NativeAPI.SetCSharpAPI(new MethodBase[]{StaticGetTypeIdMethod, AddObjMethod, RemoveObjMethod, CombineDelegateMethod, RemoveDelegateMethod, GetCacheDelegateMethod, CacheDelegateMethod, Bytes2StringMethod, FallBackLua2CSObjMethod});
+                var GetDelegateMethod = typeof(TypeRegister).GetMethod("GetDelegate", BindingFlags.Static | BindingFlags.Public);
+
+                NativeAPI.SetCSharpAPI(new MethodBase[]{StaticGetTypeIdMethod, AddObjMethod, RemoveObjMethod, CombineDelegateMethod, RemoveDelegateMethod,  Bytes2StringMethod, FallBackLua2CSObjMethod, GetDelegateMethod});
                 
-                NativeAPI.SetGlobalType_LuaObject(typeof(LuaObject));
+                NativeAPI.SetGlobalType_LuaObject(typeof(DelegateMiddleware));
             }
             BindingFlags flag = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public;
             if (includeNonPublic)

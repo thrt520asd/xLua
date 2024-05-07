@@ -201,6 +201,8 @@ uint32_t lapi_xlua_objlen (lua_State *L, int idx);
 #define lapi_luaL_getmetatable(L, meta) lapi_lua_pushstring(L, meta); \
 lapi_lua_rawget(L, lapi_xlua_get_registry_index())
 
+#define lapi_lua_getref(L,ref) lapi_xlua_rawgeti(L, lapi_xlua_get_registry_index(), ref);
+
 void lapi_init(lapi_func_ptr* func_array);
 
 EXTERN_C_END
