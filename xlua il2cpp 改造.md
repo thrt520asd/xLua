@@ -220,8 +220,8 @@ GCHandler
 gchandler是重新申请内存 相当于new一个对象
 
 
-todo xlua_il2cpp 和xlua的整合统一
 
+问题
 ref,in,out处理方案
 out不传递参数
 ref,in的处理方式一样 从lua栈直接取参数 然后把参数push到lua栈
@@ -279,6 +279,13 @@ todo {
     userData引用释放
     目前有两个池C++维护了一个map C#维护了一个objPool维持引用 可以考虑整合成一个
     LuaBase（C#）push到lua
+    性能优化{
+        1 逻辑平铺
+        2 专事专用 减少大而全的通用代码
+        3 梳理逻辑 减少冗余
+    }
+    lua锁处理，支持多线程
+    多luaEnv支持 需要多个CppMapper LuaClassRegister不需要多个
 }
 
 better{

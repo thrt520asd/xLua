@@ -3,6 +3,9 @@ using System.Collections;
 using XLua;
 using System.IO;
 using System;
+using UnityEngine.UI;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 [LuaCallCSharp]
 public static class TestUtils
@@ -22,21 +25,25 @@ public delegate void PerfTest(int load);
 
 public class PerfMain : MonoBehaviour {
 	string resultPath = "";
-
+    string csvPath = "";
 	LuaEnv luaenv;
 
 	StreamWriter sw;
 
     System.Diagnostics.Stopwatch stopWatch = new System.Diagnostics.Stopwatch();
-
+    public Button BtnTemplate;
+    public RectTransform BtnParent;
 	// Use this for initialization
 	void Start () {
+        
 #if UNITY_ANDROID && !UNITY_EDITOR
-	    resultPath = "/sdcard/testResult_android.log";
+	    resultPath = Application.persistentDataPath + "/testResult_Android.log"; //"/sdcard/testResult_android.log";
+	    csvPath = Application.persistentDataPath + "/testCsvResult_Android.csv"; //"/sdcard/testResult_android.log";
 #elif UNITY_IPHONE || UNITY_IOS
 	    resultPath = Application.persistentDataPath + "/testResult_iOS.log";
 #elif UNITY_STANDALONE_WIN || UNITY_EDITOR
         resultPath = Application.dataPath + "/../testResult_windows.log";
+        csvPath = Application.dataPath + "/../testCsvResult_Android.csv";
 #else
         resultPath = "";
 #endif
@@ -47,6 +54,63 @@ public class PerfMain : MonoBehaviour {
         var endMem = System.GC.GetTotalMemory(true);
         Debug.Log("startMem: " + startMem + ", endMem: " + endMem + ", " + "cost mem: " + (endMem - startMem));
         luaenv.DoString("require 'luaTest'");
+        InitTestBtn();
+
+    }
+
+    void InitTestBtn(){
+        int LOOP_TIMES = 1000000;
+        List<string> UnitTests = new List<string>(){
+            "LuaAccessCSBaseMember_get",
+            "LuaAccessCSBaseMember_set",
+            "LuaAccessCSClassMember_get",
+            "LuaAccessCSClassMember_set",
+            "LuaAccessStructMember_get",
+            "LuaAccessStructMember_set",
+            "LuaAccessVec3Member_get",
+            "LuaAccessVec3Member_set",
+            "LuaAccessCSBaseMemberFunc",
+            "LuaAccessCSClassMemberFunc",
+            "LuaAccessCSStructMemberFunc",
+            "LuaAccessCSVec3MemberFunc",
+            "LuaAccessCSInMemberFunc",
+            "LuaAccessCSOutMemberFunc",
+            "LuaAccessCSInOutMemberFunc",
+            "LuaAccessCSTwoMemberFunc",
+            "LuaAccessCSStaticBaseMember_get",
+            "LuaAccessCSStaticBaseMember_set",
+            "LuaAccessCSStaticClassMember_get",
+            "LuaAccessCSStaticClassMember_set",
+            "LuaAccessCSStaticStructMember_get",
+            "LuaAccessCSStaticStructMember_set",
+            "LuaAccessCSStaticVec3Member_get",
+            "LuaAccessCSStaticVec3Member_set",
+            "LuaAccessCSStaticBaseMemberFunc",
+            "LuaAccessCSStaticClassMemberFunc",
+            "LuaAccessCSStaticStructMemberFunc",
+            "LuaAccessCSStaticVec3MemberFunc",
+            "LuaAccessCSStaticInMemberFunc",
+            "LuaAccessCSStaticOutMemberFunc",
+            "LuaAccessCSStaticInOutMemberFunc",
+            "LuaAccessCSStaticTwoMemberFunc",
+            "LuaAccessCSEnumFunc_get",
+            "LuaAccessCSEnumFunc_set",
+            "LuaAccessCSArrayFunc_get",
+            "LuaAccessCSArrayFunc_set",
+        };
+        BtnTemplate.onClick.AddListener(TestAll);
+        foreach (var unitTest in UnitTests)
+        {
+            Button newBtn = GameObject.Instantiate(BtnTemplate, BtnParent);
+            Text text = newBtn.transform.GetChild(0).GetComponent<Text>();
+            text.text = unitTest;
+            newBtn.onClick.AddListener(()=>{
+                PerfTest func = luaenv.Global.Get<PerfTest> (unitTest);
+                if(func != null){
+                    PerformentTest("lua call C# member : base member, get : ", LOOP_TIMES, func);
+                }
+            });
+        }
     }
 
     // Update is called once per frame
@@ -57,18 +121,54 @@ public class PerfMain : MonoBehaviour {
 	void OnGUI()
 	{
 		if (GUI.Button (new Rect (100, 100, 300, 150), "Start")) {
-            FileStream fs = new FileStream(resultPath, FileMode.Create);
-            sw = new StreamWriter(fs);
-
-            StartCSCallLua();
-			StartLuaCallCS ();
-			StartAddRemoveCB ();
-			StartCSCallLuaCB ();
-			StartConstruct ();
-
-			sw.Close ();
+            TestAll();
 		}
 	}
+
+    void TestAll(){
+        FileStream fs = new FileStream(resultPath, FileMode.Create);
+        sw = new StreamWriter(fs);
+
+        StartCSCallLua();
+        StartLuaCallCS ();
+        StartAddRemoveCB ();
+        StartCSCallLuaCB ();
+        StartConstruct ();
+        
+        sw.Close ();
+        sw = null;
+        var content = File.ReadAllLines(resultPath);
+        string pattern = @"\d+";
+        FileStream csvFs = new FileStream(csvPath, FileMode.Create);
+        var csvSw = new StreamWriter(csvFs);
+        foreach (var line in content)
+        {
+            MatchCollection matches = Regex.Matches(line, pattern);
+            // if(matches.Count > 0){
+            //     csvSw.Write(line);
+            //     csvSw.Write(",");
+            // }
+            foreach (Match match in matches)
+            {
+                if (match.Success && match.Value != "3")
+                {
+                    csvSw.Write(match.Value);
+                    csvSw.Write(",");
+                }
+            }
+            if(matches.Count > 0){
+                csvSw.Write("\n");
+            }
+        }
+
+        
+        
+        csvSw.Close();
+
+
+    }
+
+    
 
     //------------------------------------------------------------------------------------------------------
 
@@ -105,7 +205,9 @@ public class PerfMain : MonoBehaviour {
         {
             string log = title + cps + ", elapsed :" + stopWatch.ElapsedMilliseconds;
             Debug.Log(log);
-            sw.WriteLine(log);
+            if(sw != null){
+                sw.WriteLine(log);
+            }
         }
 
         return cps;
@@ -115,7 +217,9 @@ public class PerfMain : MonoBehaviour {
 	{
         int LOOP_TIMES = 1000000;
         Debug.Log ("C# call lua :");
-		sw.WriteLine ("C# call lua :");
+        if(sw != null){
+		    sw.WriteLine ("C# call lua :");
+        }
 
 		FuncBasePara funcBaseParm = luaenv.Global.Get<FuncBasePara>("FuncBasePara");
         PerformentTest("C# call lua : base parameter function :", LOOP_TIMES, loop_times =>
@@ -155,7 +259,9 @@ public class PerfMain : MonoBehaviour {
             }
         });
 
-        sw.WriteLine ("C# access lua table : ");
+if(sw != null){
+            sw.WriteLine ("C# access lua table : ");
+}
 
 		ITableAccess iTAccess = luaenv.Global.Get<ITableAccess> ("luaTable");
         PerformentTest("C# access lua table : access member, get : ", LOOP_TIMES, loop_times =>
@@ -189,7 +295,9 @@ public class PerfMain : MonoBehaviour {
         int LOOP_TIMES = 1000000;
 
         Debug.Log ("lua call C# member : ");
-		sw.WriteLine ("lua call C# member : ");
+        if(sw != null){
+		    sw.WriteLine ("lua call C# member : ");
+        }
 
 		PerfTest func = luaenv.Global.Get<PerfTest> ("LuaAccessCSBaseMember_get");
         PerformentTest("lua call C# member : base member, get : ", LOOP_TIMES, func);
@@ -216,7 +324,9 @@ public class PerfMain : MonoBehaviour {
         PerformentTest("lua call C# member : vector3 member, set : ", LOOP_TIMES, func);
 
 		Debug.Log ("lua call C# member funtion : ");
-		sw.WriteLine ("lua call C# member funtion : ");
+        if(sw != null){
+		    sw.WriteLine ("lua call C# member funtion : ");
+        }
 
 		func = luaenv.Global.Get<PerfTest> ("LuaAccessCSBaseMemberFunc");
         PerformentTest("lua call C# member funtion : base parameter member function : ", LOOP_TIMES, func);
@@ -243,7 +353,9 @@ public class PerfMain : MonoBehaviour {
         PerformentTest("lua call C# member funtion : two parameter member function : ", LOOP_TIMES, func);
 
 		Debug.Log ("lua call static memeber : ");
-		sw.WriteLine ("lua call static memeber :");
+        if(sw != null){
+		    sw.WriteLine ("lua call static memeber :");
+        }
 
 		func = luaenv.Global.Get<PerfTest> ("LuaAccessCSStaticBaseMember_get");
         PerformentTest("lua call C# static member : base member, get : ", LOOP_TIMES, func);
@@ -270,7 +382,9 @@ public class PerfMain : MonoBehaviour {
         PerformentTest("lua call C# static member : vector3 member, set : ", LOOP_TIMES, func);
 
 		Debug.Log ("lua call C# static member funtion : ");
-		sw.WriteLine ("lua call C# member funtion : ");
+        if(sw != null){
+		    sw.WriteLine ("lua call C# member funtion : ");
+        }
 		
 		func = luaenv.Global.Get<PerfTest> ("LuaAccessCSStaticBaseMemberFunc");
         PerformentTest("lua call C# static member funtion : base parameter member function : ", LOOP_TIMES, func);
@@ -297,7 +411,9 @@ public class PerfMain : MonoBehaviour {
         PerformentTest("lua call C# static member funtion : two parameter member function : ", LOOP_TIMES, func);
 
         Debug.Log("lua call C# array & num : ");
-        sw.WriteLine("lua call C# array & enum : ");
+        if(sw != null){
+            sw.WriteLine("lua call C# array & enum : ");
+        }
 
         func = luaenv.Global.Get<PerfTest>("LuaAccessCSEnumFunc_get");
         PerformentTest("lua call C# member : enum member, get : ", LOOP_TIMES, func);
@@ -316,7 +432,9 @@ public class PerfMain : MonoBehaviour {
 	{
         int LOOP_TIMES = 1000000;
         Debug.Log ("lua call construct :");
-        sw.WriteLine("lua call construct :");
+        if(sw != null){
+            sw.WriteLine("lua call construct :");
+        }
         PerfTest func = luaenv.Global.Get<PerfTest> ("LuaConstructClass");
         PerformentTest("lua construct class : ", LOOP_TIMES, func);
 		
@@ -328,7 +446,9 @@ public class PerfMain : MonoBehaviour {
 	{
         int LOOP_TIMES = 200000;
         Debug.Log ("lua add & remove callback : ");
-		sw.WriteLine ("lua add & remove call back : ");
+        if(sw != null){
+		    sw.WriteLine ("lua add & remove call back : ");
+        }
 
 		PerfTest func = luaenv.Global.Get<PerfTest> ("LuaAddRemoveCB");
         PerformentTest("lua add & remove callback : ", LOOP_TIMES, func);
@@ -338,7 +458,9 @@ public class PerfMain : MonoBehaviour {
 	{
         int LOOP_TIMES = 1000000;
         Debug.Log ("C# call lua callbak :");
-		sw.WriteLine ("C# call lua callbak :");
+        if(sw != null){
+		    sw.WriteLine ("C# call lua callbak :");
+        }
 
 		PerfTest func = luaenv.Global.Get<PerfTest> ("LuaBaseParaCB");
         PerformentTest("invoke base param callback : ", LOOP_TIMES, func);

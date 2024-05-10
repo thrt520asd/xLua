@@ -83,6 +83,9 @@ namespace XLua
                 
                 XLua.IL2CPP.NativeAPI.SetLogCallback(XLua.IL2CPP.NativeAPI.Log);
                 XLua.IL2CPP.NativeAPI.InitialXLua_IL2CPP(XLua.IL2CPP.NativeAPI.xlua_getImpl(), rawL);
+                LuaAPI.lua_pushboolean(rawL, true);
+                LuaAPI.xlua_setglobal(rawL, "IL2CPP_ENHANCED_LUA");
+                
 #endif
                 //Init Base Libs
                 LuaAPI.luaopen_xlua(rawL);
@@ -364,6 +367,19 @@ namespace XLua
                         translator.ReleaseLuaBase(_L, gca.Reference, gca.IsDelegate);
                     }
                 }
+
+
+#if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
+                lock (delegateMiddlewareQueue)
+                {
+                    while (delegateMiddlewareQueue.Count > 0)
+                    {
+                        GCAction gca = delegateMiddlewareQueue.Dequeue();
+                        translator.ReleaseDelegateMiddleWare(_L, gca.Reference);
+                    }
+                }
+#endif
+
 #if !XLUA_GENERAL
                 last_check_point = translator.objects.Check(last_check_point, max_check_per_tick, object_valid_checker, translator.reverseMap);
 #endif
@@ -464,6 +480,18 @@ namespace XLua
             public int Reference;
             public bool IsDelegate;
         }
+
+#if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
+        Queue<GCAction> delegateMiddlewareQueue = new Queue<GCAction>();
+        internal void equeueDelegateMiddlewareGCAction(GCAction action)
+        {
+            lock (delegateMiddlewareQueue)
+            {
+                delegateMiddlewareQueue.Enqueue(action);
+            }
+        }
+#endif
+
 
         Queue<GCAction> refQueue = new Queue<GCAction>();
 

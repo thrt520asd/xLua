@@ -79,7 +79,13 @@ namespace xlua
         WrapData *GetWrapData;
         WrapData *SetWrapData;
     };
-
+    struct cmp_str
+    {
+        bool operator()(char const *a, char const *b) const
+        {
+            return std::strcmp(a, b) < 0;
+        }
+    };
     struct LuaClassInfo
     {
         const void *SuperTypeId;
@@ -92,12 +98,14 @@ namespace xlua
         std::vector<CSharpMethodInfo> Methods;
         std::vector<CSharpFieldInfo> Fields;
         std::vector<PropertyWrapData> Properties;
-        std::map<std::string, CSharpMethodInfo *> MethodsMap;
-        std::map<std::string, CSharpFieldInfo *> FieldMap;
-        std::map<std::string, PropertyWrapData *> PropertyMap;
-        std::map<std::string, CSharpMethodInfo*> StaticMethodsMap;
+        std::map<const char*, CSharpMethodInfo *, cmp_str> MethodsMap;
+        std::map<const char*, CSharpFieldInfo *, cmp_str> FieldMap;
+        std::map<const char*, PropertyWrapData *, cmp_str> PropertyMap;
+        std::map<const char*, CSharpMethodInfo*, cmp_str> StaticMethodsMap;
         PropertyWrapData *Indexer;
     };
+
+    
 
     /// @brief UnityLog
     typedef void (*LogCallback)(const char *value);

@@ -1,3 +1,7 @@
+#if IL2CPP_ENHANCED_LUA_DEVELOP
+#define ENABLE_IL2CPP
+#endif
+#if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -18,10 +22,12 @@ namespace XLua.IL2CPP
 
         void ReleaseLuaRef()
         {
-            if(this.reference == -1) return;
-            //#TODO@benp release 处理
-            // ObjectTranslatorPool.Instance.Find(L)?.ReleaseDelegateMiddleWare(this);
-            this.reference = -1;
+            if(reference == -1) 
+            {
+                return;
+            }
+            ObjectTranslatorPool.Instance.Find(L)?.luaEnv.equeueDelegateMiddlewareGCAction(new LuaEnv.GCAction(){Reference = reference});
+            reference = -1;
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -90,3 +96,4 @@ namespace XLua.IL2CPP
         }
     }
 }
+#endif

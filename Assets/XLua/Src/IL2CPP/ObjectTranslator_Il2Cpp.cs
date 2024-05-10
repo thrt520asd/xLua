@@ -1,3 +1,7 @@
+#if IL2CPP_ENHANCED_LUA_DEVELOP
+#define ENABLE_IL2CPP
+#endif
+#if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
 using RealStatePtr = System.IntPtr;
 using LuaCSFunction = XLua.LuaDLL.lua_CSFunction;
 using System.Collections.Generic;
@@ -11,10 +15,14 @@ namespace XLua
     {
         Dictionary<int, WeakReference> delegatMiddlewareCache = new Dictionary<int, WeakReference>();
 
+        HashSet<object> objectCache = new HashSet<object>();
+
+
         public Delegate GetDelegate(RealStatePtr L, int idx, Type type, IntPtr funcptr)
         {
             LuaAPI.lua_pushvalue(L, idx);
             LuaAPI.lua_rawget(L, LuaIndexes.LUA_REGISTRYINDEX);
+
             DelegateMiddleware delegateMiddleware;
             if (!LuaAPI.lua_isnil(L, -1))
             {
@@ -25,10 +33,10 @@ namespace XLua
                         delegateMiddleware= weakReference.Target as DelegateMiddleware;
                         return delegateMiddleware.GetOrCreateDelegate(type);
                     }else{
-                        UnityEngine.Debug.Log("delegate in not alive" + referenced);    
+                        // UnityEngine.Debug.Log("delegate in not alive" + referenced);    
                     }
                 }else{
-                    UnityEngine.Debug.Log("GetDelegate failed lua funciont cache in registry but no valid DelegateMiddleware" + referenced);
+                    // UnityEngine.Debug.Log("GetDelegate failed lua funciont cache in registry but no valid DelegateMiddleware" + referenced);
                 }
             }
             else
@@ -49,25 +57,22 @@ namespace XLua
             return value;
         }
 
-        public void ReleaseDelegateMiddleWare(DelegateMiddleware delegateMiddleware){
-            RealStatePtr L = delegateMiddleware.L;
-            var reference = delegateMiddleware.reference;
-            
-            LuaAPI.xlua_rawgeti(L, LuaIndexes.LUA_REGISTRYINDEX, reference);
+        public void ReleaseDelegateMiddleWare(RealStatePtr L, int reference){
+            LuaAPI.xlua_rawgeti(L, LuaIndexes.LUA_REGISTRYINDEX, reference); // -1 func
             if (LuaAPI.lua_isnil(L, -1))
             {
                 LuaAPI.lua_pop(L, 1);
             }
             else
             {
-                LuaAPI.lua_pushvalue(L, -1);
-                LuaAPI.lua_rawget(L, LuaIndexes.LUA_REGISTRYINDEX);
+                LuaAPI.lua_pushvalue(L, -1); // -1 func -2 func
+                LuaAPI.lua_rawget(L, LuaIndexes.LUA_REGISTRYINDEX); // -1 result -2 func
                 if (LuaAPI.lua_type(L, -1) == LuaTypes.LUA_TNUMBER && LuaAPI.xlua_tointeger(L, -1) == reference) //
                 {
-                    //UnityEngine.Debug.LogWarning("release delegate ref = " + luaReference);
-                    LuaAPI.lua_pop(L, 1);// pop LUA_REGISTRYINDEX[func]
-                    LuaAPI.lua_pushnil(L);
-                    LuaAPI.lua_rawset(L, LuaIndexes.LUA_REGISTRYINDEX); // LUA_REGISTRYINDEX[func] = nil
+                    // UnityEngine.Debug.LogWarning("ReleaseDelegateMiddleWare from registry " + reference);
+                    LuaAPI.lua_pop(L, 1);// pop LUA_REGISTRYINDEX[func] // -1 func
+                    LuaAPI.lua_pushnil(L); // -1 nil -2 func
+                    LuaAPI.lua_rawset(L, LuaIndexes.LUA_REGISTRYINDEX); // LUA_REGISTRYINDEX[func] = nil 
                 }
                 else //another Delegate ref the function before the GC tick
                 {
@@ -77,9 +82,8 @@ namespace XLua
 
             LuaAPI.lua_unref(L, reference);
             delegatMiddlewareCache.Remove(reference);
-            UnityEngine.Debug.LogFormat("ReleaseDelegateMiddleWare "+ delegateMiddleware.reference);
         }
     }
-
-    
 }
+
+#endif

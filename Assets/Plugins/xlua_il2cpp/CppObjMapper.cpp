@@ -103,7 +103,7 @@ bool CppObjMapper::TryPushStruct(lua_State *L, Il2CppClass* klass, void* pointer
     if (!klass->has_references) {
 
         int32_t metaId = xlua::GetLuaClassRegister()->GetTypeIdByIl2cppClass(L, (Il2CppClass*)klass);
-        xlua::GLogFormatted("CppObjMapper::TryPushStruct %p size %d  metaId %d  ", pointer, size, metaId);
+        // xlua::GLogFormatted("CppObjMapper::TryPushStruct %p size %d  metaId %d  ", pointer, size, metaId);
         if (metaId != -1){
             lapi_xlua_pushstruct_pointer(L, size, pointer, metaId, klass);
             return true;
@@ -126,18 +126,16 @@ bool CppObjMapper::TryPushObject(lua_State *L, void * obj){
     }
     auto iter = objCache.find(obj);
     if(cacheRef == 0){
-        xlua::GLogFormatted("[error]please set cacheRef first");
-        //#TODO@benp throw error
         return false;
     }
     int32_t key = objCache.size();
     if(iter != objCache.end()){
         //已经有了一份了
         key = iter->second;
-        xlua::GLogFormatted("find cache obj %d", key);
+        // xlua::GLogFormatted("find cache obj %d", key);
         if (lapi_xlua_tryget_cachedud(L, key, cacheRef) == 1)
         {
-            xlua::GLogFormatted("put cache obj %d success", key);
+            // xlua::GLogFormatted("put cache obj %d success", key);
             return true;
         }
     }
@@ -151,12 +149,11 @@ bool CppObjMapper::TryPushObject(lua_State *L, void * obj){
     if(metaId != -1){
         auto poolIdx = AddToPool(L, (Il2CppObject*)obj);
 
-        xlua::GLogFormatted("lapi_xlua_pushcsobj_ptr %s %p  metaId %d key %d poolIdx %d ", kclass->name, obj, metaId, key, cacheRef, poolIdx);
+        // xlua::GLogFormatted("lapi_xlua_pushcsobj_ptr %s %p  metaId %d key %d poolIdx %d ", kclass->name, obj, metaId, key, cacheRef, poolIdx);
         lapi_xlua_pushcsobj_ptr(L, obj, metaId, key, 1, cacheRef, poolIdx);
         return true;
     }else{
         return false;
-        //#TODO@benp throw error
     }
 }
 

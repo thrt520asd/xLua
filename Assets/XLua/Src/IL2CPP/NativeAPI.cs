@@ -26,10 +26,14 @@ namespace XLua.IL2CPP
     {
 #if (UNITY_ANDROID || UNITY_IPHONE || UNITY_TVOS || UNITY_WEBGL || UNITY_SWITCH) && !UNITY_EDITOR
         const string DLLNAME = "__Internal";
+#else
+        const string DLLNAME = "__Internal";
+#endif
+
+#if (UNITY_IPHONE || UNITY_TVOS || UNITY_WEBGL || UNITY_SWITCH) && !UNITY_EDITOR
         const string LUADLL = "__Internal";
 #else
         const string LUADLL = "xlua";
-        const string DLLNAME = "__Internal";
 #endif
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]

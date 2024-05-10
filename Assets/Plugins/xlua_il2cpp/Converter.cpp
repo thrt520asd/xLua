@@ -3,7 +3,7 @@
 #include "lua_api_adapt.h"
 #include "il2cpp-object-internals.h"
 #include <utils/StringUtils.h>
-#include "String.h"
+#include "string.h"
 
 namespace converter
 {

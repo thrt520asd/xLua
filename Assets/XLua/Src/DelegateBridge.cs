@@ -87,7 +87,6 @@ namespace XLua
         public override void Dispose(bool disposeManagedResources)
         {
             base.Dispose(disposeManagedResources);
-            UnityEngine.Debug.Log("Dispose DelegateBridge " + this.luaReference);
         }
     }
 

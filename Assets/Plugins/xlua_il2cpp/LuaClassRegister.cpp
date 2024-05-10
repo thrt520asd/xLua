@@ -74,29 +74,29 @@ namespace xlua
 
     int LuaClassRegister::RegisterClass(LuaClassInfo *luaClsInfo)
     {
-        xlua::GLogFormatted(luaClsInfo->Name.c_str());
+        // xlua::GLogFormatted(luaClsInfo->Name.c_str());
         auto iter = clsId2ClsDef.find(luaClsInfo->klass);
         if(iter == clsId2ClsDef.end()){
             
             for(auto& method: luaClsInfo->Methods){
                 method.OverloadDatas.push_back(nullptr);
                 if (method.IsStatic) {
-                    luaClsInfo->StaticMethodsMap[method.Name] = &method;
+                    luaClsInfo->StaticMethodsMap[method.Name.c_str()] = &method;
                 }
                 else {
-                    luaClsInfo->MethodsMap[method.Name] = &method;
+                    luaClsInfo->MethodsMap[method.Name.c_str()] = &method;
                 }
             }
 
             for(auto& field: luaClsInfo->Fields){
-                luaClsInfo->FieldMap[field.Name] = &field;
+                luaClsInfo->FieldMap[field.Name.c_str()] = &field;
             }
 
             for (auto& propertyInfo : luaClsInfo->Properties) {
                 if (propertyInfo.Name == "Item") {
                     luaClsInfo->Indexer = &propertyInfo;
                 }
-                luaClsInfo->PropertyMap[propertyInfo.Name] = &propertyInfo;
+                luaClsInfo->PropertyMap[propertyInfo.Name.c_str()] = &propertyInfo;
             }
 
             luaClsInfo->Ctors.push_back(nullptr);
@@ -117,9 +117,9 @@ namespace xlua
     void LuaClassRegister::SetTypeId(void* kclass, int32_t metaId){
         auto result = ilclass2luaMetaId.insert({kclass, metaId});
         if(result.second){
-            xlua::GLogFormatted("set type id insert success %p $d", kclass, metaId);
+            // xlua::GLogFormatted("set type id insert success %p $d", kclass, metaId);
         }else{
-            xlua::GLogFormatted("set type id insert success %p $d", kclass, metaId);
+            // xlua::GLogFormatted("set type id insert success %p $d", kclass, metaId);
 
         }
     }

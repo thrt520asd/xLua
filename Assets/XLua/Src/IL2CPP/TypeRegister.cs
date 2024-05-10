@@ -100,7 +100,6 @@ namespace XLua.IL2CPP
         public static void Register(RealStatePtr L, Type type, bool includeNonPublic, bool throwIfMemberFail = false)
         {
             var translator = ObjectTranslatorPool.Instance.Find(L);
-            UnityEngine.Debug.Log($"Register {L} {type} {includeNonPublic} {throwIfMemberFail} {translator.luaEnv.rawL}");
             if(loaded_type.Contains(type)){
                 var typeId = NativeAPI.GetTypeId(type);
                 Register2Lua(type, 0, typeId, translator, L);
