@@ -1377,6 +1377,8 @@ static lapi_func_ptr funcs[] = {
 (lapi_func_ptr) &xlua_gl,//63
 (lapi_func_ptr) &xlua_mainthread,//64
 (lapi_func_ptr) &xlua_objlen,//65
+(lapi_func_ptr) &lua_newuserdatauv,//66
+(lapi_func_ptr) &lua_setmetatable,//67
 };
 //genEnd
 
