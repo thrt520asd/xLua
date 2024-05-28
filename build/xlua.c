@@ -7,7 +7,7 @@
 */
 
 #define LUA_LIB
-#define IL2CPP_ENABLE //#TODO@benp 外部传入
+#define XLUA_IL2CPP //#TODO@benp 外部传入
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
@@ -365,7 +365,6 @@ LUA_API void xlua_pushcsobj(lua_State *L, int key, int meta_ref, int need_cache,
 
 	lua_setmetatable(L, -2);
 }
-
 
 void print_top(lua_State *L) {
 	lua_getglobal(L, "print");
@@ -826,16 +825,11 @@ LUALIB_API int xlua_csharp_error(lua_State* L)
 typedef struct {
 	int fake_id;
     unsigned int len;
-    #ifdef IL2CPP_ENABLE
-    void* typeId;
-    #endif
 	char data[1];
 } CSharpStruct;
 
 LUA_API void *xlua_pushstruct(lua_State *L, unsigned int size, int meta_ref) {
-	CSharpStruct *css = (CSharpStruct *)lua_newuserdata(L, size + sizeof(int) + sizeof(unsigned int)
-    +sizeof(void*)
-    );
+	CSharpStruct *css = (CSharpStruct *)lua_newuserdata(L, size + sizeof(int) + sizeof(unsigned int));
 	css->fake_id = -1;
 	css->len = size;
     lua_rawgeti(L, LUA_REGISTRYINDEX, meta_ref);
@@ -850,9 +844,7 @@ LUA_API void xlua_pushcstable(lua_State *L, unsigned int size, int meta_ref) {
 }
 
 LUA_API void *xlua_newstruct(lua_State *L, int size, int meta_ref) {
-	CSharpStruct *css = (CSharpStruct *)lua_newuserdata(L, size + sizeof(int) + sizeof(unsigned int)
-    +sizeof(void*)
-    );
+	CSharpStruct *css = (CSharpStruct *)lua_newuserdata(L, size + sizeof(int) + sizeof(unsigned int));
 	css->fake_id = -1;
 	css->len = size;
     lua_rawgeti(L, LUA_REGISTRYINDEX, meta_ref);
@@ -1220,9 +1212,7 @@ LUA_API int css_clone(lua_State *L) {
 		return luaL_error(L, "invalid c# struct!");
 	}
 	
-	to = (CSharpStruct *)lua_newuserdata(L, from->len + sizeof(int) + sizeof(unsigned int)
-    +sizeof(void*)
-    );
+	to = (CSharpStruct *)lua_newuserdata(L, from->len + sizeof(int) + sizeof(unsigned int));
 	to->fake_id = -1;
 	to->len = from->len;
 	memcpy(&(to->data[0]), &(from->data[0]), from->len);
@@ -1235,6 +1225,26 @@ LUA_API void* xlua_gl(lua_State *L) {
 	return G(L);
 }
 
+static const luaL_Reg xlualib[] = {
+	{"sethook", profiler_set_hook},
+	{"genaccessor", gen_css_access},
+	{"structclone", css_clone},
+	{NULL, NULL}
+};
+
+LUA_API void luaopen_xlua(lua_State *L) {
+	luaL_openlibs(L);
+	
+#if LUA_VERSION_NUM >= 503
+	luaL_newlib(L, xlualib);
+	lua_setglobal(L, "xlua");
+#else
+	luaL_register(L, "xlua", xlualib);
+    lua_pop(L, 1);
+#endif
+}
+
+#ifdef XLUA_IL2CPP
 typedef void (*lapi_func_ptr)(void);
 
 int lapi_lua_upvalueindex(int index){
@@ -1246,58 +1256,6 @@ typedef struct
     void* pointer;
     int* tag;
 } ObjUD;
-
-LUA_API void xlua_pushcsobj_ptr(lua_State* L, void* ptr, int meta_ref, int key, int need_cache, int cache_ref){
-    ObjUD* objUd = (ObjUD*)lua_newuserdata(L, sizeof(ObjUD));
-    objUd->pointer = ptr;
-    objUd->tag = &tag;
-	if (need_cache) cacheud(L, key, cache_ref);
-
-    lua_rawgeti(L, LUA_REGISTRYINDEX, meta_ref);
-
-	lua_setmetatable(L, -2);
-}
-
-
-LUA_API void* xlua_getcsobj_ptr(lua_State* L,int index){
-    ObjUD* pointer = (ObjUD*)lua_touserdata(L, index);
-    if(pointer && pointer->tag == &tag){
-        return pointer->pointer;
-    }
-	return NULL;
-}
-
-LUA_API CSharpStruct* xlua_createstruct_pointer(lua_State *L, unsigned int size, int meta_ref, void * typePointer) {
-	CSharpStruct *css = (CSharpStruct *)lua_newuserdata(L, size + sizeof(int) + sizeof(unsigned int) + sizeof(void*));
-	css->fake_id = -1;
-	css->len = size;
-    css->typeId = typePointer;
-    memset(&css->data[0], 0, size);
-    lua_rawgeti(L, LUA_REGISTRYINDEX, meta_ref);
-	lua_setmetatable(L, -2);
-	return css;
-}
-
-LUA_API CSharpStruct* xlua_pushstruct_pointer(lua_State *L, unsigned int size, void* pointer, int meta_ref, void * typePointer) {
-	CSharpStruct *css = (CSharpStruct *)lua_newuserdata(L, size + sizeof(int) + sizeof(unsigned int) + sizeof(void*));
-	css->fake_id = -1;
-    css->typeId = typePointer;
-	css->len = size;
-    memcpy(&(css->data[0]), pointer, size);
-    lua_rawgeti(L, LUA_REGISTRYINDEX, meta_ref);
-	lua_setmetatable(L, -2);
-	return css;
-}
-
-LUA_API CSharpStruct* xlua_tocss(lua_State *L, int index) {
-    if(lua_isuserdata(L, index) && is_cs_data(L, index)){
-        CSharpStruct *css = (CSharpStruct*)lua_touserdata(L, index);
-        if(css->fake_id == -1){
-            return css;
-        }
-    }
-	return NULL;
-}
 
 LUA_API xlua_call(lua_State*L, int nargs, int nresults){
     lua_call(L, nargs, nresults);
@@ -1370,12 +1328,7 @@ static lapi_func_ptr funcs[] = {
 (lapi_func_ptr) &xlua_mainthread,//59
 (lapi_func_ptr) &xlua_objlen,//60
 (lapi_func_ptr) &lua_newuserdatauv,//61
-(lapi_func_ptr) &xlua_pushcsobj_ptr,//62
-(lapi_func_ptr) &xlua_getcsobj_ptr,//63
-(lapi_func_ptr) &xlua_createstruct_pointer,//64
-(lapi_func_ptr) &xlua_pushstruct_pointer,//65
-(lapi_func_ptr) &xlua_tocss,//66
-(lapi_func_ptr) &xlua_tryget_cachedud,//67
+(lapi_func_ptr) &xlua_tryget_cachedud,//62
 };
 //genEnd
 
@@ -1384,25 +1337,4 @@ LUA_API lapi_func_ptr* xlua_getImpl(){
     
     return funcs;
 }
-
-
-
-static const luaL_Reg xlualib[] = {
-	{"sethook", profiler_set_hook},
-	{"genaccessor", gen_css_access},
-	{"structclone", css_clone},
-	{NULL, NULL}
-};
-
-LUA_API void luaopen_xlua(lua_State *L) {
-	luaL_openlibs(L);
-	
-#if LUA_VERSION_NUM >= 503
-	luaL_newlib(L, xlualib);
-	lua_setglobal(L, "xlua");
-#else
-	luaL_register(L, "xlua", xlualib);
-    lua_pop(L, 1);
 #endif
-}
-
