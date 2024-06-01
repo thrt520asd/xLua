@@ -1,10 +1,3 @@
-/*
-* Tencent is pleased to support the open source community by making Puerts available.
-* Copyright (C) 2020 THL A29 Limited, a Tencent company.  All rights reserved.
-* Puerts is licensed under the BSD 3-Clause License, except for the third-party components listed in the file 'LICENSE' which may be subject to their corresponding license terms. 
-* This file is subject to the terms and conditions defined in file 'LICENSE', which is part of this source code package.
-*/
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +13,10 @@ namespace XLua.IL2CPP.Editor
             public const BindingFlags Flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
 
             private static List<Func<MemberInfo, bool>> InstructionsFilters = new List<Func<MemberInfo, bool>>();
-            private static List<Func<Type, bool>> DisallowedTypeFilters = new List<Func<Type, bool>>();
+            private static List<Func<Type, bool>> DisallowedTypeFilters = new List<Func<Type, bool>>(){
+                // t => t.FullName != null && t.FullName.StartsWith("Unity.Entities"),
+                // t => t.FullName != null && t.FullName.StartsWith("Unity.Collections"),
+            };
             // private static List<Func<MemberInfo, BindingMode>> BindingModeFilters = new List<Func<MemberInfo, BindingMode>>();
             
             public static bool HasFilter = false;
@@ -179,6 +175,7 @@ namespace XLua.IL2CPP.Editor
 
             internal static bool isDisallowedType(Type type) 
             {
+                if(type == null) return true;
                 var result = false;
                 foreach (var filter in DisallowedTypeFilters)
                 {
@@ -318,11 +315,7 @@ namespace XLua.IL2CPP.Editor
         
             public static bool isDefined(MethodBase test, Type type)
             {
-    #if PUERTS_GENERAL
-                return test.GetCustomAttributes(false).Any(ca => ca.GetType().ToString() == type.ToString());
-    #else
                 return test.IsDefined(type, false);
-    #endif
             }
         
             public static Type ToConstraintType(Type type, bool isGenericTypeDefinition)
@@ -401,69 +394,6 @@ namespace XLua.IL2CPP.Editor
                 return ret;
             }
 
-            // #lizard forgives
-            public static string GetTsTypeName(Type type, bool isParams = false)
-            {
-                if (type == typeof(int))
-                    return "number";
-                if (type == typeof(uint))
-                    return "number";
-                else if (type == typeof(short))
-                    return "number";
-                else if (type == typeof(byte))
-                    return "number";
-                else if (type == typeof(sbyte))
-                    return "number";
-                else if (type == typeof(char))
-                    return "number";
-                else if (type == typeof(ushort))
-                    return "number";
-                else if (type == typeof(bool))
-                    return "boolean";
-                else if (type == typeof(long))
-                    return "bigint";
-                else if (type == typeof(ulong))
-                    return "bigint";
-                else if (type == typeof(float))
-                    return "number";
-                else if (type == typeof(double))
-                    return "number";
-                else if (type == typeof(string))
-                    return "string";
-                else if (type == typeof(void))
-                    return "void";
-                // else if (type == typeof(Puerts.ArrayBuffer))
-                //     return "ArrayBuffer";
-                else if (type == typeof(object))
-                    return "any";
-                else if (type == typeof(Delegate)) //|| type == typeof(Puerts.GenericDelegate))
-                    return "Function";
-#if CSHARP_7_3_OR_NEWER
-                else if (type == typeof(System.Threading.Tasks.Task)) 
-                    return "$Task<any>";
-#endif
-                else if (type.IsByRef)
-                    return "$Ref<" + GetTsTypeName(type.GetElementType()) + ">";
-                else if (type.IsArray)
-                    return isParams ? (GetTsTypeName(type.GetElementType()) + "[]") : ("System.Array$1<" + GetTsTypeName(type.GetElementType()) + ">");
-                else if (type.IsGenericType)
-                {
-                    var underlyingType = Nullable.GetUnderlyingType(type);
-                    if (underlyingType != null)
-                    {
-                        return GetTsTypeName(underlyingType) + " | null";
-                    }
-                    var fullName = type.FullName == null ? type.ToString() : type.FullName;
-                    var parts = fullName.Replace('+', '.').Split('`');
-                    var argTypenames = type.GetGenericArguments()
-                        .Select(x => GetTsTypeName(x)).ToArray();
-                    return parts[0] + '$' + parts[1].Split('[')[0] + "<" + string.Join(", ", argTypenames) + ">";
-                }
-                else if (type.FullName == null)
-                    return type.ToString();
-                else
-                    return type.FullName.Replace('+', '.');
-            }
 
             public static Type GetRawType(Type type)
             {

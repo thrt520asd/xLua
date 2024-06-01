@@ -36,6 +36,24 @@ namespace XLua.IL2CPP
             return null;
         }
 
+        public static bool RefObj(RealStatePtr L, object obj){
+            var translator = ObjectTranslatorPool.Instance.Find(L);
+            if (translator != null)
+            {
+                return translator.objectCache.Add(obj);
+            }
+            return false;
+        }
+        /// call from native
+        public static bool UnRefObj(RealStatePtr L, object obj){
+            var translator = ObjectTranslatorPool.Instance.Find(L);
+            if (translator != null)
+            {
+                return translator.objectCache.Remove(obj);
+            }
+            return false;
+        }
+
         /// call from native
         public static Delegate GetDelegate(RealStatePtr L, int referenced, Type type, IntPtr funcptr){
             var translator = ObjectTranslatorPool.Instance.Find(L);
@@ -119,16 +137,16 @@ namespace XLua.IL2CPP
                 var CombineDelegateMethod = typeof(Delegate).GetMethod("Combine",new Type[] {typeof(Delegate), typeof(Delegate)});
                 var RemoveDelegateMethod = typeof(Delegate).GetMethod("Remove", BindingFlags.Static | BindingFlags.Public);
                 
-                var GetCacheDelegateMethod = typeof(TypeRegister).GetMethod("GetCacheDelegate", BindingFlags.Static | BindingFlags.Public);
-                var CacheDelegateMethod = typeof(TypeRegister).GetMethod("CacheDelegate", BindingFlags.Static | BindingFlags.Public);
-                
                 var Bytes2StringMethod = typeof(TypeRegister).GetMethod("Bytes2String", BindingFlags.Static | BindingFlags.Public);
 
                 var FallBackLua2CSObjMethod = typeof(TypeRegister).GetMethod("FallBackLua2CSObj", BindingFlags.Static | BindingFlags.Public);
 
                 var GetDelegateMethod = typeof(TypeRegister).GetMethod("GetDelegate", BindingFlags.Static | BindingFlags.Public);
 
-                NativeAPI.SetCSharpAPI(new MethodBase[]{StaticGetTypeIdMethod, AddObjMethod, RemoveObjMethod, CombineDelegateMethod, RemoveDelegateMethod,  Bytes2StringMethod, FallBackLua2CSObjMethod, GetDelegateMethod});
+                var RefObjMethod = typeof(TypeRegister).GetMethod("RefObj", BindingFlags.Static | BindingFlags.Public);
+                var UnRefObjMethod = typeof(TypeRegister).GetMethod("UnRefObj", BindingFlags.Static | BindingFlags.Public);
+
+                NativeAPI.SetCSharpAPI(new MethodBase[]{StaticGetTypeIdMethod, AddObjMethod, RemoveObjMethod, CombineDelegateMethod, RemoveDelegateMethod,  Bytes2StringMethod, FallBackLua2CSObjMethod, GetDelegateMethod, RefObjMethod, UnRefObjMethod});
                 
                 NativeAPI.SetGlobalType_LuaObject(typeof(DelegateMiddleware));
             }
@@ -194,15 +212,7 @@ namespace XLua.IL2CPP
 
         }
 
-        /// <summary>
         /// 注册类型信息到IL2CPP,
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="ctors"></param>
-        /// <param name="methods"></param>
-        /// <param name="properties"></param>
-        /// <param name="fields"></param>
-        /// <param name="throwIfMemberFail"></param>
         private static IntPtr Register2Cpp(IntPtr L, Type type, MethodBase[] ctors = null, MethodBase[] methods = null, PropertyInfo[] properties = null, FieldInfo[] fields = null, bool throwIfMemberFail = false)
         {
             IntPtr typeInfo = IntPtr.Zero;
@@ -454,7 +464,7 @@ namespace XLua.IL2CPP
                     {
                         foreach (var field in fields)
                         {
-                            string signature = (field.IsStatic ? "" : "t") + TypeUtils.GetTypeSignature(field.FieldType);
+                            string signature = (field.IsStatic ? "" : TypeUtils.GetThisSignature2(type)) + TypeUtils.GetTypeSignature(field.FieldType);
                             var name = field.Name;
 
                             var wrapper = GetFieldWrapper(name, field.IsStatic, signature);

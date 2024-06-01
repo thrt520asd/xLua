@@ -32,7 +32,7 @@ build/luajit-2.1.0b2/src/lua51.lib
 build/luajit-2.1.0b2/src/luajit.exe
 build/luajit-2.1.0b2/src/luajit.exp
 build/luajit-2.1.0b2/src/luajit.lib
-
+/apk
 obj/Debug
 .vsconfig
 obj
@@ -41,3 +41,5 @@ winBuild
 il2cpp_BackUpThisFolder_ButDontShipItWithYourGame
 il2cpp.app
 winBuildVs
+MemberNameHash
+/Packages

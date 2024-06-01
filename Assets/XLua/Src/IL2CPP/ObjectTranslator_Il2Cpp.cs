@@ -15,7 +15,8 @@ namespace XLua
     {
         Dictionary<int, WeakReference> delegatMiddlewareCache = new Dictionary<int, WeakReference>();
 
-        HashSet<object> objectCache = new HashSet<object>();
+        //#TODO@benp initsize
+        internal HashSet<object> objectCache = new HashSet<object>();
 
 
         public Delegate GetDelegate(RealStatePtr L, int idx, Type type, IntPtr funcptr)

@@ -163,7 +163,7 @@ Enum
 3 实现生成代码
 4 性能测试
 5 更完善的单元测试
-6 尝试接入到AOE
+6 接入到AOE
 7 AOE内性能测试
 
 ## 核心代码
@@ -219,8 +219,6 @@ il2cpp Alloc{
 GCHandler
 gchandler是重新申请内存 相当于new一个对象
 
-
-
 问题
 ref,in,out处理方案
 out不传递参数
@@ -266,29 +264,35 @@ public static int OverLoad2(string x, string y)
 
 
 问题 struct什么时候需要offset 什么时候不需要
-调用成员函数，属性，字段的时候 需要offset
-作为参数传递的时候 需要offset extension方法不需要offset
-
-
+调用成员函数，属性 需要offset 调用成员函数字段不需要 Unity设计原因目前未知
+作为参数传递的时候 值传递，不需要offset extension方法不需要offset
+所以目前的设计很拧巴，在结构体的成员wrap函数中获取结构体指针需要offset
+生成的wrap文件也特殊处理了
 
 
 todo {
-    CaseVisitExtensionMethodForStruct
     使用hasReference 还是 Blittable 
     可变参数支持
     userData引用释放
-    目前有两个池C++维护了一个map C#维护了一个objPool维持引用 可以考虑整合成一个
     LuaBase（C#）push到lua
     性能优化{
-        1 逻辑平铺
-        2 专事专用 减少大而全的通用代码
-        3 梳理逻辑 减少冗余
+        减少string查找的开销
     }
     lua锁处理，支持多线程
     多luaEnv支持 需要多个CppMapper LuaClassRegister不需要多个
+    wrap {
+        hash 优点  速度快 
+             缺点 生成配套代码
+        map  速度慢
+    }
+    两种模式混合更佳
 }
 
 better{
     代码整理
     unity导出的vs工程没有有概率 SIZEOF_VOID_P定义 需要手动添加 
+}
+
+安全问题{
+    il2cpp层指针传递，失去了C#的类型检测  所以在从lua获取对象时一定要检测类型
 }

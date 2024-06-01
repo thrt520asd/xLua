@@ -31,12 +31,14 @@ $@"static lapi_func_ptr funcs[] = {{
 }};"
 );
         ReplaceGenerate(Header, 
-$"{string.Join("\n",lineList.Select(s=>$@"//{s.GetAPIName()}{"\n"}{s.GetHeader()}"))}");
+$"{string.Join("\n",lineList.Select(s=>$@"//{s.GetAPIName()}{"\n"}{s.GetDefine()}"))}");
 
-        ReplaceGenerate(Body, $@"{string.Join("\n", lineList.Select(s=>GetDeclare(s)))}");
-
+        // ReplaceGenerate(Body, $@"{string.Join("\n", lineList.Select(s=>GetDeclare(s)))}");
+        ReplaceGenerate(Body, $@"{string.Join("\n", lineList.Select(s=>$"lapi_{s.GetAPIName()}Type lapi_{s.GetAPIName()};"))}");
+        
+        
         ReplaceGenerate(Body, $@"{string.Join("\n", lineList.Select((s, i)=>
-$@"{s.GetAPINameWithLAPI()}_ptr = ({s.GetAPINameWithLAPI()}Type)func_array[{i}];"))}", 
+$@"{s.GetAPINameWithLAPI()} = ({s.GetAPINameWithLAPI()}Type)func_array[{i}];"))}", 
 "//gen1", "//end1");
     }
 
@@ -103,6 +105,15 @@ static {apiNameType}Type {apiNameType}_ptr;
         
         str = str.Replace(apiNameWithCapture, replace);
         return str;
+    }
+
+    public static string GetDefine(this string line){
+        string apiName = line.GetAPIName();
+        string apiNameType = "lapi_"+apiName;
+        return 
+$@"typedef {line.GetHeaderWithType()}
+extern {apiNameType}Type {apiNameType};
+";
     }
 
     public static string GetHeader(this string str){

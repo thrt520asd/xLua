@@ -6,6 +6,7 @@ using System;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using UnityEngine.SceneManagement;
 
 [LuaCallCSharp]
 public static class TestUtils
@@ -32,6 +33,7 @@ public class PerfMain : MonoBehaviour {
 
     System.Diagnostics.Stopwatch stopWatch = new System.Diagnostics.Stopwatch();
     public Button BtnTemplate;
+    public Button UnitTestBtn;
     public RectTransform BtnParent;
 	// Use this for initialization
 	void Start () {
@@ -99,6 +101,9 @@ public class PerfMain : MonoBehaviour {
             "LuaAccessCSArrayFunc_set",
         };
         BtnTemplate.onClick.AddListener(TestAll);
+        UnitTestBtn.onClick.AddListener(()=>{
+            SceneManager.LoadScene(1);
+        });
         foreach (var unitTest in UnitTests)
         {
             Button newBtn = GameObject.Instantiate(BtnTemplate, BtnParent);

@@ -6,8 +6,8 @@ using System.Text;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using System.CodeDom;
-using Packages.Rider.Editor.Util;
+using System.Data.SqlTypes;
+
 // using Mono.Cecil;
 // using Mono.Cecil.Cil;
 
@@ -106,6 +106,7 @@ $@"struct {Signature}{{
                 {
                     return true;
                 }
+                
                 Type baseType = type.BaseType;
                 while (baseType != null && baseType != typeof(System.Object))
                 {
@@ -146,71 +147,94 @@ $@"struct {Signature}{{
                 return true;
             }
 
-            public static void GenCPPWrap(string saveTo, bool onlyConfigure = false)
-            {
-                // Utils.SetFilters(Puerts.Configure.GetFilters());
-
+            public static void GenCPPWrapAll(){
                 var types = from assembly in AppDomain.CurrentDomain.GetAssemblies()
-                                // where assembly.FullName.Contains("puerts") || assembly.FullName.Contains("Assembly-CSharp") || assembly.FullName.Contains("Unity")
+                            // where assembly.FullName.Contains("Assembly-CSharp") || assembly.FullName.Contains("Unity")
+                            where !assembly.FullName.Contains("Unity.Entities")
                             where !(assembly.ManifestModule is System.Reflection.Emit.ModuleBuilder)
                             from type in assembly.GetTypes()
-                            where type.IsPublic
+                            where type.IsPublic 
+                            where !(type.FullName.StartsWith("UnityEditor")
+                                ||type.FullName.StartsWith("Unity.IO")
+                                ||type.FullName.StartsWith("UnityEngine.iOS")
+                                ||type.FullName.StartsWith("UnityEngine.Experimental")
+                                ||type.FullName.StartsWith("UnityEngine.UIElements")
+                                ||type.FullName.StartsWith("UnityEngine.Networking")
+                                ||type.FullName.StartsWith("UnityEngine.XR")
+                                ||type.FullName.StartsWith("UnityEngine.TestTools.")
+                                ||type.FullName.StartsWith("XLua.CSObjectWrap")
+                                ||type.FullName.StartsWith("Unity.Entities")
+                                ||type.FullName.StartsWith("Unity.Collections")
+                                ||type.FullName.StartsWith("Unity.Jobs")
+                                ||type.FullName.StartsWith("UnityEngine.AI")
+                                ||type.FullName.StartsWith("Unity.Build")
+                                ||type.FullName.StartsWith("Unity.Burst")
+                                ||type.FullName.StartsWith("Unity.Particle")
+                                ||type.FullName.StartsWith("Unity.Serialization")
+                                ||type.FullName.StartsWith("UnityEngine.Rendering")
+                                ||type.FullName.StartsWith("UnityEngine.Assertions")
+                                ||type.FullName.StartsWith("Mono")
+                                ||type.FullName.StartsWith("Microsoft")
+                                ||type.FullName.StartsWith("ICSharpCode")
+                                ||type.FullName.StartsWith("TMPro")
+                                ||type.FullName.StartsWith("JetBrains")
+                                ||type.FullName.StartsWith("ExCSS")
+                                ||type.FullName.StartsWith("NUnit")
+                                ||type.FullName.StartsWith("Bee")
+                                ||type.FullName.StartsWith("Newtonsoft")
+                                ||type.FullName.StartsWith("Diagnostics")
+                                ||type.FullName.StartsWith("Mono.Cecil"))
+                                ||type.FullName.StartsWith("System.Data.")
+                                ||type.FullName.StartsWith("System.Linq.")
+                                ||type.FullName.StartsWith("System.Dynamic.")
+                                ||type.FullName.StartsWith("System.Management.")
+                                ||type.FullName.StartsWith("System.Text.")
+                                ||type.FullName.StartsWith("System.Configuration.")
+                                ||type.FullName.StartsWith("System.ComponentModel.")
+                                ||type.FullName.StartsWith("System.EnterpriseServices.")
+                                ||type.FullName.StartsWith("System.Xml.")
+                                ||type.FullName.StartsWith("System.CodeDom.")
+                                ||type.FullName.StartsWith("System.Diagnostics.")
+                                ||type.FullName.StartsWith("System.Linq.")
+                                ||type.FullName.StartsWith("System.Management.")
+                                ||type.FullName.StartsWith("System.Diagnostics.")
+                                ||type.FullName.StartsWith("System.Dynamic.")
+                                ||type.FullName.StartsWith("System.Threading.")
+                                ||type.FullName.StartsWith("System.Globalization.")
+                                ||type.FullName.StartsWith("System.Security.")
+                                ||type.FullName.StartsWith("System.ComponentModel.")
+                                ||type.FullName.StartsWith("System.Diagnostics.")
+                                ||type.FullName.StartsWith("System.Runtime.Remoting")
+                                ||type.FullName.StartsWith("System.Runtime.CompilerServices")
+                                ||type.FullName.StartsWith("System.Runtime.InteropServices")
+                                ||type.FullName.StartsWith("System.Runtime.Serialization")
+                                ||type.FullName.StartsWith("System.Net.")
+                                ||type.FullName.StartsWith("System.CodeDom.")
+                                ||type.FullName.StartsWith("System.Configuration.")
+                                ||type.FullName.StartsWith("System.Transactions.")
                             select type;
+                string filePath = "Assets/Plugins/xlua_il2cpp/FunctionBridge.Gen.h";
+                GenCPPWrap(types, filePath);
+            }
+
+            public static void GenCPPWrap(IEnumerable<Type> types, string saveTo)
+            {
+                
 
                 const BindingFlags flag = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public;
-                const BindingFlags flagForPuer = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
-                // types = new List<Type>(){typeof(IL2CPPTest), typeof(IL2CPPTestBase), typeof(Vector3), typeof(Il2CppTestStruct), typeof(DirectionEnum), typeof(Enum), typeof(Tutorial.DerivedClass), typeof(Tutorial.BaseClass), typeof(System.Action), typeof(int[]), typeof(LuaTestObj)};
                 
                 
-                //#TODO@benp 白名单处理
-                var typeExcludeDelegate = types
-                    .Where(t => !(typeof(MulticastDelegate).IsAssignableFrom(t)
-                    ||t.FullName.StartsWith("UnityEditor")
-                    ||t.FullName.StartsWith("Microsoft.")
-                    ||t.FullName.StartsWith("System.Reflection.")
-                    ||t.FullName.StartsWith("System.Globalization")
-                    ||t.FullName.StartsWith("System.Threading")
-                    ||t.FullName.StartsWith("System.Security")
-                    ||t.FullName.StartsWith("System.Runtime.Remoting")
-                    ||t.FullName.StartsWith("Unity.IO")
-                    ||t.FullName.StartsWith("JetBrains")
-                    ||t.FullName.StartsWith("UnityEngine.iOS")
-                    ||t.FullName.StartsWith("UnityEngine.Experimental")
-                    ||t.FullName.StartsWith("UnityEngine.UIElements")
-                    ||t.FullName.StartsWith("UnityEngine.Networking")
-                    ||t.FullName.StartsWith("UnityEngine.XR")
-                    ||t.FullName.StartsWith("XLua.CSObjectWrap")
-                    ||t.FullName.StartsWith("TMPro.")
-                    ||t.FullName.StartsWith("NUnit.")
-                    ||t.FullName.StartsWith("System.Xml.")
-                    ||t.FullName.StartsWith("System.Diagnostics.")
-                    ||t.FullName.StartsWith("System.Linq.")
-                    ||t.FullName.StartsWith("System.Management.")
-                    ||t.FullName.StartsWith("System.Diagnostics.")
-                    ||t.FullName.StartsWith("System.Dynamic.")
-                    ||t.FullName.StartsWith("System.ComponentModel.")
-                    ||t.FullName.StartsWith("System.Net.")
-                    ||t.FullName.StartsWith("System.CodeDom.")
-                    ||t.FullName.StartsWith("System.Configuration.")
-                    ||t.FullName.StartsWith("Mono.Security.")
-                    ||t.FullName.StartsWith("UnityEngine.TestTools.")
-                    ||t.FullName.StartsWith("Packages.Rider.")
-                    ||t.FullName.StartsWith("Mono.Cecil.")
-                    ||t.FullName.StartsWith("ICSharpCode.NRefactory.")
-                    
-                    ));
-                File.WriteAllText(Application.dataPath+"/../type.text",  String.Join("\n", typeExcludeDelegate.Select(s=>s.FullName)));
+                var typeExcludeDelegate = types.Where(t => !typeof(MulticastDelegate).IsAssignableFrom(t));
+                
                 var ctorToWrapper = typeExcludeDelegate
-                    .SelectMany(t => t.GetConstructors(t.FullName.Contains("Puer") ? flagForPuer : flag));
-                // .Where(m => Utils.getBindingMode(m) != Puerts.BindingMode.DontBinding);
-
+                    .SelectMany(t => t.GetConstructors(flag));
+                
                 var methodToWrap = typeExcludeDelegate
-                    .SelectMany(t => t.GetMethods(t.FullName.Contains("Puer") ? flagForPuer : flag));
-                // .Where(m => Utils.getBindingMode(m) != Puerts.BindingMode.DontBinding);
-
+                    .SelectMany(t => t.GetMethods(flag));
+                File.WriteAllText(Application.dataPath+"/../types.txt", string.Join("\n", types.Select(t=>t.FullName)));
+                File.WriteAllText(Application.dataPath+"/../methods.txt", string.Join("\n", methodToWrap.Select(m=>$"{m.DeclaringType.FullName}.{m.Name}")));
                 var fieldToWrapper = typeExcludeDelegate
-                    .SelectMany(t => t.GetFields(t.FullName.Contains("Puer") ? flagForPuer : flag));
-                // .Where(m => Utils.getBindingMode(m) != Puerts.BindingMode.DontBinding);
+                    .SelectMany(t => t.GetFields(flag));
 
                 var wrapperUsedTypes = types
                     .Concat(ctorToWrapper.SelectMany(c => c.GetParameters()).Select(pi => GetUnrefParameterType(pi)))
@@ -220,49 +244,39 @@ $@"struct {Signature}{{
                     .Distinct();
 
 
-                Type[] PuerDelegates = {
-                // typeof(Func<string, Puerts.JSObject>),
-                // typeof(Func<Puerts.JSObject, string, string>),
-                // typeof(Func<Puerts.JSObject, string, int>),
-                // typeof(Func<Puerts.JSObject, string, uint>),
-                // typeof(Func<Puerts.JSObject, string, long>),
-                // typeof(Func<Puerts.JSObject, string, ulong>),
-                // typeof(Func<Puerts.JSObject, string, short>),
-                // typeof(Func<Puerts.JSObject, string, ushort>),
-                // typeof(Func<Puerts.JSObject, string, float>),
-                // typeof(Func<Puerts.JSObject, string, double>),
-                // typeof(Func<Puerts.JSObject, string, Puerts.JSObject>)
-            };
+                //#TODO@benp 泛型支持
+                // HashSet<Type> typeInGenericArgument = new HashSet<Type>();
+                // HashSet<MethodBase> processed = new HashSet<MethodBase>();
+                // foreach (var method in methodToWrap)
+                // {
+                //     GenericArgumentInInstructions(method, typeInGenericArgument, processed, mb =>
+                //     {
+                //         try
+                //         {
+                //             if (mb.GetMethodBody() == null || mb.IsGenericMethodDefinition || mb.IsAbstract) {
 
-                HashSet<Type> typeInGenericArgument = new HashSet<Type>();
-                HashSet<MethodBase> processed = new HashSet<MethodBase>();
-#if !PUERTS_GENERAL
-                foreach (var method in methodToWrap)
-                {
-                    GenericArgumentInInstructions(method, typeInGenericArgument, processed, mb =>
-                    {
-                        try
-                        {
-                            if (mb.GetMethodBody() == null || mb.IsGenericMethodDefinition || mb.IsAbstract) return new MethodBase[] { };
-                            return new MethodBase[] { };
-                            // mb.GetMethodBody().
-                            // return mb.GetInstructions()
-                            // .Select(i => i.Operand)
-                            // .Where(o => o is MethodBase)
-                            // .Cast<MethodBase>();
-                        }
-                        catch (Exception e)
-                        {
-                            UnityEngine.Debug.LogWarning(string.Format("get instructions of {0} ({2}:{3}) throw {1}", mb, e.Message, mb.DeclaringType == null ? "" : mb.DeclaringType.Assembly.GetName().Name, mb.DeclaringType));
-                            return new MethodBase[] { };
-                        }
-                    });
-                }
-#endif
+                //             return new MethodBase[] { };
+                //             }
+
+                //             var body =  mb.GetMethodBody();
+                            
+                //             return new MethodBase[] { };
+                //             // mb.GetMethodBody().
+                //             // return mb.GetInstructions()
+                //             // .Select(i => i.Operand)
+                //             // .Where(o => o is MethodBase)
+                //             // .Cast<MethodBase>();
+                //         }
+                //         catch (Exception e)
+                //         {
+                //             UnityEngine.Debug.LogWarning(string.Format("get instructions of {0} ({2}:{3}) throw {1}", mb, e.Message, mb.DeclaringType == null ? "" : mb.DeclaringType.Assembly.GetName().Name, mb.DeclaringType));
+                //             return new MethodBase[] { };
+                //         }
+                //     });
+                // }
 
                 var delegateToBridge = wrapperUsedTypes
-                    .Concat(PuerDelegates)
-                    .Concat(typeInGenericArgument)
+                    // .Concat(typeInGenericArgument)
                     .Where(t => typeof(MulticastDelegate).IsAssignableFrom(t));
 
                 var delegateInvokes = delegateToBridge
@@ -277,7 +291,6 @@ $@"struct {Signature}{{
                 {
                     IterateAllValueType(type, valueTypeInfos);
                 }
-
                 valueTypeInfos = valueTypeInfos
                     .GroupBy(s => s.Signature)
                     .Select(s => s.FirstOrDefault())
@@ -300,63 +313,11 @@ $@"struct {Signature}{{
                 var genWrapperCtor = ctorToWrapper;
                 var genWrapperMethod = methodToWrap;
                 var genWrapperField = fieldToWrapper;
-
-                if (onlyConfigure)
-                {
-                    // var configure = Puerts.Configure.GetConfigureByTags(new List<string>() {
-                    //     "Puerts.BindingAttribute",
-                    // });
-
-                    // var configureTypes = new HashSet<Type>(configure["Puerts.BindingAttribute"].Select(kv => kv.Key)
-                    //     .Where(o => o is Type)
-                    //     .Cast<Type>()
-                    //     .Where(t => !typeof(MulticastDelegate).IsAssignableFrom(t))
-                    //     .Where(t => !t.IsGenericTypeDefinition && !t.Name.StartsWith("<"))
-                    //     .Distinct()
-                    //     .ToList());
-
-                    // // configureTypes.Clear();
-
-                    // genWrapperCtor = configureTypes
-                    //     .SelectMany(t => t.GetConstructors(flag))
-                    //     .Where(m => !Utils.IsNotSupportedMember(m, true))
-                    //     .Where(m => Utils.getBindingMode(m) != Puerts.BindingMode.DontBinding);
-
-                    // genWrapperMethod = configureTypes
-                    //     .SelectMany(t => t.GetMethods(flag))
-                    //     .Where(m => !Utils.IsNotSupportedMember(m, true))
-                    //     .Where(m => Utils.getBindingMode(m) != Puerts.BindingMode.DontBinding);
-
-                    // genWrapperField = configureTypes
-                    //     .SelectMany(t => t.GetFields(flag))
-                    //     .Where(m => !Utils.IsNotSupportedMember(m, true))
-                    //     .Where(m => Utils.getBindingMode(m) != Puerts.BindingMode.DontBinding);
-
-                    // var configureUsedTypes = configureTypes
-                    //     .Concat(genWrapperCtor.SelectMany(c => c.GetParameters()).Select(pi => GetUnrefParameterType(pi)))
-                    //     .Concat(genWrapperMethod.SelectMany(m => m.GetParameters()).Select(pi => GetUnrefParameterType(pi)))
-                    //     .Concat(genWrapperMethod.Select(m => m.ReturnType))
-                    //     .Concat(genWrapperField.Select(f => f.FieldType))
-                    //     .Distinct();
-
-                    // valueTypeInfos = new List<ValueTypeInfo>();
-                    // foreach (var type in configureUsedTypes.Concat(delegateUsedTypes))
-                    // {
-                    //     IterateAllValueType(type, valueTypeInfos);
-                    // }
-
-                    // valueTypeInfos = valueTypeInfos
-                    //     .GroupBy(s => s.Signature)
-                    //     .Select(s => s.FirstOrDefault())
-                    //     .ToList();
-
-                    // Utils.SetFilters(null);
-                }
-
                 var wrapperInfos = genWrapperMethod
                     .Where(m => !m.IsGenericMethodDefinition && !m.IsAbstract)
                     .Select(m =>
                     {
+                        
                         var isExtensionMethod = m.IsDefined(typeof(ExtensionAttribute));
                         return new SignatureInfo
                         {
@@ -371,14 +332,15 @@ $@"struct {Signature}{{
                         genWrapperCtor
                             .Select(m =>
                             {
-                                var isExtensionMethod = false;
+                                
+                                File.AppendAllText(Application.dataPath+"/../methods.txt", m.DeclaringType.ToString() + "|" +m.ToString() + "\n");
                                 return new SignatureInfo
                                 {
-                                    Signature = TypeUtils.GetMethodSignature(m, false, isExtensionMethod),
+                                    Signature = TypeUtils.GetMethodSignature(m),
                                     CsName = m.ToString(),
                                     ReturnSignature = "v",
-                                    ThisSignature = "t",
-                                    ParameterSignatures = m.GetParameters().Skip(isExtensionMethod ? 1 : 0).Select(p => TypeUtils.GetParameterSignature(p)).ToList()
+                                    ThisSignature = TypeUtils.GetThisSignature(m),
+                                    ParameterSignatures = m.GetParameters().Skip(0).Select(p => TypeUtils.GetParameterSignature(p)).ToList()
                                 };
                             })
                     )
@@ -390,17 +352,17 @@ $@"struct {Signature}{{
                 var fieldWrapperInfos = genWrapperField
                     .Select(f => new SignatureInfo
                     {
-                        Signature = (f.IsStatic ? "" : "t") + TypeUtils.GetTypeSignature(f.FieldType),
+                        Signature = (f.IsStatic ? "" : TypeUtils.GetThisSignature2(f.DeclaringType)) + TypeUtils.GetTypeSignature(f.FieldType),
                         CsName = f.ToString(),
                         ReturnSignature = TypeUtils.GetTypeSignature(f.FieldType),
-                        ThisSignature = (f.IsStatic ? "" : "t"),
+                        ThisSignature = f.IsStatic ? "" : TypeUtils.GetThisSignature2(f.DeclaringType),
                         ParameterSignatures = null
                     })
                     .GroupBy(s => s.Signature)
                     .Select(s => s.FirstOrDefault())
                     .ToList();
                 fieldWrapperInfos.Sort((x, y) => string.CompareOrdinal(x.Signature, y.Signature));
-                string filePath = "Assets/Plugins/xlua_il2cpp/FunctionBridge.Gen.h";
+                
                 string content = CppWrapper.Gen(new CppWrappersInfo
                 {
                     ValueTypeInfos = valueTypeInfos,
@@ -408,11 +370,12 @@ $@"struct {Signature}{{
                     BridgeInfos = bridgeInfos,
                     FieldWrapperInfos = fieldWrapperInfos
                 });
-                using (StreamWriter textWriter = new StreamWriter(filePath)){
+                using (StreamWriter textWriter = new StreamWriter(saveTo)){
                     textWriter.Write(content);
                     textWriter.Flush();
                 }
-                Debug.LogWarning("build success");
+
+                Debug.LogWarning($"build success 处理类数量 {types.Count()} 处理接口数量 {methodToWrap.Count()} 压缩为{wrapperInfos.Count} 处理field数量{genWrapperField.Count()} 压缩为{fieldWrapperInfos.Count} 处理delegate数量{delegateInvokes.Count()} 压缩为{bridgeInfos.Count()}");
             }
 
             public static void GenExtensionMethodInfos(string outDir)
@@ -476,27 +439,6 @@ $@"struct {Signature}{{
                 //         textWriter.Flush();
                 //     }
                 // }
-            }
-
-            public static void CopyXIl2cppCPlugin(string outDir)
-            {
-                Dictionary<string, string> cPluginCode = new Dictionary<string, string>()
-            {
-                { "pesapi_adpt.c", Resources.Load<TextAsset>("puerts/xil2cpp/pesapi_adpt.c").text },
-                { "pesapi.h", Resources.Load<TextAsset>("puerts/xil2cpp/pesapi.h").text },
-                { "Puerts_il2cpp.cpp", Resources.Load<TextAsset>("puerts/xil2cpp/Puerts_il2cpp.cpp").text },
-                { "UnityExports4Puerts.h", Resources.Load<TextAsset>("puerts/xil2cpp/UnityExports4Puerts.h").text }
-            };
-
-                foreach (var cPlugin in cPluginCode)
-                {
-                    var path = outDir + cPlugin.Key;
-                    using (StreamWriter textWriter = new StreamWriter(path, false, Encoding.UTF8))
-                    {
-                        textWriter.Write(cPlugin.Value);
-                        textWriter.Flush();
-                    }
-                }
             }
 
             public static void GenMarcoHeader(string outDir)

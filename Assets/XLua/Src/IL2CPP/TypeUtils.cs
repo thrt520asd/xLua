@@ -58,33 +58,6 @@ namespace XLua.IL2CPP
 	
     public static class TypeUtils
     {
-        public class TypeSignatures
-        {
-            public static string Void = "v";
-            public static string Bool = "b";
-            public static string Byte = "u1";
-            public static string Sbyte = "i1";
-            public static string Short = "i2";
-            public static string Ushort = "u2";
-            public static string Int = "i4";
-            public static string Uint = "u4";
-            public static string Long = "i8";
-            public static string Ulong = "u8";
-            public static string Char = "c";
-            public static string Double = "r8";
-            public static string Float = "r4";
-            public static string IntPtr = "p";
-            public static string String = "s";
-            public static string ArrayBuffer = "a";
-            public static string SystemObject = "O";
-            public static string RefOrPointerPrefix = "P";
-            public static string Object = "o";
-            public static string StructPrefix = "S_";
-            public static string NullableStructPrefix = "N_";
-            public static string ArrayPrefix = "V";
-            public static string OptionalParmaeterPrefix = "D";
-            public static string OutParameterPrefix = "U";
-        }
         private static Type GetType(string className, bool isQualifiedName)
         {
             Type type = Type.GetType(className, false);
@@ -130,6 +103,13 @@ namespace XLua.IL2CPP
             return GetType(className, false);
         }
 
+        private static Type GetRefElementType(Type type){
+            if(type.IsByRef || type.IsPointer){
+                return GetRefElementType(type.GetElementType());
+            }
+            return type.GetElementType();
+        }
+
         public static string GetValueTypeFieldsSignature(Type type)
         {
             if (!type.IsValueType)
@@ -144,14 +124,15 @@ namespace XLua.IL2CPP
             foreach (var field in type.GetFields(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
             {
                 // special handling circular definition by pointer
-                if (
-                    (field.FieldType.IsByRef || field.FieldType.IsPointer) &&
-                    field.FieldType.GetElementType() == type
+                if ((field.FieldType.IsByRef || field.FieldType.IsPointer) 
+                // && GetRefElementType(field.FieldType) == type
                 ) {
                     sb.Append("Pv");
                 } 
-                else
+                else{
+                    // System.IO.File.AppendAllText(Application.dataPath + "/../alog.txt", type.FullName + "\n");
                     sb.Append(GetTypeSignature(field.FieldType));
+                }
             }
             return sb.ToString();
         }
@@ -206,10 +187,6 @@ namespace XLua.IL2CPP
             {
                 return TypeSignatures.Double;
             }
-            // else if (type == typeof(decimal)) //decimal 也按照double处理 
-            // {
-            //     return TypeSignatures.Double;
-            // }
             else if (type == typeof(float))
             {
                 return TypeSignatures.Float;
@@ -247,7 +224,6 @@ namespace XLua.IL2CPP
             }
             else if (type.IsValueType && !type.IsPrimitive)
             {
-                //return "s" + Marshal.SizeOf(type);
                 if (Nullable.GetUnderlyingType(type) != null) 
                     return TypeSignatures.NullableStructPrefix + GetValueTypeFieldsSignature(type) + "_";
                 else 
@@ -272,7 +248,7 @@ namespace XLua.IL2CPP
             if(parameterInfo.IsOut){
                 var signature = GetTypeSignature(parameterInfo.ParameterType, true);
                 // if(parameterInfo.ParameterType.IsValueType){
-                //     signature = TypeUtils.TypeSignatures.OutParameterPrefix + signature;
+                //     signature = TypeSignatures.OutParameterPrefix + signature;
                 // }
                 return signature;
             }
@@ -280,28 +256,50 @@ namespace XLua.IL2CPP
             return GetTypeSignature(parameterInfo.ParameterType);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="t"></param>
+        /// <param name="needOffset"></param>
+        /// <returns></returns>
+        public static string GetThisSignature2(Type t, bool needOffset = false){
+            if(t == typeof(object)){ 
+                return TypeSignatures.ThisSignature_OBJECT;
+            }else if(t.IsValueType()){
+                if(needOffset){
+                    return TypeSignatures.ThisSignature_Value_Offset;
+                }else{
+                    return TypeSignatures.ThisSignature_Value;
+                }
+            }else{
+                return TypeSignatures.ThisSignature_Ref;
+            }   
+        }
+
         public static string GetThisSignature(MethodBase methodBase, bool isExtensionMethod = false)
         {
-            // if (methodBase is ConstructorInfo)
-            // {
-            //     UnityEngine.Debug.Log(111);
-            // }
-            // else 
-            HashSet<object> set = new HashSet<object>(); 
             string s = "";
             if (methodBase is MethodInfo)
             {
 
                 bool isDelegate = typeof(MulticastDelegate).IsAssignableFrom(methodBase.DeclaringType);
                 var methodInfo = methodBase as MethodInfo;
-                if ((!isDelegate && !methodInfo.IsStatic) || isExtensionMethod)
+                if ((!isDelegate && !methodInfo.IsStatic) || isExtensionMethod || methodBase is ConstructorInfo)
                 {
-                    if(methodBase.DeclaringType.IsValueType){
-                        s = "s";
+                    if(isExtensionMethod){
+                        s = GetThisSignature2(methodBase.GetParameters()[0].ParameterType, !isExtensionMethod);
                     }else{
-                        s = methodBase.DeclaringType == typeof(object) ? "T" : "t";
+
+                        s = GetThisSignature2(methodBase.DeclaringType, !isExtensionMethod);
                     }
+                    // if(methodBase.DeclaringType.IsValueType){
+                    //     s = "t";
+                    // }else{
+                    //     s = methodBase.DeclaringType == typeof(object) ? "T" : "t";
+                    // }
                 }
+            }else if(methodBase is ConstructorInfo){
+                s = GetThisSignature2(methodBase.DeclaringType, true);
             }
             return s;
         }
@@ -310,7 +308,8 @@ namespace XLua.IL2CPP
             string signature = "";
             if (methodBase is ConstructorInfo)
             {
-                signature += "vt";
+                signature += "v";
+                signature += GetThisSignature2(methodBase.DeclaringType, true);
                 var constructorInfo = methodBase as ConstructorInfo;
                 foreach (var p in constructorInfo.GetParameters())
                 {
@@ -321,13 +320,14 @@ namespace XLua.IL2CPP
             {
                 var methodInfo = methodBase as MethodInfo;
                 signature += GetTypeSignature(methodInfo.ReturnType);
-                if (!methodInfo.IsStatic && !isDelegateInvoke) signature += methodBase.DeclaringType == typeof(object) ? "T" : "t";
+                if (!methodInfo.IsStatic && !isDelegateInvoke) signature += GetThisSignature2(methodBase.DeclaringType, true);
+                //  methodBase.DeclaringType == typeof(object) ? "T" : "t";
                 var parameterInfos = methodInfo.GetParameters();
                 for (int i = 0; i < parameterInfos.Length; ++i)
                 {
                     if (i == 0 && isExtensionMethod)
                     {
-                        signature += parameterInfos[0].ParameterType == typeof(object) ? "T" : "t";
+                        signature += GetThisSignature2(parameterInfos[0].ParameterType, false); //parameterInfos[0].ParameterType == typeof(object) ? "T" : "t";
                     }
                     else
                     {

@@ -16,7 +16,7 @@ namespace XLua.IL2CPP.Editor{
         /// </summary>
         [MenuItem("Tools/XLuaIL2CPP/GenFunctionBridge.gen.h")]
         public static void GenFunctionBridge(){
-            Generator.FileExporter.GenCPPWrap(Application.dataPath+"/FunctionBridge.gen.h");
+            FileExporter.GenCPPWrapAll();
         }
 
         /// <summary>
@@ -48,8 +48,6 @@ namespace XLua.IL2CPP.Editor{
                 var type = System.AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes()).First((Type x)=>{
                     return x.Name == m_TypeName;
                 });
-                string str = "UPS_pu4_";
-                Debug.Log(WrapUtil.SToCPPType(str));
                 if(type != null){
                     Debug.Log("======================selfSignature======================");
                     var thisSignature = TypeUtils.GetTypeSignature(type);
@@ -108,6 +106,31 @@ namespace XLua.IL2CPP.Editor{
             }
             if(GUILayout.Button("SToCPPType")){
                 Debug.Log(WrapUtil.SToCPPType(m_TypeName));
+            }
+            if(GUILayout.Button("ReflectionInfo")){
+                
+                var type = System.AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes()).First((Type x)=>{
+                        return x.Name == m_TypeName;
+                    });
+
+                var fields = type.GetFields();
+                Debug.Log(type.FullName);
+                foreach (var field in fields)
+                {   
+                    Debug.Log(field + "|" + field.FieldType.IsByRef + "|" + field.FieldType.IsPointer);
+                }
+                BindingFlags flag = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public;
+                var methods = type.GetMethods(flag);
+                foreach (var method in methods)
+                {   
+                    Debug.Log(method);
+                }
+            }
+            if(GUILayout.Button("TestGen")){
+                var type = System.AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes()).First((Type x)=>{
+                        return x.Name == m_TypeName;
+                    });
+                FileExporter.GenCPPWrap(new List<Type>(){type}, Application.dataPath + "/../wrapTest.h");
             }
         }
 

@@ -15,19 +15,19 @@ namespace XLua.IL2CPP.Editor.Generator
     public static class WrapUtil
     {
         public static bool IsVoid(this string str){
-            return str == "v";
+            return str == TypeSignatures.Void;
         }
         public static bool IsStruct(this string str){
             str = getSignatureWithoutRefAndPrefix(str);
-            return (str.StartsWith(TypeUtils.TypeSignatures.StructPrefix) || str.StartsWith(TypeUtils.TypeSignatures.NullableStructPrefix)) && str.EndsWith("_");
+            return (str.StartsWith(TypeSignatures.StructPrefix) || str.StartsWith(TypeSignatures.NullableStructPrefix)) && str.EndsWith("_");
         }
         
         public static bool IsStructRaw(this string str){
-            return (str.StartsWith(TypeUtils.TypeSignatures.StructPrefix) || str.StartsWith(TypeUtils.TypeSignatures.NullableStructPrefix)) && str.EndsWith("_");
+            return (str.StartsWith(TypeSignatures.StructPrefix) || str.StartsWith(TypeSignatures.NullableStructPrefix)) && str.EndsWith("_");
         }
 
         public static bool IsBoolean(this string str){
-            return str == TypeUtils.TypeSignatures.Bool;
+            return str == TypeSignatures.Bool;
         }
         public static string CSType(this string str){
             if(str[0] == 'V'){
@@ -50,11 +50,11 @@ namespace XLua.IL2CPP.Editor.Generator
         }
         public static bool IsOutParameter(this string str){
 
-            return str[0] == TypeUtils.TypeSignatures.OutParameterPrefix[0];
+            return str[0] == TypeSignatures.OutParameterPrefix[0];
         }
         public static bool IsRefParameter(this string str){
-            return (str[0] == TypeUtils.TypeSignatures.OutParameterPrefix[0]
-            || str[0] == TypeUtils.TypeSignatures.RefOrPointerPrefix[0]) && str[1] != 'v';
+            return (str[0] == TypeSignatures.OutParameterPrefix[0]
+            || str[0] == TypeSignatures.RefOrPointerPrefix[0]) && str[1] != 'v';
         }
 
         public static bool IsRefStruct(this string str){
@@ -62,7 +62,7 @@ namespace XLua.IL2CPP.Editor.Generator
         }
 
         public static bool IsOptionalParameter(this string str){
-            return str[0] == TypeUtils.TypeSignatures.OptionalParmaeterPrefix[0];
+            return str[0] == TypeSignatures.OptionalParmaeterPrefix[0];
         }
 
         public static string GetLastNum(this string str){
@@ -106,7 +106,10 @@ namespace XLua.IL2CPP.Editor.Generator
         }
         public static bool needThis(string thisSignature)
         {
-            return thisSignature == "t" || thisSignature == "T" || thisSignature == "s";
+            return thisSignature == TypeSignatures.ThisSignature_OBJECT || 
+            thisSignature == TypeSignatures.ThisSignature_Value || 
+            thisSignature == TypeSignatures.ThisSignature_Value_Offset || 
+            thisSignature == TypeSignatures.ThisSignature_Ref;
         }
 
         static Dictionary<string, string> PrimitiveSignatureCppTypeMap = new System.Collections.Generic.Dictionary<string, string>{
@@ -132,7 +135,7 @@ namespace XLua.IL2CPP.Editor.Generator
             }
 
             var t = signature.IsPrimitiveSignatureRaw() ? PrimitiveSignatureCppTypeMap[signature] : "void*";
-            if (signature.StartsWith(TypeUtils.TypeSignatures.StructPrefix) || signature.StartsWith(TypeUtils.TypeSignatures.NullableStructPrefix) && signature.EndsWith("_"))
+            if (signature.StartsWith(TypeSignatures.StructPrefix) || signature.StartsWith(TypeSignatures.NullableStructPrefix) && signature.EndsWith("_"))
             {
                 t = $"{signature}";
             }
@@ -150,7 +153,7 @@ namespace XLua.IL2CPP.Editor.Generator
                 signature = signature.Substring(1);
             }
             var t = signature.IsPrimitiveSignatureRaw() ? PrimitiveSignatureCppTypeMap[signature] : "void*";
-            if (signature.StartsWith(TypeUtils.TypeSignatures.StructPrefix) || signature.StartsWith(TypeUtils.TypeSignatures.NullableStructPrefix) && signature.EndsWith("_"))
+            if (signature.StartsWith(TypeSignatures.StructPrefix) || signature.StartsWith(TypeSignatures.NullableStructPrefix) && signature.EndsWith("_"))
             {
                 t = $"struct {signature}";
             }
@@ -259,11 +262,12 @@ $@"//{signatureInfo.CsName}
 static int w_{signatureInfo.Signature}(void* method, MethodPointer methodPointer, lua_State *L, bool checkLuaArgument, WrapData* wrapData, int paramOffset) {{
     {WrapUtil.DeclareTypeInfo(signatureInfo)}
     auto length = lapi_lua_gettop(L);
+    void* klass = wrapData->klass;
     if({(signatureInfo.ParameterSignatures.Any(s => s[0] == 'D') ? "true" : "checkLuaArgument")}){{
         if ({WrapUtil.GenArgsLenCheck(signatureInfo.ParameterSignatures)}) return -1;
         {String.Join("\n\t\t", signatureInfo.ParameterSignatures.Select<string, string>((s, index) => WrapUtil.CheckLuaArgument(s, RealParameterIndex(signatureInfo.ParameterSignatures, index), index)))}
     }}
-    {WrapUtil.GetThis_FuncWrap(signatureInfo.ThisSignature)}
+    {WrapUtil.GetThis(signatureInfo.ThisSignature)}
     {String.Join("\n\t", signatureInfo.ParameterSignatures.Select((s, index) => WrapUtil.LuaValToCSVal(s, "p" + index,  RealParameterIndex(signatureInfo.ParameterSignatures, index).ToString() , true)))}
     
     typedef {WrapUtil.SToCPPType(signatureInfo.ReturnSignature)} (*FuncToCall)({(WrapUtil.needThis(signatureInfo.ThisSignature) ? "void*, " : "")}{String.Join("", signatureInfo.ParameterSignatures.Select((s, i) => $"{WrapUtil.SToCPPType(s)} p{i}, "))}const void* method);
@@ -410,10 +414,10 @@ static int w_{signatureInfo.Signature}(void* method, MethodPointer methodPointer
             {
                 ret += $"!CheckIsClass(L, {index} + paramOffset, TIp{typeIndex})) return -1;";
             }
-            else if (signature.StartsWith(TypeUtils.TypeSignatures.StructPrefix) && signature.EndsWith("_")){
+            else if (signature.StartsWith(TypeSignatures.StructPrefix) && signature.EndsWith("_")){
                 ret +=$"!CheckIsStruct(L, {typeIndex} + paramOffset, TIp{typeIndex})) return -1;";
             }
-            else if (signature.StartsWith(TypeUtils.TypeSignatures.NullableStructPrefix) && signature.EndsWith("_"))
+            else if (signature.StartsWith(TypeSignatures.NullableStructPrefix) && signature.EndsWith("_"))
             {
                 ret +=$"!CheckIsNullableStruct(L, {typeIndex} + paramOffset, TIp{typeIndex})) return -1;";
             }
@@ -436,45 +440,30 @@ static int w_{signatureInfo.Signature}(void* method, MethodPointer methodPointer
             }
             
         }
-        /// struct 什么时候需要offset 需要调用struct的成员方法时 该struct需要offset 其他时刻均不需要
-        public static string GetThis(string signature, bool field = false)
+        
+        public static string GetThis(string signature)
         {
-            if (signature == "t") //
-            {
-                return $"auto self = GetCppObjMapper()->ToCppObj{(field?"_Field":"")}(L, 1);";
+            if(signature == TypeSignatures.ThisSignature_OBJECT){
+                return $"auto self = LuaValueToCSRef(nullptr,L, 1);";
             }
-            else if (signature == "T") // declaringType object
-            {
-                return $"auto self = LuaValueToCSRef(GetLuaObjCls(L,1), L, 1);";
+            else if(signature == TypeSignatures.ThisSignature_Ref){
+                return $"auto self = GetRawObjPointer(L, 1, klass);";
             }
-            else if (signature == "s" ){ //declaringType value
-                return $"auto self = GetCppObjMapper()->ToCppObj{(field?"_Field":"")}(L, 1);";
+            else if(signature == TypeSignatures.ThisSignature_Value){
+                
+                return $"auto self = GetRawValuePointer(L, 1, klass);";
             }
-            
+            else if(signature == TypeSignatures.ThisSignature_Value_Offset){
+                return $"auto self = GetRawValuePointer_Offset(L, 1, klass);";
+            }
             return "";
-        }
-
-        public static string GetThis_FuncWrap(string signature)
-        {
-            if (signature == "t") //
-            {
-                return $"auto self = GetThisPointer(L, wrapData->IsExtensionMethod);";
-            }
-            else if (signature == "T") // declaringType object
-            {
-                return $"auto self = LuaValueToCSRef(GetLuaObjCls(L,1), L, 1);";
-            }
-            else if (signature == "s" ){ //declaringType value
-                return $"auto self = GetThisPointer(L, wrapData->IsExtensionMethod);";
-            }
             
-            return "";
         }
                   
         public static string LuaValToCSVal(string signature, string CSName, string index, bool needOffset = false, bool isField = false)
         {
             
-            if (signature == TypeUtils.TypeSignatures.String)
+            if (signature == TypeSignatures.String)
             {
                 return
 $@"// string s
@@ -524,7 +513,7 @@ $@"// object ref Uo/UO
     void** {CSName} = &u{CSName};";
             }
             //struct
-            else if ((signature.StartsWith(TypeUtils.TypeSignatures.StructPrefix) || signature.StartsWith(TypeUtils.TypeSignatures.NullableStructPrefix)) && signature.EndsWith("_"))
+            else if ((signature.StartsWith(TypeSignatures.StructPrefix) || signature.StartsWith(TypeSignatures.NullableStructPrefix)) && signature.EndsWith("_"))
             {
                     return 
 $@"//LuaValToCSVal struct
@@ -555,7 +544,7 @@ $@"// LuaValToCSVal out not primitive
             }
             //valuetype ref
             else if (
-                //(signature.StartsWith('P' + TypeUtils.TypeSignatures.StructPrefix) || signature.StartsWith('P' + TypeUtils.TypeSignatures.NullableStructPrefix)) && signature.EndsWith("_")
+                //(signature.StartsWith('P' + TypeSignatures.StructPrefix) || signature.StartsWith('P' + TypeSignatures.NullableStructPrefix)) && signature.EndsWith("_")
                 signature.IsRefStruct()
             )
             { 
@@ -671,12 +660,12 @@ $@"//LuaValToCSVal unknow type with default
             {
                 return $@"CSAnyToLuaValue(L, {(rawSignature.IsRefParameter()?"*":"")}{CSName});";
             }
-            else if (signature.StartsWith(TypeUtils.TypeSignatures.NullableStructPrefix) && signature.EndsWith("_"))
+            else if (signature.StartsWith(TypeSignatures.NullableStructPrefix) && signature.EndsWith("_"))
             {
                 
                 return $"CopyNullableValueType(L, TI{CSName.TrimStartXing()}, {(rawSignature.IsRefParameter()?"*":"")}{CSName}, {CSName}->hasValue, sizeof({signature}));";
             }
-            else if (signature.StartsWith(TypeUtils.TypeSignatures.StructPrefix) && signature.EndsWith("_"))
+            else if (signature.StartsWith(TypeSignatures.StructPrefix) && signature.EndsWith("_"))
             {
                 return $"CSValueToLuaValue(L, (void*)TI{CSName.TrimStartXing()}, {(rawSignature.IsRefParameter()?"*":"")}{CSName.CSNamePointer()}, sizeof({signature}));";
             }
@@ -695,7 +684,7 @@ $@"//LuaValToCSVal unknow type with default
                 var elementSignature = signature.Substring(1);
                 string CSName = "p"+index;
                 string returnStr = "";
-                if(elementSignature.IsPrimitiveSignatureRaw() && elementSignature != TypeUtils.TypeSignatures.Void){
+                if(elementSignature.IsPrimitiveSignatureRaw() && elementSignature != TypeSignatures.Void){
                     returnStr = $"converter::Converter<{PrimitiveSignatureCppTypeMap[elementSignature]}>::toScript(L, *{CSName})";
                 }
                 else if (elementSignature == "s" || elementSignature == "O")
@@ -706,12 +695,12 @@ $@"//LuaValToCSVal unknow type with default
                 {
                     returnStr = $@"CSAnyToLuaValue(L, *{CSName}, (void*)TIp{CSName.GetLastNum()})";
                 }
-                else if (elementSignature.StartsWith(TypeUtils.TypeSignatures.NullableStructPrefix) && elementSignature.EndsWith("_"))
+                else if (elementSignature.StartsWith(TypeSignatures.NullableStructPrefix) && elementSignature.EndsWith("_"))
                 {
                     
                     returnStr = $"CopyNullableValueType(L, (void*)TI{CSName.TrimStartXing()}, {CSName}, {CSName}->hasValue, sizeof({elementSignature}))";
                 }
-                else if (elementSignature.StartsWith(TypeUtils.TypeSignatures.StructPrefix) && elementSignature.EndsWith("_"))
+                else if (elementSignature.StartsWith(TypeSignatures.StructPrefix) && elementSignature.EndsWith("_"))
                 {
                     returnStr = $"CSValueToLuaValue(L, (void*)TI{CSName.TrimStartXing()}, {CSName}, sizeof({elementSignature}))";
                 }
@@ -733,21 +722,17 @@ $@"//LuaValToCSVal unknow type with default
                 
                 return $"converter::Converter<{PrimitiveSignatureCppTypeMap[signature]}>::toScript(L, ret);";
             }
-            else if (signature.StartsWith(TypeUtils.TypeSignatures.NullableStructPrefix) && signature.EndsWith("_"))
+            else if (signature.StartsWith(TypeSignatures.NullableStructPrefix) && signature.EndsWith("_"))
             {
                 return "CopyNullableValueType(L, (void*)TIret, &ret, ret.hasValue, sizeof(ret));";
             }
-            else if (signature.StartsWith(TypeUtils.TypeSignatures.StructPrefix) && signature.EndsWith("_"))
+            else if (signature.StartsWith(TypeSignatures.StructPrefix) && signature.EndsWith("_"))
             {
                 return $"CSValueToLuaValue(L, (void*)TIret, &ret, sizeof({signature}));";
             }
             else if (signature == "o")
             {
                 return $"CSAnyToLuaValue(L, ret{(klass.NotNullOrEmpty()?", TIret":"")});";
-            }
-            else if (signature == "a")
-            { // ArrayBuffer
-                return "// error no implement";
             }
             else if (signature == "O")
             { // System.Object
@@ -768,7 +753,7 @@ $@"//LuaValToCSVal unknow type with default
         }
 
         public static string ReturnToCS(string signature, string index){
-            if(signature == TypeUtils.TypeSignatures.Void){
+            if(signature == TypeSignatures.Void){
                 return "";
             }
             return 
@@ -813,12 +798,12 @@ $@"{LuaValToCSVal(signature, "ret", index)}
                 )
                 {
                     return $"*{pi} = LuaValueToCSRef((Il2CppClass*)TI{pi}, L, {index});";
-                } else if (elementSignature.StartsWith(TypeUtils.TypeSignatures.NullableStructPrefix) && elementSignature.EndsWith("_"))
+                } else if (elementSignature.StartsWith(TypeSignatures.NullableStructPrefix) && elementSignature.EndsWith("_"))
                 {
                     
                     return $"{pi} = GetCSharpStructPointerFromLua<{signature}>(L, {index}, (void*)TI{pi});";
                 }
-                else if (elementSignature.StartsWith(TypeUtils.TypeSignatures.StructPrefix) && elementSignature.EndsWith("_"))
+                else if (elementSignature.StartsWith(TypeSignatures.StructPrefix) && elementSignature.EndsWith("_"))
                 {
                     //todo 此处需要深究
                     return $"{pi} = GetCSharpStructPointerFromLua<{elementSignature}>(L, {index}, (void*)TI{pi});";
@@ -882,6 +867,7 @@ static {SToCPPType(bridgeInfo.ReturnSignature)} b_{bridgeInfo.Signature}(void* t
        throwExceptionFromLuaError(L, oldTop);
     }}
     lapi_lua_settop(L, errFunc-1);
+    
 }}
 ";
 
@@ -889,7 +875,7 @@ static {SToCPPType(bridgeInfo.ReturnSignature)} b_{bridgeInfo.Signature}(void* t
         public static string genGetField(SignatureInfo fieldWrapperInfo)
         {
             var signature = fieldWrapperInfo.ReturnSignature;
-            if ((signature.StartsWith(TypeUtils.TypeSignatures.StructPrefix) || signature.StartsWith(TypeUtils.TypeSignatures.NullableStructPrefix)) && signature.EndsWith("_"))
+            if ((signature.StartsWith(TypeSignatures.StructPrefix) || signature.StartsWith(TypeSignatures.NullableStructPrefix)) && signature.EndsWith("_"))
             { 
                 //valuetype todo 生成代码有问题
                 return $@"{SToCPPType(fieldWrapperInfo.ReturnSignature)} ret;
@@ -910,16 +896,16 @@ static {SToCPPType(bridgeInfo.ReturnSignature)} b_{bridgeInfo.Signature}(void* t
         public static string genFieldWrapper(SignatureInfo fieldWrapperInfo)
         {
             return $@"
-static void ifg_{fieldWrapperInfo.Signature}(lua_State* L, void* fieldInfo, size_t offset, void* TIret) {{
+static void ifg_{fieldWrapperInfo.Signature}(lua_State* L, void* fieldInfo, size_t offset, void* TIret, void* klass) {{
     
-    {(needThis(fieldWrapperInfo.ThisSignature) ? GetThis(fieldWrapperInfo.ThisSignature, true) : "")}
+    {(needThis(fieldWrapperInfo.ThisSignature) ? GetThis(fieldWrapperInfo.ThisSignature) : "")}
 
     {genGetField(fieldWrapperInfo)}
 }}
 
-static void ifs_{fieldWrapperInfo.Signature}(lua_State* L, void* fieldInfo, size_t offset, void* TIp) {{
+static void ifs_{fieldWrapperInfo.Signature}(lua_State* L, void* fieldInfo, size_t offset, void* TIp, void* klass) {{
     
-    {(needThis(fieldWrapperInfo.ThisSignature) ? GetThis(fieldWrapperInfo.ThisSignature, true) : "")}
+    {(needThis(fieldWrapperInfo.ThisSignature) ? GetThis(fieldWrapperInfo.ThisSignature) : "")}
 
     {LuaValToCSVal(fieldWrapperInfo.ReturnSignature, "p", "3", false, true)}
     xlua:SetFieldValue({(needThis(fieldWrapperInfo.ThisSignature) ? "self, " : "nullptr, ")}(FieldInfo*)fieldInfo, offset, {(list.IndexOf(fieldWrapperInfo.Signature) != -1 ? "p" : "&p")});

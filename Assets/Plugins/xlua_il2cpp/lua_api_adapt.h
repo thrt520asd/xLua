@@ -2,25 +2,20 @@
 #define LUA_API_ADAPT
 #include "stdint.h"
 
-typedef void* lua_State;
-typedef int (*lua_CFunction) (lua_State *L);
-// lua中的C#Struct
-typedef struct {
-	int fake_id;
-    unsigned int len;
-    void* typeId;
-	char data[1];
-} CSharpStruct;
+#ifdef __cplusplus
+#define EXTERN_C_START \
+    extern "C"         \
+    {
+#define EXTERN_C_END }
+#else
+#define EXTERN_C_START
+#define EXTERN_C_END
+#endif
 
-// lua中的C#object
-typedef struct {
-	int poolIdx;
-	void* pointer;
-} CSharpObject;
+EXTERN_C_START
 
 
 #define LUA_TNONE		(-1)
-
 #define LUA_TNIL		0
 #define LUA_TBOOLEAN		1
 #define LUA_TLIGHTUSERDATA	2
@@ -35,157 +30,274 @@ typedef struct {
 
 #define LUA_NUMBER	double
 
-
-#ifdef __cplusplus
-#define EXTERN_C_START \
-    extern "C"         \
-    {
-#define EXTERN_C_END }
-#else
-#define EXTERN_C_START
-#define EXTERN_C_END
-#endif
-
-EXTERN_C_START
 /* type of numbers in Lua */
 typedef LUA_NUMBER lua_Number;
+typedef struct lua_State lua_State;
 
+typedef int (*lua_CFunction) (lua_State* L);
 
 typedef void (*lapi_func_ptr)(void);
 
+typedef struct {
+    int fake_id;
+    unsigned int len;
+    char data[1];
+    void* typeId;
+} CSharpStruct;
+
 //genBegin
-//lua_touserdata
-void	       *(lapi_lua_touserdata) (lua_State *L, int idx);
-//lua_type
-int             (lapi_lua_type) (lua_State *L, int idx);
 //lua_gettop
-int   (lapi_lua_gettop) (lua_State *L);
-//lapi_lua_upvalueindex
-int lapi_lapi_lua_upvalueindex(int index);
-//xlua_pushcsobj_ptr
-void lapi_xlua_pushcsobj_ptr(lua_State* L, void* ptr, int meta_ref, int key, int need_cache, int cache_ref, int poolIdx);
-//lua_isnumber
-int             (lapi_lua_isnumber) (lua_State *L, int idx);
-//lua_isstring
-int             (lapi_lua_isstring) (lua_State *L, int idx);
-//lua_iscfunction
-int             (lapi_lua_iscfunction) (lua_State *L, int idx);
-//lua_isinteger
-int             (lapi_lua_isinteger) (lua_State *L, int idx);
-//lua_isuserdata
-int             (lapi_lua_isuserdata) (lua_State *L, int idx);
-//lua_typename
-const char     *(lapi_lua_typename) (lua_State *L, int tp);
-//lua_tonumber
-lua_Number lapi_lua_tonumber (lua_State *L, int idx);
-//lua_tolstring
-const char     *(lapi_lua_tolstring) (lua_State *L, int idx, size_t *len);
-//lua_toboolean
-int             (lapi_lua_toboolean) (lua_State *L, int idx);
-//lua_topointer
-const void     *(lapi_lua_topointer) (lua_State *L, int idx);
-//xlua_tryget_cachedud
-int lapi_xlua_tryget_cachedud(lua_State *L, int key, int cache_ref);
-//xlua_getcsobj_ptr
-void* lapi_xlua_getcsobj_ptr(lua_State* L,int index);
-//lua_pushcclosure
-void  (lapi_lua_pushcclosure) (lua_State *L, lua_CFunction fn, int n);
-//lua_setupvalue
-const char *(lapi_lua_setupvalue) (lua_State *L, int funcindex, int n);
-//lua_getupvalue
-const char *(lapi_lua_getupvalue) (lua_State *L, int funcindex, int n);
-//lua_pushvalue
-void  (lapi_lua_pushvalue) (lua_State *L, int idx);
-//lua_gettable
-int (lapi_lua_gettable) (lua_State *L, int idx);
-//xlua_call
-void lapi_xlua_call(lua_State*L, int nargs, int nresults);
+typedef int   ((*lapi_lua_gettopType)) (lua_State *L);
+extern lapi_lua_gettopType lapi_lua_gettop;
+
 //lua_settop
-void  (lapi_lua_settop) (lua_State *L, int idx);
-//lua_pushlightuserdata
-void  (lapi_lua_pushlightuserdata) (lua_State *L, void *p);
-//lua_settable
-void  (lapi_lua_settable) (lua_State *L, int idx);
-//lua_createtable
-void  (lapi_lua_createtable) (lua_State *L, int narr, int nrec);
-//lua_pushboolean
-void  (lapi_lua_pushboolean) (lua_State *L, int b);
-//lua_pushstring
-const char *(lapi_lua_pushstring) (lua_State *L, const char *s);
-//lua_pushlstring
-const char *(lapi_lua_pushlstring) (lua_State *L, const char *s, size_t len);
-//lua_pushnumber
-void        (lapi_lua_pushnumber) (lua_State *L, lua_Number n);
-//lua_pushnil
-void        (lapi_lua_pushnil) (lua_State *L);
-//lua_pushint64
-void lapi_lua_pushint64(lua_State* L, int64_t n);
-//lua_pushuint64
-void lapi_lua_pushuint64(lua_State* L, uint64_t n);
-//luaL_error
-int (lapi_luaL_error) (lua_State *L, const char *fmt, ...);
+typedef void  ((*lapi_lua_settopType)) (lua_State *L, int idx);
+extern lapi_lua_settopType lapi_lua_settop;
+
 //lua_remove
-void lapi_lua_remove (lua_State *L, int idx);
+typedef void (*lapi_lua_removeType) (lua_State *L, int idx);
+extern lapi_lua_removeType lapi_lua_remove;
+
 //lua_insert
-void lapi_lua_insert (lua_State *L, int idx);
+typedef void (*lapi_lua_insertType) (lua_State *L, int idx);
+extern lapi_lua_insertType lapi_lua_insert;
+
 //lua_replace
-void lapi_lua_replace (lua_State *L, int idx);
+typedef void (*lapi_lua_replaceType) (lua_State *L, int idx);
+extern lapi_lua_replaceType lapi_lua_replace;
+
 //lua_copy
-void  (lapi_lua_copy) (lua_State *L, int fromidx, int toidx);
-//xlua_createstruct_pointer
-CSharpStruct* lapi_xlua_createstruct_pointer(lua_State *L, unsigned int size, int meta_ref, void * typePointer);
-//xlua_pushstruct_pointer
-CSharpStruct* lapi_xlua_pushstruct_pointer(lua_State *L, unsigned int size, void* pointer, int meta_ref, void * typePointer);
-//xlua_tocss
-CSharpStruct* lapi_xlua_tocss(lua_State *L, int index);
-//xlua_getglobal
-int lapi_xlua_getglobal (lua_State *L, const char *name);
-//xlua_setglobal
-int lapi_xlua_setglobal (lua_State *L, const char *name);
-//lua_isint64
-int lapi_lua_isint64(lua_State* L, int pos);
-//lua_isuint64
-int lapi_lua_isuint64(lua_State* L, int pos);
-//lua_toint64
-int64_t lapi_lua_toint64(lua_State* L, int pos);
-//lua_touint64
-uint64_t lapi_lua_touint64(lua_State* L, int pos);
-//load_error_func
-int lapi_load_error_func(lua_State *L, int ref);
-//xlua_get_registry_index
-int lapi_xlua_get_registry_index();
-//xlua_rawgeti
-void lapi_xlua_rawgeti (lua_State *L, int idx, int64_t n);
-//xlua_rawseti
-void lapi_xlua_rawseti (lua_State *L, int idx, int64_t n);
-//lua_pcall
-int lapi_lua_pcall (lua_State *L, int nargs, int nresults, int errfunc);
-//pcall_prepare
-int lapi_pcall_prepare(lua_State *L, int error_func_ref, int func_ref);
-//luaL_ref
-int (lapi_luaL_ref) (lua_State *L, int t);
-//xlua_tag
-void *lapi_xlua_tag ();
-//lua_rawget
-int (lapi_lua_rawget) (lua_State *L, int idx);
-//lua_rawset
-void  (lapi_lua_rawset) (lua_State *L, int idx);
-//luaL_newmetatable
-int   (lapi_luaL_newmetatable) (lua_State *L, const char *tname);
+typedef void  ((*lapi_lua_copyType)) (lua_State *L, int fromidx, int toidx);
+extern lapi_lua_copyType lapi_lua_copy;
+
+//lua_pushvalue
+typedef void  ((*lapi_lua_pushvalueType)) (lua_State *L, int idx);
+extern lapi_lua_pushvalueType lapi_lua_pushvalue;
+
+//lua_type
+typedef int             ((*lapi_lua_typeType)) (lua_State *L, int idx);
+extern lapi_lua_typeType lapi_lua_type;
+
+//lua_typename
+typedef const char     *((*lapi_lua_typenameType)) (lua_State *L, int tp);
+extern lapi_lua_typenameType lapi_lua_typename;
+
+//lapi_lua_upvalueindex
+typedef int (*lapi_lapi_lua_upvalueindexType)(int index);
+extern lapi_lapi_lua_upvalueindexType lapi_lapi_lua_upvalueindex;
+
+//lua_isnumber
+typedef int             ((*lapi_lua_isnumberType)) (lua_State *L, int idx);
+extern lapi_lua_isnumberType lapi_lua_isnumber;
+
+//lua_isstring
+typedef int             ((*lapi_lua_isstringType)) (lua_State *L, int idx);
+extern lapi_lua_isstringType lapi_lua_isstring;
+
+//lua_iscfunction
+typedef int             ((*lapi_lua_iscfunctionType)) (lua_State *L, int idx);
+extern lapi_lua_iscfunctionType lapi_lua_iscfunction;
+
+//lua_isinteger
+typedef int             ((*lapi_lua_isintegerType)) (lua_State *L, int idx);
+extern lapi_lua_isintegerType lapi_lua_isinteger;
+
+//lua_isuserdata
+typedef int             ((*lapi_lua_isuserdataType)) (lua_State *L, int idx);
+extern lapi_lua_isuserdataType lapi_lua_isuserdata;
+
+//lua_tonumber
+typedef lua_Number (*lapi_lua_tonumberType) (lua_State *L, int idx);
+extern lapi_lua_tonumberType lapi_lua_tonumber;
+
+//lua_touserdata
+typedef void	       *((*lapi_lua_touserdataType)) (lua_State *L, int idx);
+extern lapi_lua_touserdataType lapi_lua_touserdata;
+
+//lua_tolstring
+typedef const char     *((*lapi_lua_tolstringType)) (lua_State *L, int idx, size_t *len);
+extern lapi_lua_tolstringType lapi_lua_tolstring;
+
+//lua_toboolean
+typedef int             ((*lapi_lua_tobooleanType)) (lua_State *L, int idx);
+extern lapi_lua_tobooleanType lapi_lua_toboolean;
+
+//lua_topointer
+typedef const void     *((*lapi_lua_topointerType)) (lua_State *L, int idx);
+extern lapi_lua_topointerType lapi_lua_topointer;
+
 //xlua_pushinteger
-void lapi_xlua_pushinteger (lua_State *L, int n);
+typedef void (*lapi_xlua_pushintegerType) (lua_State *L, int n);
+extern lapi_xlua_pushintegerType lapi_xlua_pushinteger;
+
 //xlua_tointeger
-int lapi_xlua_tointeger (lua_State *L, int idx);
-//xlua_pushuint
-void lapi_xlua_pushuint (lua_State *L, uint32_t n);
+typedef int (*lapi_xlua_tointegerType) (lua_State *L, int idx);
+extern lapi_xlua_tointegerType lapi_xlua_tointeger;
+
 //xlua_touint
-uint32_t lapi_xlua_touint (lua_State *L, int idx);
+typedef uint32_t (*lapi_xlua_touintType) (lua_State *L, int idx);
+extern lapi_xlua_touintType lapi_xlua_touint;
+
+//xlua_pushuint
+typedef void (*lapi_xlua_pushuintType) (lua_State *L, uint32_t n);
+extern lapi_xlua_pushuintType lapi_xlua_pushuint;
+
+//lua_pushint64
+typedef void (*lapi_lua_pushint64Type)(lua_State* L, int64_t n);
+extern lapi_lua_pushint64Type lapi_lua_pushint64;
+
+//lua_pushuint64
+typedef void (*lapi_lua_pushuint64Type)(lua_State* L, uint64_t n);
+extern lapi_lua_pushuint64Type lapi_lua_pushuint64;
+
+//lua_isint64
+typedef int (*lapi_lua_isint64Type)(lua_State* L, int pos);
+extern lapi_lua_isint64Type lapi_lua_isint64;
+
+//lua_isuint64
+typedef int (*lapi_lua_isuint64Type)(lua_State* L, int pos);
+extern lapi_lua_isuint64Type lapi_lua_isuint64;
+
+//lua_toint64
+typedef int64_t (*lapi_lua_toint64Type)(lua_State* L, int pos);
+extern lapi_lua_toint64Type lapi_lua_toint64;
+
+//lua_touint64
+typedef uint64_t (*lapi_lua_touint64Type)(lua_State* L, int pos);
+extern lapi_lua_touint64Type lapi_lua_touint64;
+
+//lua_setupvalue
+typedef const char *((*lapi_lua_setupvalueType)) (lua_State *L, int funcindex, int n);
+extern lapi_lua_setupvalueType lapi_lua_setupvalue;
+
+//lua_getupvalue
+typedef const char *((*lapi_lua_getupvalueType)) (lua_State *L, int funcindex, int n);
+extern lapi_lua_getupvalueType lapi_lua_getupvalue;
+
+//xlua_call
+typedef void (*lapi_xlua_callType)(lua_State*L, int nargs, int nresults);
+extern lapi_xlua_callType lapi_xlua_call;
+
+//lua_pcall
+typedef int (*lapi_lua_pcallType) (lua_State *L, int nargs, int nresults, int errfunc);
+extern lapi_lua_pcallType lapi_lua_pcall;
+
+//pcall_prepare
+typedef int (*lapi_pcall_prepareType)(lua_State *L, int error_func_ref, int func_ref);
+extern lapi_pcall_prepareType lapi_pcall_prepare;
+
+//luaL_error
+typedef int ((*lapi_luaL_errorType)) (lua_State *L, const char *fmt, ...);
+extern lapi_luaL_errorType lapi_luaL_error;
+
+//load_error_func
+typedef int (*lapi_load_error_funcType)(lua_State *L, int ref);
+extern lapi_load_error_funcType lapi_load_error_func;
+
+//lua_gettable
+typedef int ((*lapi_lua_gettableType)) (lua_State *L, int idx);
+extern lapi_lua_gettableType lapi_lua_gettable;
+
+//lua_settable
+typedef void  ((*lapi_lua_settableType)) (lua_State *L, int idx);
+extern lapi_lua_settableType lapi_lua_settable;
+
+//lua_createtable
+typedef void  ((*lapi_lua_createtableType)) (lua_State *L, int narr, int nrec);
+extern lapi_lua_createtableType lapi_lua_createtable;
+
+//lua_pushcclosure
+typedef void  ((*lapi_lua_pushcclosureType)) (lua_State *L, lua_CFunction fn, int n);
+extern lapi_lua_pushcclosureType lapi_lua_pushcclosure;
+
+//lua_pushlightuserdata
+typedef void  ((*lapi_lua_pushlightuserdataType)) (lua_State *L, void *p);
+extern lapi_lua_pushlightuserdataType lapi_lua_pushlightuserdata;
+
+//lua_pushboolean
+typedef void  ((*lapi_lua_pushbooleanType)) (lua_State *L, int b);
+extern lapi_lua_pushbooleanType lapi_lua_pushboolean;
+
+//lua_pushstring
+typedef const char *((*lapi_lua_pushstringType)) (lua_State *L, const char *s);
+extern lapi_lua_pushstringType lapi_lua_pushstring;
+
+//lua_pushlstring
+typedef const char *((*lapi_lua_pushlstringType)) (lua_State *L, const char *s, size_t len);
+extern lapi_lua_pushlstringType lapi_lua_pushlstring;
+
+//lua_pushnumber
+typedef void        ((*lapi_lua_pushnumberType)) (lua_State *L, lua_Number n);
+extern lapi_lua_pushnumberType lapi_lua_pushnumber;
+
+//lua_pushnil
+typedef void        ((*lapi_lua_pushnilType)) (lua_State *L);
+extern lapi_lua_pushnilType lapi_lua_pushnil;
+
+//lua_setmetatable
+typedef int   ((*lapi_lua_setmetatableType)) (lua_State *L, int objindex);
+extern lapi_lua_setmetatableType lapi_lua_setmetatable;
+
+//xlua_getglobal
+typedef int (*lapi_xlua_getglobalType) (lua_State *L, const char *name);
+extern lapi_xlua_getglobalType lapi_xlua_getglobal;
+
+//xlua_setglobal
+typedef int (*lapi_xlua_setglobalType) (lua_State *L, const char *name);
+extern lapi_xlua_setglobalType lapi_xlua_setglobal;
+
+//xlua_get_registry_index
+typedef int (*lapi_xlua_get_registry_indexType)();
+extern lapi_xlua_get_registry_indexType lapi_xlua_get_registry_index;
+
+//xlua_rawgeti
+typedef void (*lapi_xlua_rawgetiType) (lua_State *L, int idx, int64_t n);
+extern lapi_xlua_rawgetiType lapi_xlua_rawgeti;
+
+//xlua_rawseti
+typedef void (*lapi_xlua_rawsetiType) (lua_State *L, int idx, int64_t n);
+extern lapi_xlua_rawsetiType lapi_xlua_rawseti;
+
+//lua_rawget
+typedef int ((*lapi_lua_rawgetType)) (lua_State *L, int idx);
+extern lapi_lua_rawgetType lapi_lua_rawget;
+
+//lua_rawset
+typedef void  ((*lapi_lua_rawsetType)) (lua_State *L, int idx);
+extern lapi_lua_rawsetType lapi_lua_rawset;
+
+//luaL_ref
+typedef int ((*lapi_luaL_refType)) (lua_State *L, int t);
+extern lapi_luaL_refType lapi_luaL_ref;
+
+//xlua_tag
+typedef void *(*lapi_xlua_tagType) ();
+extern lapi_xlua_tagType lapi_xlua_tag;
+
+//luaL_newmetatable
+typedef int   ((*lapi_luaL_newmetatableType)) (lua_State *L, const char *tname);
+extern lapi_luaL_newmetatableType lapi_luaL_newmetatable;
+
 //xlua_gl
-void* lapi_xlua_gl(lua_State *L);
+typedef void* (*lapi_xlua_glType)(lua_State *L);
+extern lapi_xlua_glType lapi_xlua_gl;
+
 //xlua_mainthread
-void* lapi_xlua_mainthread(lua_State *L);
+typedef void* (*lapi_xlua_mainthreadType)(lua_State *L);
+extern lapi_xlua_mainthreadType lapi_xlua_mainthread;
+
 //xlua_objlen
-uint32_t lapi_xlua_objlen (lua_State *L, int idx);
+typedef uint32_t (*lapi_xlua_objlenType) (lua_State *L, int idx);
+extern lapi_xlua_objlenType lapi_xlua_objlen;
+
+//lua_newuserdatauv
+typedef void *((*lapi_lua_newuserdatauvType)) (lua_State *L, size_t sz, int nuvalue);
+extern lapi_lua_newuserdatauvType lapi_lua_newuserdatauv;
+
+//xlua_tryget_cachedud
+typedef int (*lapi_xlua_tryget_cachedudType)(lua_State *L, int key, int cache_ref);
+extern lapi_xlua_tryget_cachedudType lapi_xlua_tryget_cachedud;
+
 //genEnd
 
 #define lapi_lua_isboolean(L,n)	(lapi_lua_type(L, (n)) == LUA_TBOOLEAN)
@@ -203,7 +315,10 @@ lapi_lua_rawget(L, lapi_xlua_get_registry_index())
 
 #define lapi_lua_getref(L,ref) lapi_xlua_rawgeti(L, lapi_xlua_get_registry_index(), ref);
 
+#define lapi_lua_newuserdata(L,s)	lapi_lua_newuserdatauv(L,s,1)
+
 void lapi_init(lapi_func_ptr* func_array);
+
 
 EXTERN_C_END
 #endif

@@ -114,38 +114,6 @@ namespace XLua.IL2CPP
         [MethodImpl(MethodImplOptions.InternalCall)]
 		public static extern void SetCSharpAPI(MethodBase[] methodInfo);
 
-
-        
-        //[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        //public static extern void SetObjectPool(IntPtr jsEnv, IntPtr objectPoolAddMethodInfo, IntPtr objectPoolAdd, IntPtr objectPoolRemoveMethodInfo, IntPtr objectPoolRemove, IntPtr objectPoolInstance);
-
-        // [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        // public static extern void SetTryLoadCallback(IntPtr tryLoadMethodInfo, IntPtr tryLoad);
-
-        //[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        //public static extern void SetObjectToGlobal(IntPtr jsEnv, string key, IntPtr objPtr);
-
-        //[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        //public static extern void ReleasePendingJsObjects(IntPtr jsEnv);
-
-        //[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        //public static extern void CreateInspector(IntPtr jsEnv, int port);
-
-        //[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        //public static extern void DestroyInspector(IntPtr jsEnv);
-
-        //[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        //public static extern bool InspectorTick(IntPtr jsEnv);
-        
-        //[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        //public static extern bool LogicTick(IntPtr jsEnv);
-
-        //[MethodImpl(MethodImplOptions.InternalCall)]
-        //public static Func<string, Puerts.JSObject> GetModuleExecutor(IntPtr NativeJsEnvPtr, Type type)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static IntPtr GetMethodPointer(MethodBase methodInfo)
         {

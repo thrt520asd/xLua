@@ -3,6 +3,7 @@
 #include <utils/StringUtils.h>
 #include "vm/Reflection.h"
 #include "CppObjMapper.h"
+#include "ClassLuaCallCS_instance.h"
 namespace xlua
 {
     
@@ -74,30 +75,83 @@ namespace xlua
 
     int LuaClassRegister::RegisterClass(LuaClassInfo *luaClsInfo)
     {
-        // xlua::GLogFormatted(luaClsInfo->Name.c_str());
         auto iter = clsId2ClsDef.find(luaClsInfo->klass);
         if(iter == clsId2ClsDef.end()){
-            
+            bool hasHash = false;
+            if(strcmp(luaClsInfo->Name.c_str(), "ClassLuaCallCS") == 0 ){
+                luaClsInfo->memberHash = (MemberHash)ClassLuaCallCS_instance_hash;
+                luaClsInfo->memberWarpDatas = new MemberWrapData[GetClassLuaCallCS_instance_MaxLength()];
+                hasHash = true;
+            }
             for(auto& method: luaClsInfo->Methods){
                 method.OverloadDatas.push_back(nullptr);
-                if (method.IsStatic) {
-                    luaClsInfo->StaticMethodsMap[method.Name.c_str()] = &method;
+                if (method.IsStatic && !method.IsGetter && !method.IsSetter) {
+                    // luaClsInfo->StaticMethodsMap[method.Name.c_str()] = &method;
+                    luaClsInfo->ClsGetMap.insert(std::pair<const char *, MemberWrapData>(method.Name.c_str(), {method.OverloadDatas.data(), XLUA_MemberType_Method}));
                 }
-                else {
-                    luaClsInfo->MethodsMap[method.Name.c_str()] = &method;
+                else if(!method.IsGetter && !method.IsSetter){
+                    // luaClsInfo->MethodsMap[method.Name.c_str()] = &method;
+                    luaClsInfo->ObjGetMap.insert(std::pair<const char *, MemberWrapData>(method.Name.c_str(), {method.OverloadDatas.data(), XLUA_MemberType_Method}));
+                    unsigned int hash = ClassLuaCallCS_instance_hash(method.Name.c_str(), method.Name.length());
+                    if(hasHash){
+                        luaClsInfo->memberWarpDatas[hash].data = method.OverloadDatas.data();
+                        luaClsInfo->memberWarpDatas[hash].type = XLUA_MemberType_Method;
+                    }
                 }
             }
 
             for(auto& field: luaClsInfo->Fields){
-                luaClsInfo->FieldMap[field.Name.c_str()] = &field;
+                // luaClsInfo->FieldMap[field.Name.c_str()] = &field;
+                if(field.IsStatic){
+                    if(field.Data->Getter){
+                        luaClsInfo->ClsGetMap.insert(std::pair<const char *, MemberWrapData>(field.Name.c_str(), {field.Data, XLUA_MemberType_Field}));
+                    }
+                    if(field.Data->Setter){
+                        luaClsInfo->ClsSetMap.insert(std::pair<const char *, MemberWrapData>(field.Name.c_str(), {field.Data, XLUA_MemberType_Field}));
+                    }
+                }else{
+                    if(field.Data->Getter){
+                        luaClsInfo->ObjGetMap.insert(std::pair<const char *, MemberWrapData>(field.Name.c_str(), {field.Data, XLUA_MemberType_Field}));
+                    }
+                    if(field.Data->Setter){
+                        luaClsInfo->ObjSetMap.insert(std::pair<const char *, MemberWrapData>(field.Name.c_str(), {field.Data, XLUA_MemberType_Field}));
+                        if(hasHash){
+                            unsigned int hash = ClassLuaCallCS_instance_hash(field.Name.c_str(), field.Name.length());
+                            luaClsInfo->memberWarpDatas[hash].data = field.Data;
+                            luaClsInfo->memberWarpDatas[hash].type = XLUA_MemberType_Field;
+                        }
+                    }
+                }
             }
 
             for (auto& propertyInfo : luaClsInfo->Properties) {
                 if (propertyInfo.Name == "Item") {
                     luaClsInfo->Indexer = &propertyInfo;
                 }
-                luaClsInfo->PropertyMap[propertyInfo.Name.c_str()] = &propertyInfo;
+                else {
+                    if(propertyInfo.IsStatic){
+                        if(propertyInfo.GetWrapData){
+                            luaClsInfo->ClsGetMap.insert(std::pair<const char *, MemberWrapData>(propertyInfo.Name.c_str(), {propertyInfo.GetWrapData, XLUA_MemberType_Property}));
+                        } 
+                        if(propertyInfo.SetWrapData){
+                            luaClsInfo->ClsSetMap.insert(std::pair<const char *, MemberWrapData>(propertyInfo.Name.c_str(), {propertyInfo.SetWrapData, XLUA_MemberType_Property}));
+                        }
+                    }else{
+                        if(propertyInfo.GetWrapData){
+                            luaClsInfo->ObjGetMap.insert(std::pair<const char *, MemberWrapData>(propertyInfo.Name.c_str(), {propertyInfo.GetWrapData, XLUA_MemberType_Property}));
+                            if(hasHash){
+                                unsigned int hash = ClassLuaCallCS_instance_hash(propertyInfo.Name.c_str(), propertyInfo.Name.length());
+                                luaClsInfo->memberWarpDatas[hash].data = propertyInfo.GetWrapData;
+                                luaClsInfo->memberWarpDatas[hash].type = XLUA_MemberType_Method;
+                            }
+                        } 
+                        if(propertyInfo.SetWrapData){
+                            luaClsInfo->ObjSetMap.insert(std::pair<const char *, MemberWrapData>(propertyInfo.Name.c_str(), {propertyInfo.SetWrapData, XLUA_MemberType_Property}));
+                        }
+                    }
+                }
             }
+            
 
             luaClsInfo->Ctors.push_back(nullptr);
             luaClsInfo->CtorWrapDatas = luaClsInfo->Ctors.data();
@@ -132,41 +186,6 @@ namespace xlua
         return -1;
     }
 
-    // int DelegateCall(lua_State* L){
-    //     void* ptr = GetCppObjMapper()->ToCppObj(L, -1);
-    //     if(ptr){
-    //         Il2CppDelegate* delegate = (Il2CppDelegate*)ptr;
-               
-    //     }else{
-
-    //     }
-    // }
-
-    // int DelegateCombine(lua_State* L){
-
-    // }
-
-    // int DelegateRemove(lua_State* L){
-
-    // }
-
-    // void LuaClassRegister::CreateDelegateMetatable(lua_State* L){
-    //     lapi_lua_createtable(L, 1, 4);
-    //     int common_delegate_meta = lapi_luaL_ref(L, lapi_xlua_get_registry_index());
-    //     lapi_lua_pushlightuserdata(L, lapi_xlua_tag());
-    //     lapi_xlua_rawseti(L, -3, 1);
-    //     lapi_lua_pushstring(L, "__call");
-    //     lapi_lua_pushcclosure(L, DelegateCall, 0);
-    //     lapi_lua_rawset(L, -3);
-    //     lapi_lua_pushstring(L, "__add");
-    //     lapi_lua_pushcclosure(L, DelegateCombine, 0);
-    //     lapi_lua_rawset(L, -3);
-    //     lapi_lua_pushstring(L, "__sub");
-    //     lapi_lua_pushcclosure(L, DelegateRemove, 0);
-    //     lapi_lua_rawset(L, -3);
-    // }
-
-
     LuaClassRegister* GetLuaClassRegister()
     {
         static LuaClassRegister S_LuaClassRegister;
@@ -184,12 +203,6 @@ namespace xlua
         xlua::GetLuaClassRegister()->UnRegisterClass(name);
     }
 
-    LuaClassInfo *GetLuaClsInfoByTypeId(const void *typeId)
-    {
-        return xlua::GetLuaClassRegister()->GetLuaClsInfoByTypeId(typeId);
-    }
-
-    
 
 } 
 

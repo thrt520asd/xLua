@@ -25,17 +25,14 @@ namespace xlua
         void SetTypeId(void *kclass, int32_t metaId);
         int GetClassMetaId(void *kclass);
 
-        void CreateDelegateMetatable(lua_State *L);
-
     private:
         CSharpGetTypeIdFunc cSharpGetTypeMethodPtr = nullptr;
         void *cSharpGetTypeMethod = nullptr;
         std::map<std::string, LuaClassInfo *> clsName2ClsInfo;
-        std::map<const void *, LuaClassInfo *> clsId2ClsDef;
+        std::unordered_map<const void *, LuaClassInfo *> clsId2ClsDef;
         std::unordered_map<void *, int32_t> ilclass2luaMetaId;
     };
 
     LuaClassRegister *GetLuaClassRegister();
-    xlua::LuaClassInfo *GetLuaClsInfoByTypeId(const void *typeId);
 
 }
