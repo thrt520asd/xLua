@@ -9,12 +9,13 @@ namespace converter
 {
     template <typename T, typename Enable = void>
     struct Converter;
-    // int64 todo
+    // int64_t
     template <typename T>
     struct Converter<T, typename std::enable_if<std::is_integral<T>::value && sizeof(T) == 8 && std::is_signed<T>::value>::type>
     {
         static void toScript(lua_State *L, T value)
         {
+            
             lapi_lua_pushint64(L, value);
         }
 
@@ -73,7 +74,7 @@ namespace converter
         }
     };
 
-    // uint
+    // uint 32/16
     template <typename T>
     struct Converter < T, typename std::enable_if<std::is_integral<T>::value && sizeof(T) < 8 && std::is_unsigned<T>::value > ::type>
     {
@@ -104,7 +105,7 @@ namespace converter
 
         static T toCpp(lua_State *L, int index)
         {
-            return lapi_lua_tonumber(L, index);
+            return (T)lapi_lua_tonumber(L, index);
         }
 
         static bool accept(lua_State *L, int index)
@@ -152,5 +153,6 @@ namespace converter
             return lapi_lua_isuserdata(L, index);
         }
     };
-
+    
+    
 }

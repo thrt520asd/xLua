@@ -231,8 +231,8 @@ $@"struct {Signature}{{
                 
                 var methodToWrap = typeExcludeDelegate
                     .SelectMany(t => t.GetMethods(flag));
-                File.WriteAllText(Application.dataPath+"/../types.txt", string.Join("\n", types.Select(t=>t.FullName)));
-                File.WriteAllText(Application.dataPath+"/../methods.txt", string.Join("\n", methodToWrap.Select(m=>$"{m.DeclaringType.FullName}.{m.Name}")));
+                // File.WriteAllText(Application.dataPath+"/../types.txt", string.Join("\n", types.Select(t=>t.FullName)));
+                // File.WriteAllText(Application.dataPath+"/../methods.txt", string.Join("\n", methodToWrap.Select(m=>$"{m.DeclaringType.FullName}.{m.Name}")));
                 var fieldToWrapper = typeExcludeDelegate
                     .SelectMany(t => t.GetFields(flag));
 

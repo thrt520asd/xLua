@@ -16,7 +16,6 @@ namespace XLua.IL2CPP{
         public static string Float = "r4";
         public static string IntPtr = "p";
         public static string String = "s";
-        public static string ArrayBuffer = "a";
         public static string SystemObject = "O";
         public static string RefOrPointerPrefix = "P";
         public static string Object = "o";

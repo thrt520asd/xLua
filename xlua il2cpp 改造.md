@@ -271,13 +271,8 @@ public static int OverLoad2(string x, string y)
 
 
 todo {
-    使用hasReference 还是 Blittable 
-    可变参数支持
-    userData引用释放
     LuaBase（C#）push到lua
-    性能优化{
-        减少string查找的开销
-    }
+
     lua锁处理，支持多线程
     多luaEnv支持 需要多个CppMapper LuaClassRegister不需要多个
     wrap {

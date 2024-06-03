@@ -222,8 +222,9 @@ namespace xlua
 		}
 		else
 		{
-			// #TODO@benp raise exception
-			xlua::ErrorFormatted("meta id invalid for %s", obj->klass->name);
+			
+            Exception::Raise(Exception::GetInvalidOperationException("meta id invalid"));
+            return false;
 		}
 
 		return true;
