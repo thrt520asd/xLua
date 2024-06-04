@@ -112,7 +112,7 @@ public class PerfMain : MonoBehaviour {
             newBtn.onClick.AddListener(()=>{
                 PerfTest func = luaenv.Global.Get<PerfTest> (unitTest);
                 if(func != null){
-                    PerformentTest("lua call C# member : base member, get : ", LOOP_TIMES, func);
+                    PerformentTest(unitTest, LOOP_TIMES, func);
                 }
             });
         }

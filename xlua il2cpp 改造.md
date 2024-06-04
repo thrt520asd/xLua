@@ -272,7 +272,8 @@ public static int OverLoad2(string x, string y)
 
 todo {
     LuaBase（C#）push到lua
-
+    interface  目前不支持
+    genertic 目前不支持
     lua锁处理，支持多线程
     多luaEnv支持 需要多个CppMapper LuaClassRegister不需要多个
     wrap {
@@ -280,7 +281,18 @@ todo {
              缺点 生成配套代码
         map  速度慢
     }
+    hash 详解{
+        1 生成hash 函数 string=> int gperf lib
+        2 生成配套代码 否则执行时需要动态寻找wrapData 性能低
+        MethodWrap_1_02(lua_state*L, int paramOffset){
+            WrapData** wrapData = ClsIinfoArray[1].wrapData[2];
+            DoFunc ....
+        }
+    }
     两种模式混合更佳
+    更详细的测试用例 {
+        struct专项测试
+    }
 }
 
 better{
@@ -290,4 +302,10 @@ better{
 
 安全问题{
     il2cpp层指针传递，失去了C#的类型检测  所以在从lua获取对象时一定要检测类型
+}
+泛型支持{
+    支持导入泛型 
+    例如
+    CSListInt = CS.System.Collections.Generic.List(CS.System.Int32)
+    local csList = CSListInt()
 }

@@ -195,9 +195,6 @@ namespace xlua
     
     Il2CppObject* FallBackLua2CSObj(lua_State* L, int index, Il2CppClass* klass);
     void *LuaStr2CSharpString(lua_State *L, int index);
-    Il2CppObject *LuaValueToCSRef(Il2CppClass *klass, lua_State *L, int index);
-    template <typename T>
-    static T *GetCSharpStructPointerFromLua(lua_State *L, int index, void *typeId);
     
     int throw_exception2lua(lua_State* L, const char* msg);
     int throw_exception2lua_format(lua_State* L, const char* msg, ...);

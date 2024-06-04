@@ -130,6 +130,10 @@ namespace XLua.IL2CPP.Editor{
                 var type = System.AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes()).First((Type x)=>{
                         return x.Name == m_TypeName;
                     });
+                
+                Debug.Log(type.FullName);
+                Debug.Log(type.Name);
+
                 FileExporter.GenCPPWrap(new List<Type>(){type}, Application.dataPath + "/../wrapTest.h");
             }
         }

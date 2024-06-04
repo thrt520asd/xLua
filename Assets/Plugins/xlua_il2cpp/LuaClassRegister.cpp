@@ -81,6 +81,12 @@ namespace xlua
             if(strcmp(luaClsInfo->Name.c_str(), "ClassLuaCallCS") == 0 ){
                 luaClsInfo->memberHash = (MemberHash)ClassLuaCallCS_instance_hash;
                 luaClsInfo->memberWarpDatas = new MemberWrapData[GetClassLuaCallCS_instance_MaxLength()];
+                HashClsInfos.push_back(luaClsInfo);
+                HashClsInfos.push_back(luaClsInfo);
+                HashClsInfos.push_back(luaClsInfo);
+                HashClsInfos.push_back(luaClsInfo);
+                HashClsInfos.push_back(luaClsInfo);
+                HashClsInfos.push_back(luaClsInfo);
                 hasHash = true;
             }
             for(auto& method: luaClsInfo->Methods){
@@ -184,6 +190,15 @@ namespace xlua
             return iter->second;
         }
         return -1;
+    }
+
+    WrapData** LuaClassRegister::GetMemberWrapData(int typeId, int memberHash){
+        auto clsInfo = HashClsInfos[typeId];
+        if(clsInfo){
+            MemberWrapData wrapData = clsInfo->memberWarpDatas[memberHash];
+            return (WrapData**)wrapData.data;
+        }
+        return nullptr;
     }
 
     LuaClassRegister* GetLuaClassRegister()

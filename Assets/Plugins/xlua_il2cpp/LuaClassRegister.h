@@ -24,6 +24,8 @@ namespace xlua
         void SetGetTypeIdFuncPtr(CSharpGetTypeIdFunc methodPtr, void *method);
         void SetTypeId(void *kclass, int32_t metaId);
         int GetClassMetaId(void *kclass);
+        WrapData** GetMemberWrapData(int typeId, int memberHash);
+        vector<LuaClassInfo*> HashClsInfos;
 
     private:
         CSharpGetTypeIdFunc cSharpGetTypeMethodPtr = nullptr;
