@@ -1496,7 +1496,7 @@ namespace xlua
             auto array = Array::NewSpecific((Il2CppClass *)klass, len);
             for (int i = index; i <= top; i++)
             {
-                il2cpp_array_set(array, T, i, converter::Converter<T>::toCpp(L, i));
+                il2cpp_array_set(array, T, i - index, converter::Converter<T>::toCpp(L, i));
             }
             /*T* arr = (T*)(Array::GetFirstElementAddress(array));
             {
@@ -1869,10 +1869,10 @@ namespace xlua
     int ObjSetCallBack(lua_State *L)
     {
         auto clsInfo = GetLuaClsInfo(L);
+        int type = lapi_lua_type(L, 2);
         while (clsInfo)
         {
-            if (lapi_lua_isstring(L, 2))
-            {
+            if (type == LUA_TSTRING) {
                 const char *key = lapi_lua_tostring(L, 2);
                 auto setIter = clsInfo->ObjSetMap.find(key);
                 if (setIter != clsInfo->ObjSetMap.end())
@@ -1892,13 +1892,10 @@ namespace xlua
                     }
                 }
             }
-            int idx = lapi_lua_isnumber(L, 2);
-            if (idx)
-            {
+            else if (type == LUA_TNUMBER) {
+
                 if (clsInfo->Indexer && clsInfo->Indexer->SetWrapData)
                 {
-                    lapi_lua_pushnumber(L, idx);
-                    lapi_lua_replace(L, 2);
                     if (IsArray(clsInfo->klass))
                     {
                         PropertyCallback(L, clsInfo->Indexer->SetWrapData, 1);
@@ -2070,8 +2067,6 @@ namespace xlua
                 if (clsInfo->Indexer && clsInfo->Indexer->GetWrapData)
                 {
                     int number = lapi_xlua_tointeger(L, 2);
-                    lapi_lua_pop(L, 1);
-                    lapi_lua_pushnumber(L, number);
                     if (IsArray(clsInfo->klass))
                     {
                         PropertyCallback(L, clsInfo->Indexer->GetWrapData, 1);
