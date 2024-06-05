@@ -654,7 +654,6 @@ namespace xlua
 
     static bool CSValueToLuaValue(lua_State *L, void *klass, void *ptr, unsigned int size)
     {
-
         return GetCppObjMapper()->TryPushStruct(L, (Il2CppClass *)klass, ptr, size);
     }
     static bool CopyNullableValueType(lua_State *L, void *klass, void *ptr, bool hasValue, unsigned int size)
@@ -729,7 +728,6 @@ namespace xlua
                 DelegateMiddlerware *delegateInfo = GetDelegateInfoByDelegate((Il2CppDelegate *)obj);
                 lapi_lua_getref(L, delegateInfo->reference);
             }
-            // #TODO@benp 处理luabase
             else
             {
                 return GetCppObjMapper()->TryPushObject(L, il2cppObj);
@@ -1059,7 +1057,6 @@ namespace xlua
                     return (Il2CppObject *)CreateDelegateByMiddleware(L, index, klass, true);
                 }
             }
-
             if (valueType == LUA_TUSERDATA)
             {
                 auto ptr = GetCppObjMapper()->ToCppObj(L, index); // 原生C#对象
@@ -1092,6 +1089,7 @@ namespace xlua
                     if (lapi_lua_isinteger(L, index))
                     {
                         /*t = IL2CPP_TYPE_I4;
+                        不考虑53以下的情况了
                         klass = il2cpp_defaults.int32_class;*/
                         t = IL2CPP_TYPE_I8;
                         klass = il2cpp_defaults.int64_class;
@@ -1109,11 +1107,7 @@ namespace xlua
                     klass = il2cpp_defaults.string_class;
                     break;
                 }
-                case LUA_TTABLE:
-                {
-                    // todo 转换为cstable
-                    return nullptr;
-                }
+                
                 case LUA_TUSERDATA:
                 {
                     if (lapi_lua_isint64(L, index))
@@ -1182,11 +1176,7 @@ namespace xlua
         return Object::Box(klass, toBox);
     }
 
-    void ReleaseCSharpTypeInfo(LuaClassInfo *classInfo)
-    {
-        // TODO: 有内存泄漏，需要释放里面的内容
-        delete classInfo;
-    }
+    
 
     static void SetParamArrayFlagAndOptionalNum(WrapData *data, const char *signature)
     {
@@ -1256,7 +1246,6 @@ namespace xlua
                     free(data);
                     return nullptr;
                 }
-                // PLog("add overload for %s, %s", name, signature);
                 classInfo->Methods[i].OverloadDatas.push_back(data);
                 return data;
             }
@@ -1636,6 +1625,14 @@ namespace xlua
         return ret;
     }
 
+    void ReleaseCSharpTypeInfo(LuaClassInfo *clsInfo)
+    {
+        //wrapData 都是malloc 需要 free来释放
+        
+        
+        delete clsInfo;
+    }
+
     static LuaClassInfo *GetLuaClsInfo(lua_State *L)
     {
         // todo tag 保护
@@ -1831,7 +1828,7 @@ namespace xlua
             }
             else
             {
-                int32_t typeId = GetLuaClassRegister()->GetTypeIdByIl2cppClass(L, klass);
+                int32_t typeId = GetCppObjMapper()->GetTypeIdByIl2cppClass(L, klass);
                 if (klass->has_references)
                 {
                     auto obj = Object::New(klass);
@@ -2013,6 +2010,7 @@ namespace xlua
             }
             lapi_lua_pop(L, 1);
         }
+
         auto clsInfo = GetLuaClsInfo(L);
         int type = lapi_lua_type(L, 2);
         while (clsInfo)
@@ -2097,10 +2095,11 @@ namespace xlua
     void SetCSharpAPI(Il2CppArray *methodArray)
     {
 
-        auto getTypeIdMethod = il2cpp_array_addr(methodArray, Il2CppReflectionMethod *, 0);
-        auto methodPointer = xlua::GetMethodPointer(*getTypeIdMethod);
-        auto methodInfo = xlua::GetMethodInfoPointer(*getTypeIdMethod);
-        xlua::GetLuaClassRegister()->SetGetTypeIdFuncPtr((CSharpGetTypeIdFunc)methodPointer, (void *)methodInfo);
+        auto getTypeIdMethod = *il2cpp_array_addr(methodArray, Il2CppReflectionMethod *, 0);
+        auto methodPointer = xlua::GetMethodPointer(getTypeIdMethod);
+        auto methodInfo = xlua::GetMethodInfoPointer(getTypeIdMethod);
+        
+        GetCppObjMapper()->SetGetTypeIdFuncPtr((CSharpGetTypeIdFunc)methodPointer, (void*)getTypeIdMethod->method);
 
         auto addObjMethod = il2cpp_array_addr(methodArray, Il2CppReflectionMethod *, 1);
         auto addObjMethodPointer = xlua::GetMethodPointer(*addObjMethod);
@@ -2221,6 +2220,11 @@ extern "C"
         xlua::GetCppObjMapper()->SetCacheRef(*cache_ref);
         int32_t *num2 = il2cpp_array_addr(refArr, int32_t, 1);
         xlua::errorFunc_ref = *num2;
+    }
+
+    void ClearXLua_IL2CPP(){
+        //清理cppmapper 
+        
     }
 
     void InitialXLua_IL2CPP(lapi_func_ptr *func_array, lua_State *L)
@@ -2488,14 +2492,15 @@ extern "C"
     {
         auto top = lapi_lua_gettop(L);
         auto clsInfo = xlua::GetLuaClassRegister()->GetLuaClsInfoByTypeId(klass);
-        if (clsInfo->memberHash)
-        {
-            InitObjMetatable_Hash(L, metatable_idx, clsInfo);
-        }
-        else
-        {
-            InitObjMetatable_Map(L, metatable_idx, clsInfo);
-        }
+        InitObjMetatable_Map(L, metatable_idx, clsInfo);
+        // if (clsInfo->memberHash)
+        // {
+        //     InitObjMetatable_Hash(L, metatable_idx, clsInfo);
+        // }
+        // else
+        // {
+        //     InitObjMetatable_Map(L, metatable_idx, clsInfo);
+        // }
         
     }
 
@@ -2530,14 +2535,12 @@ extern "C"
 
     void UnRegisterLuaClass(Il2CppString *ilstring)
     {
-        const Il2CppChar *utf16 = il2cpp::utils::StringUtils::GetChars(ilstring);
-        auto name = il2cpp::utils::StringUtils::Utf16ToUtf8(utf16);
-        xlua::GetLuaClassRegister()->UnRegisterClass(name);
+		//todo delete
     }
 
     void SetClassMetaId(void *ilclass, int metaId)
     {
-        xlua::GetLuaClassRegister()->SetTypeId(ilclass, metaId);
+        xlua::GetCppObjMapper()->SetTypeId(ilclass, metaId);
     }
 
 #ifdef __cplusplus

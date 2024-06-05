@@ -8,9 +8,13 @@
 #include <vm/Exception.h>
 #include "Il2CppTools.h"
 #include "vm/Object.h"
+#include <vm/Reflection.h>
 using namespace il2cpp::vm;
 namespace xlua
 {
+	CSharpGetTypeIdFunc cSharpGetTypeMethodPtr = nullptr;
+	void* cSharpGetTypeMethod = nullptr;
+
 	CppObjMapper::CppObjMapper(/* args */)
 	{
 
@@ -95,7 +99,7 @@ namespace xlua
 
 
 	StructUD* CppObjMapper::CreateStruct(lua_State* L, Il2CppClass* klass, unsigned int size) {
-		int32_t metaId = xlua::GetLuaClassRegister()->GetTypeIdByIl2cppClass(L, (Il2CppClass*)klass);
+		int32_t metaId = GetTypeIdByIl2cppClass(L, (Il2CppClass*)klass);
 		if (metaId != -1) {
 			size_t udSize = size + sizeof(unsigned int) + sizeof(void*) + sizeof(int*);
 			StructUD* sud = (StructUD*)lapi_lua_newuserdata(L, udSize);
@@ -160,8 +164,6 @@ namespace xlua
 	{
 		if (!klass->has_references)
 		{
-			/*int32_t metaId = xlua::GetLuaClassRegister()->GetTypeIdByIl2cppClass(L, (Il2CppClass*)klass);
-			lapi_xlua_pushstruct_pointer(L, size, pointer, metaId, klass);*/
 			StructUD* sud = CreateStruct(L, klass, size);
 			memcpy(&sud->data[0], pointer, size);
 			return sud;
@@ -204,7 +206,7 @@ namespace xlua
 			poolIdx = AddToPool(L, obj);
 		}
 
-		int32_t metaId = xlua::GetLuaClassRegister()->GetTypeIdByIl2cppClass(L, obj->klass);
+		int32_t metaId = GetTypeIdByIl2cppClass(L, obj->klass);
 		if (metaId != -1)
 		{
 			objCache[obj] = poolIdx;
@@ -259,6 +261,52 @@ namespace xlua
 			return (Il2CppObject*)obj->pointer;
 		}
 		return nullptr;
+	}
+
+    
+    int CppObjMapper::CSharpGetTypeId(lua_State *L, Il2CppReflectionType* reflectionType) {
+        if (cSharpGetTypeMethodPtr) {
+             int typeId = cSharpGetTypeMethodPtr(L, reflectionType, cSharpGetTypeMethod);
+             return typeId;
+        }
+        else {
+            xlua::GLogFormatted("[error] cSharpGetTypeMethodPtr hasn't register");
+        }
+        return -1;
+    }
+
+    void CppObjMapper::SetTypeId(void* kclass, int32_t metaId){
+        auto result = ilclass2luaMetaId.insert({kclass, metaId});
+        if(result.second){
+            // xlua::GLogFormatted("set type id insert success %p $d", kclass, metaId);
+        }else{
+            // xlua::GLogFormatted("set type id insert success %p $d", kclass, metaId);
+
+        }
+    }
+
+    int32_t CppObjMapper::GetClassMetaId(void* kclass){
+        auto iter = ilclass2luaMetaId.find(kclass);
+        if(iter != ilclass2luaMetaId.end()){
+            return iter->second;
+        }
+        return -1;
+    }
+
+    int32_t CppObjMapper::GetTypeIdByIl2cppClass(lua_State *L, const Il2CppClass *klass){   
+        auto metaId = GetClassMetaId((void*)klass);
+        if(metaId == -1){
+            auto reflectType = il2cpp::vm::Reflection::GetTypeObject(&klass->byval_arg);
+            if(reflectType){
+                return CSharpGetTypeId(L, reflectType);
+            }
+        }
+        return metaId;
+    }
+
+	void CppObjMapper::SetGetTypeIdFuncPtr(CSharpGetTypeIdFunc methodPtr, void* method) {
+		cSharpGetTypeMethodPtr = methodPtr;
+		cSharpGetTypeMethod = method;
 	}
 
 	CppObjMapper* GetCppObjMapper()

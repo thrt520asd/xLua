@@ -87,8 +87,6 @@ namespace XLua.IL2CPP
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern bool RegisterLuaClass(IntPtr classInfo, string fullName);
 
-        [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void UnRegisterLuaClass(string name);
 
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
 		public static extern IntPtr xlua_getImpl();

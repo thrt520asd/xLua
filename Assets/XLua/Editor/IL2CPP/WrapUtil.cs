@@ -673,7 +673,7 @@ $@"//LuaValToCSVal unknow type with default
             {
                 return $@"CSAnyToLuaValue(L, {(rawSignature.IsRefParameter()?"*":"")}{CSName});";
             }
-            else if (signature == "o" || signature == "a")
+            else if (signature == "o")
             {
                 return $@"CSAnyToLuaValue(L, {(rawSignature.IsRefParameter()?"*":"")}{CSName});";
             }

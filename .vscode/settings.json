@@ -161,5 +161,10 @@
         "llimits.h": "c",
         "i64lib.h": "c",
         "cstdarg": "cpp"
-    }
+    },
+    "workbench.preferredDarkColorTheme": "Default Dark+",
+    "workbench.preferredHighContrastColorTheme": "Default High Contrast Light",
+    "workbench.preferredHighContrastLightColorTheme": "Visual Studio 2017 Dark - C++",
+    "workbench.preferredLightColorTheme": "Default Light Modern",
+    "workbench.colorTheme": "Monokai"
 }

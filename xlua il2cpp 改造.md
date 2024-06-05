@@ -200,8 +200,7 @@ gc问题交给C#和lua的gc机制管理 无需特殊处理 不需存池
 上面只适用于 没有引用的struct
 另一种思路设计缓存 
 ====================================核心代码END====================================
-需要锁吗，不需要 对lua的访问有C#的锁来保证
-lua中所有的对象都是table，使用table来桥接C#的行为
+
 
 note
 il2ppobj *reinterpret_cast<void**>(ptr) => il2cppclass
@@ -271,30 +270,30 @@ public static int OverLoad2(string x, string y)
 
 
 todo {
-    LuaBase（C#）push到lua
-    interface  目前不支持
-    genertic 目前不支持
     lua锁处理，支持多线程
     多luaEnv支持 需要多个CppMapper LuaClassRegister不需要多个
-    wrap {
+    hash and map  {
         hash 优点  速度快 
              缺点 生成配套代码
         map  速度慢
-    }
-    hash 详解{
-        1 生成hash 函数 string=> int gperf lib
-        2 生成配套代码 否则执行时需要动态寻找wrapData 性能低
-        MethodWrap_1_02(lua_state*L, int paramOffset){
-            WrapData** wrapData = ClsIinfoArray[1].wrapData[2];
-            DoFunc ....
+        hash 详解{
+            1 生成hash 函数 string=> int gperf lib
+            2 生成配套代码 否则执行时需要动态寻找wrapData 性能低
+            MethodWrap_1_02(lua_state*L, int paramOffset){
+                WrapData** wrapData = ClsIinfoArray[1].wrapData[2];
+                DoFunc ....
+            }
         }
+        两种模式混合更佳
     }
-    两种模式混合更佳
-    更详细的测试用例 {
+    更详细的性能测试用例 {
         struct专项测试
     }
+    内存泄露处理
 }
-
+hotFix支持{
+    不影响
+}
 better{
     代码整理
     unity导出的vs工程没有有概率 SIZEOF_VOID_P定义 需要手动添加 
@@ -309,3 +308,26 @@ better{
     CSListInt = CS.System.Collections.Generic.List(CS.System.Int32)
     local csList = CSListInt()
 }
+接口支持{
+    interface 同样是klass 作为函数参数可以直接转换
+}
+多线程问题{
+    需要锁吗？  需要！ sdk层回调 hotFix 
+    哪里需要锁？ C#对lua_State的直接访问
+    哪里有C#发起的访问 {
+        1 delegate {
+            bw_ 函数是lua调用C#
+            w_ 函数是C#调用lua 需要锁
+        }
+
+        xlua_il2cpp 对外暴露的接口需要锁 可以在C#侧添加
+    }
+}
+
+lua原生元素的模拟类支持（
+    luaTable和luaFunction的C#实现的支持 
+    分为两种 
+    lua 2 cs 通过fallback to xlua 支持
+    cs 2 lua 
+    
+）

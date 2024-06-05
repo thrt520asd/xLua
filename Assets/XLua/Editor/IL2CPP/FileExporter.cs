@@ -149,7 +149,6 @@ $@"struct {Signature}{{
 
             public static void GenCPPWrapAll(){
                 var types = from assembly in AppDomain.CurrentDomain.GetAssemblies()
-                            // where assembly.FullName.Contains("Assembly-CSharp") || assembly.FullName.Contains("Unity")
                             where !assembly.FullName.Contains("Unity.Entities")
                             where !(assembly.ManifestModule is System.Reflection.Emit.ModuleBuilder)
                             from type in assembly.GetTypes()

@@ -38,6 +38,10 @@ namespace xlua
 
     typedef unsigned int (*MemberHash)(register const char*, register unsigned int len);
 
+    typedef int (*CSharpGetTypeIdFunc)(lua_State* L, Il2CppReflectionType* type, void* method);
+
+    
+
     struct DelegateMiddlerware
     {
         lua_State *L;
@@ -171,11 +175,46 @@ namespace xlua
         MemberHash memberHash;
         MemberWrapData* memberWarpDatas;
         int memberLength;
-        // std::unordered_map<std::string, MemberWrapData> ObjGetMap;
-        // std::unordered_map<std::string, MemberWrapData> ObjSetMap;
-        // std::unordered_map<std::string, MemberWrapData> ClsGetMap;
-        // std::unordered_map<std::string, MemberWrapData> ClsSetMap;
         PropertyWrapData *Indexer;
+
+        ~ LuaClassInfo(){
+            if(memberWarpDatas){
+                delete[] memberWarpDatas;
+                memberWarpDatas = nullptr;
+                memberHash = nullptr;
+            }
+
+            for(auto& method: Methods){
+                for(auto& wrapData: method.OverloadDatas){
+                    if(wrapData){
+                        free(wrapData); 
+                    }
+                }
+                method.OverloadDatas.clear();
+            }
+            
+            for(auto& wrapData: Ctors){
+                if(wrapData){
+                    free(wrapData);
+                }
+            }
+
+            for(auto& field: Fields){
+                delete field.Data;
+                field.Data = nullptr;
+            }
+
+            for(auto& property: Properties){
+                if(property.GetWrapData){
+                    delete property.GetWrapData;
+                    property.GetWrapData = nullptr;
+                }
+                if(property.SetWrapData){
+                    delete property.SetWrapData;
+                    property.SetWrapData = nullptr;
+                }
+            }
+        }
     };
 
     struct ObjUD
@@ -195,7 +234,7 @@ namespace xlua
     
     Il2CppObject* FallBackLua2CSObj(lua_State* L, int index, Il2CppClass* klass);
     void *LuaStr2CSharpString(lua_State *L, int index);
-    
+    void ReleaseCSharpTypeInfo(LuaClassInfo *clsInfo);
     int throw_exception2lua(lua_State* L, const char* msg);
     int throw_exception2lua_format(lua_State* L, const char* msg, ...);
 

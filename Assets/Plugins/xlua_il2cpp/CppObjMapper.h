@@ -32,11 +32,16 @@ namespace xlua
 
         void *ToCppObj(lua_State *L, int index);
 
-
-        StructUD *CreateStruct(lua_State *L, Il2CppClass *klass, unsigned int size);
+        StructUD *CreateStruct(lua_State *L, Il2CppClass * klass, unsigned int size);
         void *ToStruct(lua_State *L, int index, Il2CppClass* klass = nullptr);
         StructUD *PushStruct(lua_State *L, Il2CppClass *klass, unsigned int size, void *pointer);
         bool TryPushStruct(lua_State *L, Il2CppClass *klass, void *pointer, unsigned int size);
+
+        int32_t GetClassMetaId(void *kclass);
+        int CSharpGetTypeId(lua_State *L, Il2CppReflectionType *reflectionType);
+        void SetTypeId(void *kclass, int32_t metaId);
+        int32_t GetTypeIdByIl2cppClass(lua_State *L, const Il2CppClass *klass);
+        void SetGetTypeIdFuncPtr(CSharpGetTypeIdFunc methodPtr, void* method);
     };
 
     CppObjMapper *GetCppObjMapper();

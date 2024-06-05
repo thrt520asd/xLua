@@ -464,6 +464,11 @@ namespace XLua.IL2CPP
                     {
                         foreach (var field in fields)
                         {
+                            // skip hotfix inject field
+                            if (field.IsStatic && (field.Name.StartsWith("__Hotfix") || field.Name.StartsWith("_c__Hotfix")) && typeof(Delegate).IsAssignableFrom(field.FieldType))
+                            {
+                                continue;
+                            }
                             string signature = (field.IsStatic ? "" : TypeUtils.GetThisSignature2(type)) + TypeUtils.GetTypeSignature(field.FieldType);
                             var name = field.Name;
 
