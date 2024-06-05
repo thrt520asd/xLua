@@ -270,7 +270,6 @@ public static int OverLoad2(string x, string y)
 
 
 todo {
-    lua锁处理，支持多线程
     多luaEnv支持 需要多个CppMapper LuaClassRegister不需要多个
     hash and map  {
         hash 优点  速度快 
@@ -328,6 +327,6 @@ lua原生元素的模拟类支持（
     luaTable和luaFunction的C#实现的支持 
     分为两种 
     lua 2 cs 通过fallback to xlua 支持
-    cs 2 lua 
+    cs 2 lua 已在外层过滤，luaBase不会通过il2cpp形式push 如果再出现需要处理
     
 ）

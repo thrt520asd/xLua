@@ -129,40 +129,29 @@ namespace XLua
 
                 AddBuildin("CS", StaticLuaCallbacks.LoadCS);
 
-                LuaAPI.lua_newtable(rawL); //metatable of indexs and newindexs functions originMetatable
+                LuaAPI.lua_newtable(rawL); //metatable of indexs and newindexs functions
                 LuaAPI.xlua_pushasciistring(rawL, "__index");
                 LuaAPI.lua_pushstdcallcfunction(rawL, StaticLuaCallbacks.MetaFuncIndex);
-                LuaAPI.lua_rawset(rawL, -3); // table[__index] = StaticLuaCallbacks.MetaFuncIndex
-                //local LuaIndexs
-                //lua_setmetatable(LuaIndexs, originMetatable)
-                //LUA_REGISTRYINDEX[LuaIndexs] = LuaIndexs
+                LuaAPI.lua_rawset(rawL, -3);
+
                 LuaAPI.xlua_pushasciistring(rawL, Utils.LuaIndexsFieldName);
                 LuaAPI.lua_newtable(rawL);
                 LuaAPI.lua_pushvalue(rawL, -3);
                 LuaAPI.lua_setmetatable(rawL, -2);
                 LuaAPI.lua_rawset(rawL, LuaIndexes.LUA_REGISTRYINDEX);
 
-                //local LuaNewIndexs
-                //lua_setmetatable(LuaNewIndexs, originMetatable)
-                //LUA_REGISTRYINDEX[LuaNewIndexs] = LuaNewIndexs
                 LuaAPI.xlua_pushasciistring(rawL, Utils.LuaNewIndexsFieldName);
                 LuaAPI.lua_newtable(rawL);
                 LuaAPI.lua_pushvalue(rawL, -3);
                 LuaAPI.lua_setmetatable(rawL, -2);
                 LuaAPI.lua_rawset(rawL, LuaIndexes.LUA_REGISTRYINDEX);
 
-                //local LuaClassIndexs
-                //lua_setmetatable(LuaClassIndexs, originMetatable)
-                //LUA_REGISTRYINDEX[LuaClassIndexs] = LuaClassIndexs
                 LuaAPI.xlua_pushasciistring(rawL, Utils.LuaClassIndexsFieldName);
                 LuaAPI.lua_newtable(rawL);
                 LuaAPI.lua_pushvalue(rawL, -3);
                 LuaAPI.lua_setmetatable(rawL, -2);
                 LuaAPI.lua_rawset(rawL, LuaIndexes.LUA_REGISTRYINDEX);
 
-                //local LuaClassNewIndexs
-                //lua_setmetatable(LuaClassNewIndexs, originMetatable)
-                //LUA_REGISTRYINDEX[LuaClassNewIndexs] = LuaClassNewIndexs
                 LuaAPI.xlua_pushasciistring(rawL, Utils.LuaClassNewIndexsFieldName);
                 LuaAPI.lua_newtable(rawL);
                 LuaAPI.lua_pushvalue(rawL, -3);
@@ -392,7 +381,7 @@ namespace XLua
 #endif
         }
 
-        //����API
+        //兼容API
         public void GC()
         {
             Tick();
@@ -444,7 +433,12 @@ namespace XLua
                 {
                     throw new InvalidOperationException("try to dispose a LuaEnv with C# callback!");
                 }
-                
+
+                #if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
+                    //todo dispose and check remain lua value 
+                    //todo dispose dispose cpp obj
+                #endif
+
                 ObjectTranslatorPool.Instance.Remove(L);
 
                 LuaAPI.lua_close(L);
@@ -518,7 +512,9 @@ namespace XLua
             function metatable:__index(key) 
                 local fqn = rawget(self,'.fqn')
                 fqn = ((fqn and fqn .. '.') or '') .. key
+
                 local obj = import_type(fqn)
+
                 if obj == nil then
                     -- It might be an assembly, so we load it too.
                     obj = { ['.fqn'] = fqn }
@@ -538,7 +534,6 @@ namespace XLua
 
             -- A non-type has been called; e.g. foo = System.Foo()
             function metatable:__call(...)
-                print('metatable:__call')
                 local n = select('#', ...)
                 local fqn = rawget(self,'.fqn')
                 if n > 0 then
@@ -644,8 +639,8 @@ namespace XLua
 
         internal List<CustomLoader> customLoaders = new List<CustomLoader>();
 
-        //loader : CustomLoader�� filepath��������ref���ͣ�������require�Ĳ����������Ҫ֧�ֵ��ԣ���Ҫ�����ʵ·����
-        //                        ����ֵ���������null���������ظ�Դ���޺��ʵ��ļ������򷵻�UTF8�����byte[]
+        //loader : CustomLoader， filepath参数：（ref类型）输入是require的参数，如果需要支持调试，需要输出真实路径。
+        //                        返回值：如果返回null，代表加载该源下无合适的文件，否则返回UTF8编码的byte[]
         public void AddLoader(CustomLoader loader)
         {
             customLoaders.Add(loader);

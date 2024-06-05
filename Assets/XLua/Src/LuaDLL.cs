@@ -79,7 +79,6 @@ namespace XLua.LuaDLL
 
         public static int luaL_error(IntPtr L, string message) //[-0, +1, m]
         {
-            
             xlua_csharp_str_error(L, message);
             return 0;
         }
@@ -596,10 +595,5 @@ namespace XLua.LuaDLL
             xlua_set_csharp_wrapper_caller(Marshal.GetFunctionPointerForDelegate(wrapper_caller));
         }
 #endif
-#if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
-        [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr xlua_mainthread(IntPtr L);
-#endif
-
     }
 }

@@ -23,7 +23,7 @@ namespace xlua
 
     private:
         std::unordered_map<const void *, LuaClassInfo *> clsId2ClsDef;
-        std::unordered_map<void *, int32_t> ilclass2luaMetaId;
+        // std::unordered_map<void *, int32_t> ilclass2luaMetaId;
     };
 
     LuaClassRegister *GetLuaClassRegister();

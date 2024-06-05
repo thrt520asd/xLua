@@ -14,6 +14,7 @@ namespace XLua.IL2CPP
     {
         public IntPtr L;
         public IntPtr FuncPtr;
+        public object luaLock;
         public int reference;
 
         Dictionary<Type, Delegate> bindTo = null;

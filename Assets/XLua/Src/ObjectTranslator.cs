@@ -25,9 +25,7 @@ namespace XLua
     using System.Collections;
     using System.Reflection;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Linq;
-    using System.Numerics;
     using XLua.IL2CPP;
 
     class ReferenceEqualsComparer : IEqualityComparer<object>
@@ -135,9 +133,16 @@ namespace XLua
         {
             interfaceBridgeCreators.Add(type, creator);
         }
+        
+        
 
         Dictionary<Type, bool> loaded_types = new Dictionary<Type, bool>();
         public bool TryDelayWrapLoader(RealStatePtr L, Type type)
+#if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
+        {
+            return TryDelayWrapLoader_Il2Cpp(L, type);
+        }
+#else
         {
             if (loaded_types.ContainsKey(type)) return true;
             loaded_types.Add(type, true);
@@ -147,12 +152,7 @@ namespace XLua
 
             Action<RealStatePtr> loader;
             int top = LuaAPI.lua_gettop(L);
-            #if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
-            if(true){
-                XLua.IL2CPP.TypeRegister.Register(L,type, privateAccessibleFlags.Contains(type));
-                
-            }else 
-            #endif
+            
             if (delayWrap.TryGetValue(type, out loader))
             {
                 delayWrap.Remove(type);
@@ -202,6 +202,7 @@ namespace XLua
             
             return true;
         }
+#endif
         
         public void Alias(Type type, string alias)
         {
@@ -562,6 +563,16 @@ namespace XLua
 
         public bool AllDelegateBridgeReleased()
         {
+            #if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
+            foreach (var kv in delegatMiddlewareCache)
+            {
+                if (kv.Value.IsAlive)
+                {
+                    return false;
+                }
+            }
+            #endif
+            
             foreach (var kv in delegate_bridges)
             {
                 if (kv.Value.IsAlive)
@@ -887,40 +898,10 @@ namespace XLua
 
             return objectCheckers.GetChecker(type)(L, index);
         }
-#if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
-        internal object getLuaTable(RealStatePtr L, int idx)
-        {
-            if (LuaAPI.lua_type(L, idx) == LuaTypes.LUA_TUSERDATA)
-            {
-                object obj = SafeGetCSObj(L, idx);
-                return (obj != null && obj is LuaTable) ? obj : null;
-            }
-            if (!LuaAPI.lua_istable(L, idx))
-            {
-                return null;
-            }
-            LuaAPI.lua_pushvalue(L, idx);
-            return new LuaTable(LuaAPI.luaL_ref(L), luaEnv);
-        }
 
-        internal object getLuaFunction(RealStatePtr L, int idx)
-        {
-            if (LuaAPI.lua_type(L, idx) == LuaTypes.LUA_TUSERDATA)
-            {
-                object obj = SafeGetCSObj(L, idx);
-                return (obj != null && obj is LuaFunction) ? obj : null;
-            }
-            if (!LuaAPI.lua_isfunction(L, idx))
-            {
-                return null;
-            }
-            LuaAPI.lua_pushvalue(L, idx);
-            return new LuaFunction(LuaAPI.luaL_ref(L), luaEnv);
-        }
-#endif
         public object GetObject(RealStatePtr L, int index, Type type)
+#if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
         {
-            #if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
             if(type == typeof(LuaTable)){
                 return getLuaTable(L, index);
             }else if(type == typeof(LuaFunction)){
@@ -928,7 +909,9 @@ namespace XLua
             }
             
             return NativeAPI.GetObjectFromLua(L, index, type);
-            #endif
+        }
+#else
+        {
             int udata = LuaAPI.xlua_tocsobj_safe(L, index);
 
             if (udata != -1)
@@ -958,7 +941,7 @@ namespace XLua
                 return (objectCasters.GetCaster(type)(L, index, null));
             }
         }
-
+#endif
         public void Get<T>(RealStatePtr L, int index, out T v)
         {
             Func<RealStatePtr, int, T> get_func;
@@ -1073,16 +1056,17 @@ namespace XLua
                 }
             }
         }
-        
+
         internal int getTypeId(RealStatePtr L, Type type, out bool is_first, LOGLEVEL log_level = LOGLEVEL.WARN)
         {
             int type_id;
             is_first = false;
-            
             if (!typeIdMap.TryGetValue(type, out type_id)) // no reference
             {
-                
-                #if !(IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP)
+     
+#if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
+    
+#else
                 if (type.IsArray)
                 {
                     if (common_array_meta == -1) throw new Exception("Fatal Exception! Array Metatable not inited!");
@@ -1095,7 +1079,7 @@ namespace XLua
                     TryDelayWrapLoader(L, type);
                     return common_delegate_meta;
                 }
-                #endif
+#endif
                 is_first = true;
                 Type alias_type = null;
                 aliasCfg.TryGetValue(type, out alias_type);
@@ -1150,9 +1134,6 @@ namespace XLua
 
                     typeIdMap.Add(type, type_id);
                 }
-                #if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
-                    XLua.IL2CPP.TypeRegister.SetTypeMetaId(type, type_id);
-                #endif
             }
             return type_id;
         }
@@ -1202,9 +1183,9 @@ namespace XLua
         }
 
         public void PushAny(RealStatePtr L, object o)
+        
+#if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
         {
-            #if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
-            
             if (o.GetType().IsPrimitive())
             {
                 pushPrimitive(L, o);
@@ -1214,8 +1195,9 @@ namespace XLua
             }else{
                 (o as LuaBase).push(L);
             }
-            return;
-            #endif
+        }
+#else
+        {
             if (o == null)
             {
                 LuaAPI.lua_pushnil(L);
@@ -1264,7 +1246,7 @@ namespace XLua
                 Push(L, o);
             }
         }
-
+#endif
         Dictionary<object, int> enumMap = new Dictionary<object, int>();
 
         public int TranslateToEnumToTop(RealStatePtr L, Type type, int idx)
@@ -1791,5 +1773,7 @@ namespace XLua
                 throw new Exception("invalid lua value for decimal, LuaType=" + lua_type);
             }
         }
+
+
     }
 }

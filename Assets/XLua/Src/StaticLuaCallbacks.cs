@@ -566,7 +566,6 @@ namespace XLua
             }
         }
 
-        //Lua侧导入类型用
         [MonoPInvokeCallback(typeof(LuaCSFunction))]
         public static int MetaFuncIndex(RealStatePtr L)
         {
@@ -578,11 +577,10 @@ namespace XLua
                 {
                     return LuaAPI.luaL_error(L, "#2 param need a System.Type!");
                 }
-                UnityEngine.Debug.Log("============================load type by __index:" + type);
+                //UnityEngine.Debug.Log("============================load type by __index:" + type);
                 //translator.TryDelayWrapLoader(L, type);
                 translator.GetTypeId(L, type);
                 LuaAPI.lua_pushvalue(L, 2);
-                //从cls的table里拿到indexfunction
                 LuaAPI.lua_rawget(L, 1);
                 return 1;
             }
@@ -852,7 +850,6 @@ namespace XLua
         {
             try
             {
-                
                 ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
                 string className = LuaAPI.lua_tostring(L, 1);
                 Type type = translator.FindType(className);

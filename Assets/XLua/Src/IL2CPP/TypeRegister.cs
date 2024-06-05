@@ -4,13 +4,9 @@
 #if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
 using RealStatePtr = System.IntPtr;
 using System;
-using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Reflection;
-using XLua.LuaDLL;
 using LuaAPI = XLua.LuaDLL.Lua;
-using UnityEngine;
-using LuaCSFunction = XLua.LuaDLL.lua_CSFunction;
 using System.Text;
 namespace XLua.IL2CPP
 {
@@ -90,8 +86,6 @@ namespace XLua.IL2CPP
         }
         
 
-        //#TODO@benp C++类型释放
-
         private static IntPtr GetFieldWrapper(string name, bool isStatic, string signature)
         {
             return NativeAPI.FindFieldWrap(signature);
@@ -102,29 +96,29 @@ namespace XLua.IL2CPP
             return NativeAPI.FindWrapFunc(signature);
         }
 
-        public static void SetTypeMetaId(Type type, int metaId)
-        {
-            var typeId = NativeAPI.GetTypeId(type);
-            NativeAPI.SetClassMetaId(typeId, metaId);
-        }
+        // public static void SetTypeMetaId(Type type, int metaId)
+        // {
+        //     var typeId = NativeAPI.GetTypeId(type);
+        //     NativeAPI.SetClassMetaId(typeId, metaId);
+        // }
 
         public static string Bytes2String(byte[] bytes){
             return Encoding.UTF8.GetString(bytes);
         }
 
+        public static int GetLuaStateCacheRef(RealStatePtr L){
+            var translator = ObjectTranslatorPool.Instance.Find(L);
+            if(translator != null){
+                return translator.cacheRef;
+            }
+            return -1;
+        }
+
         private static HashSet<Type> loaded_type = new HashSet<Type>();
         private static bool setcache = false;
-        //#TODO@benp 待整理
-        public static void Register(RealStatePtr L, Type type, bool includeNonPublic, bool throwIfMemberFail = false)
-        {
-            var translator = ObjectTranslatorPool.Instance.Find(L);
-            if(loaded_type.Contains(type)){
-                var typeId = NativeAPI.GetTypeId(type);
-                Register2Lua(type, 0, typeId, translator, L);
-                return;
-            }
-            
-            if (!setcache)
+
+        private static void InitEnviroment(ObjectTranslator translator){
+             if (!setcache)
             {
                 setcache = true;
                 
@@ -150,6 +144,14 @@ namespace XLua.IL2CPP
                 
                 NativeAPI.SetGlobalType_LuaObject(typeof(DelegateMiddleware));
             }
+        }
+
+        public static void Register(RealStatePtr L, Type type, bool includeNonPublic, bool throwIfMemberFail = false)
+        {
+            var translator = ObjectTranslatorPool.Instance.Find(L);
+            
+           InitEnviroment(translator);
+
             BindingFlags flag = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public;
             if (includeNonPublic)
             {
@@ -168,7 +170,6 @@ namespace XLua.IL2CPP
 
         private static void Register2Lua(Type type, int type_id, IntPtr typeId, ObjectTranslator translator, RealStatePtr L)
         {
-            //todo hotfix 处理
             if (type == null)
             {
                 if (type_id == -1) throw new Exception("Fatal: must provide a type of type_id");
@@ -218,9 +219,15 @@ namespace XLua.IL2CPP
             IntPtr typeInfo = IntPtr.Zero;
             try
             {
+                var typeId = NativeAPI.GetTypeId(type);
+                typeInfo = NativeAPI.GetLuaClsInfoByType(type);
+
+                if(typeInfo != IntPtr.Zero){
+                    return typeId;
+                }
+
                 bool isDelegate = typeof(MulticastDelegate).IsAssignableFrom(type) && type != typeof(MulticastDelegate);
                 var superTypeId = (isDelegate || type == typeof(object) || type.BaseType == null) ? IntPtr.Zero : NativeAPI.GetTypeId(type.BaseType);
-                var typeId = NativeAPI.GetTypeId(type);
                 // UnityEngine.Debug.Log("typeId" + typeId);
                 //create C++ struct 
                 typeInfo = NativeAPI.CreateCSharpTypeInfo(type.ToString(), typeId, superTypeId, typeId, type.IsValueType, isDelegate, isDelegate ? TypeUtils.GetMethodSignature(type.GetMethod("Invoke"), true) : "");

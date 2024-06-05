@@ -9,6 +9,7 @@ using System;
 using System.Diagnostics;
 using XLua.IL2CPP;
 using LuaAPI = XLua.LuaDLL.Lua;
+using System.Reflection;
 namespace XLua
 {
     public partial class ObjectTranslator
@@ -50,8 +51,8 @@ namespace XLua
             LuaAPI.lua_pushvalue(L, idx);
             LuaAPI.lua_pushnumber(L, reference);
             LuaAPI.lua_rawset(L, LuaIndexes.LUA_REGISTRYINDEX);
-
-            delegateMiddleware = new DelegateMiddleware() { L = L, reference = reference, FuncPtr = funcptr};
+            ObjectTranslator objectTranslator = ObjectTranslatorPool.Instance.Find(L);
+            delegateMiddleware = new DelegateMiddleware() { L = L, reference = reference, FuncPtr = funcptr, luaLock = objectTranslator.luaEnv.luaEnvLock};
             var value = delegateMiddleware.CreateDelegate(type);
             delegateMiddleware.AddDelegate(type,value );
             delegatMiddlewareCache[reference] = new WeakReference(delegateMiddleware);
@@ -84,6 +85,60 @@ namespace XLua
             LuaAPI.lua_unref(L, reference);
             delegatMiddlewareCache.Remove(reference);
         }
+
+        public bool TryDelayWrapLoader_Il2Cpp(RealStatePtr L, Type type){
+            if (loaded_types.ContainsKey(type)) return true;
+            loaded_types.Add(type, true);
+            LuaAPI.luaL_newmetatable(L, type.FullName); //先建一个metatable，因为加载过程可能会需要用到
+            LuaAPI.lua_pop(L, 1);
+            int top = LuaAPI.lua_gettop(L);
+            TypeRegister.Register(L,type, privateAccessibleFlags.Contains(type));
+            if (top != LuaAPI.lua_gettop(L))
+            {
+                throw new Exception("top change, before:" + top + ", after:" + LuaAPI.lua_gettop(L));
+            }
+            foreach (var nested_type in type.GetNestedTypes(BindingFlags.Public))
+            {
+                if (nested_type.IsGenericTypeDefinition())
+                {
+                    continue;
+                }
+                GetTypeId(L, nested_type);
+            }
+            
+            return true;
+        }
+
+        internal object getLuaTable(RealStatePtr L, int idx)
+        {
+            if (LuaAPI.lua_type(L, idx) == LuaTypes.LUA_TUSERDATA)
+            {
+                object obj = SafeGetCSObj(L, idx);
+                return (obj != null && obj is LuaTable) ? obj : null;
+            }
+            if (!LuaAPI.lua_istable(L, idx))
+            {
+                return null;
+            }
+            LuaAPI.lua_pushvalue(L, idx);
+            return new LuaTable(LuaAPI.luaL_ref(L), luaEnv);
+        }
+
+        internal object getLuaFunction(RealStatePtr L, int idx)
+        {
+            if (LuaAPI.lua_type(L, idx) == LuaTypes.LUA_TUSERDATA)
+            {
+                object obj = SafeGetCSObj(L, idx);
+                return (obj != null && obj is LuaFunction) ? obj : null;
+            }
+            if (!LuaAPI.lua_isfunction(L, idx))
+            {
+                return null;
+            }
+            LuaAPI.lua_pushvalue(L, idx);
+            return new LuaFunction(LuaAPI.luaL_ref(L), luaEnv);
+        }
+
     }
 }
 

@@ -52,6 +52,11 @@ namespace XLua.IL2CPP
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
+        public static IntPtr GetLuaClsInfoByType(Type type){
+            throw new NotImplementedException ();
+        }
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern void ReleaseCSharpTypeInfo(IntPtr classInfo);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -91,8 +96,8 @@ namespace XLua.IL2CPP
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
 		public static extern IntPtr xlua_getImpl();
 
-        [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void SetClassMetaId(IntPtr p, int metaId);
+        // [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+		// public static extern void SetClassMetaId(IntPtr p, int metaId);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
 		public static extern void SetXLuaRef(int[] refArr);
@@ -166,29 +171,6 @@ namespace XLua.IL2CPP
            throw new NotImplementedException();
         }
 
-        //[MethodImpl(MethodImplOptions.InternalCall)]
-        //public static void SetGlobalType_ArrayBuffer(Type type)
-        //{
-        //    throw new NotImplementedException();
-        //}
-        
-        //[MethodImpl(MethodImplOptions.InternalCall)]
-        //public static void SetGlobalType_TypedValue(Type type)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //[MethodImpl(MethodImplOptions.InternalCall)]
-        //public static void PesapiCallTest(Type type)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //[MethodImpl(MethodImplOptions.InternalCall)]
-        //public static object EvalInternal(IntPtr envHolder, byte[] code, string path, Type type)
-        //{
-        //    throw new NotImplementedException();
-        //}
 
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || XLua_GENERAL || (UNITY_WSA && !UNITY_EDITOR)
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]

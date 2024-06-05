@@ -19,7 +19,6 @@ using LuaCSFunction = XLua.LuaDLL.lua_CSFunction;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Diagnostics;
 
 namespace XLua
 {
@@ -83,11 +82,6 @@ namespace XLua
         {
             return null;
         }
-
-        public override void Dispose(bool disposeManagedResources)
-        {
-            base.Dispose(disposeManagedResources);
-        }
     }
 
     public static class HotfixDelegateBridge
@@ -133,7 +127,7 @@ namespace XLua
     {
         internal static DelegateBridge[] DelegateBridgeList = new DelegateBridge[0];
 
-        public static bool Gen_Flag = true;
+        public static bool Gen_Flag = false;
 
         public DelegateBridge(int reference, LuaEnv luaenv) : base(reference, luaenv)
         {

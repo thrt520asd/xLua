@@ -10,6 +10,7 @@
 #include "il2cpp-api-types.h"
 #include "il2cpp-class-internals.h"
 #include "il2cpp-object-internals.h"
+
 using namespace std;
 namespace xlua
 {
@@ -46,6 +47,7 @@ namespace xlua
     {
         lua_State *L;
         Il2CppMethodPointer FuncPtr;
+        Il2CppObject* lock;
         int reference;
     };
     struct BridgeFuncInfo

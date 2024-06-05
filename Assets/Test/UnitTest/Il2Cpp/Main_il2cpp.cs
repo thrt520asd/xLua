@@ -9,11 +9,15 @@ public class Main_il2cpp : MonoBehaviour {
 	void Start () {
 		luaenv = LuaEnvSingleton.Instance;
 		luaenv.DoString ("require 'Il2Cpp.main_il2cpp'");
+        // luaenv.Dispose
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
 		luaenv.GC ();
 	}
+    void OnDestroy(){
+        luaenv.Dispose();
+    }
 }
 #endif

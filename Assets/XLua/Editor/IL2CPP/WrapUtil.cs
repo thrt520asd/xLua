@@ -111,6 +111,19 @@ namespace XLua.IL2CPP.Editor.Generator
             thisSignature == TypeSignatures.ThisSignature_Value_Offset || 
             thisSignature == TypeSignatures.ThisSignature_Ref;
         }
+        public static string EnterLock(){
+#if THREAD_SAFE || HOTFIX_ENABLE
+    return "il2cpp_monitor_enter(delegateInfo->luaLock);";
+#endif  
+            return "";
+        }
+
+        public static string ExitLock(){
+#if THREAD_SAFE || HOTFIX_ENABLE
+    return "il2cpp_monitor_exit(delegateInfo->luaLock);";
+#endif  
+            return "";
+        }
 
         static Dictionary<string, string> PrimitiveSignatureCppTypeMap = new System.Collections.Generic.Dictionary<string, string>{
             {"v", "void"},
@@ -861,10 +874,11 @@ static int bw_{bridgeInfo.Signature}(lua_State* L, Il2CppDelegate* ildelegate,co
 static {SToCPPType(bridgeInfo.ReturnSignature)} b_{bridgeInfo.Signature}(void* target, {
     string.Join("",bridgeInfo.ParameterSignatures.Select((s,i)=>$"{SToCPPType(s)} p{i},"))
 }MethodInfo* method) {{
+    DelegateMiddlerware* delegateInfo = GetDelegateInfo(target);
+    {EnterLock()}
     {(bridgeInfo.ReturnSignature.NotNullOrEmpty() && !bridgeInfo.ReturnSignature.IsPrimitiveSignature() ? "auto TIret = GetReturnType(method);":"")}
     {string.Join("\n", bridgeInfo.ParameterSignatures.Select((s,i)=>$"{(!s.IsPrimitiveSignature()? $"auto TIp{i} = GetParameterType(method, {i});":"")}"))}
 
-    DelegateMiddlerware* delegateInfo = GetDelegateInfo(target);
     auto L = delegateInfo->L;
     if (!L)
     {{
@@ -879,11 +893,14 @@ static {SToCPPType(bridgeInfo.ReturnSignature)} b_{bridgeInfo.Signature}(void* t
     int n = lapi_lua_pcall(L, {bridgeInfo.ParameterSignatures.TriOutParamCnt()}, {bridgeInfo.LuaFuncReturnValueCnt()}, errFunc);
     if(!n){{
         {string.Join("\n",bridgeInfo.ParameterSignatures.Select((s,i)=>BridgeRefParamterSetBack(s, "p"+i, "errFunc +" + (LuaReturnRefValueRealIndex(bridgeInfo, i) + 1))))}
-        {ReturnToCS(bridgeInfo.ReturnSignature, "errFunc + 1")}
+        {(bridgeInfo.ReturnSignature.IsVoid() ? "" : LuaValToCSVal(bridgeInfo.ReturnSignature, "ret","errFunc + 1"))}
+        il2cpp_monitor_exit(delegateInfo.luaLock);
+        return {(bridgeInfo.ReturnSignature.IsVoid() ? "" : "ret")};
     }}else{{
        throwExceptionFromLuaError(L, oldTop);
     }}
     lapi_lua_settop(L, errFunc-1);
+    {ExitLock()}
     
 }}
 ";

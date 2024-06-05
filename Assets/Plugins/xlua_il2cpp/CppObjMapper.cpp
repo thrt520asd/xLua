@@ -31,6 +31,7 @@ namespace xlua
 	static AddObjFunc addObjFunc;
 	static RemoveObjFunc removeObjFunc;
 
+    //todo 这里要从C#拿
 	void CppObjMapper::SetCacheRef(int32_t cache_ref)
 	{
 		cacheRef = cache_ref;
@@ -171,14 +172,14 @@ namespace xlua
 		else
 		{
 			Il2CppObject* obj = il2cpp::vm::Object::Box(klass, pointer);
-			CppObjMapper::TryPushObject(L, obj);
+			CppObjMapper::TryPushRefObj(L, obj);
 		}
 
 		return false;
 	}
 
 
-	bool CppObjMapper::TryPushObject(lua_State* L, Il2CppObject* obj)
+	bool CppObjMapper::TryPushRefObj(lua_State* L, Il2CppObject* obj)
 	{
 		if (!obj)
 		{
@@ -253,7 +254,7 @@ namespace xlua
 		}
 	}
 
-	Il2CppObject* CppObjMapper::GetCSharpObj(lua_State* L, int idx)
+	Il2CppObject* CppObjMapper::ToRefObj(lua_State* L, int idx)
 	{
 		ObjUD* obj = (ObjUD*)lapi_lua_touserdata(L, idx);
 		if (obj && obj->tag == &xluaTag)
@@ -275,33 +276,19 @@ namespace xlua
         return -1;
     }
 
-    void CppObjMapper::SetTypeId(void* kclass, int32_t metaId){
-        auto result = ilclass2luaMetaId.insert({kclass, metaId});
-        if(result.second){
-            // xlua::GLogFormatted("set type id insert success %p $d", kclass, metaId);
-        }else{
-            // xlua::GLogFormatted("set type id insert success %p $d", kclass, metaId);
+    // void CppObjMapper::SetTypeId(void* kclass, int32_t metaId){
+    //     auto result = ilclass2luaMetaId.insert({kclass, metaId});
+    //     if(result.second){
+    //         // xlua::GLogFormatted("set type id insert success %p $d", kclass, metaId);
+    //     }else{
+    //         // xlua::GLogFormatted("set type id insert success %p $d", kclass, metaId);
 
-        }
-    }
+    //     }
+    // }
 
-    int32_t CppObjMapper::GetClassMetaId(void* kclass){
-        auto iter = ilclass2luaMetaId.find(kclass);
-        if(iter != ilclass2luaMetaId.end()){
-            return iter->second;
-        }
-        return -1;
-    }
-
-    int32_t CppObjMapper::GetTypeIdByIl2cppClass(lua_State *L, const Il2CppClass *klass){   
-        auto metaId = GetClassMetaId((void*)klass);
-        if(metaId == -1){
-            auto reflectType = il2cpp::vm::Reflection::GetTypeObject(&klass->byval_arg);
-            if(reflectType){
-                return CSharpGetTypeId(L, reflectType);
-            }
-        }
-        return metaId;
+    int CppObjMapper::GetTypeIdByIl2cppClass(lua_State *L, const Il2CppClass *klass){   
+        auto reflectType = il2cpp::vm::Reflection::GetTypeObject(&((Il2CppClass*)klass)->byval_arg);
+        return CSharpGetTypeId(L, reflectType);
     }
 
 	void CppObjMapper::SetGetTypeIdFuncPtr(CSharpGetTypeIdFunc methodPtr, void* method) {
