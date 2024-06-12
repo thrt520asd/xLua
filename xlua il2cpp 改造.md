@@ -330,3 +330,7 @@ lua原生元素的模拟类支持（
     cs 2 lua 已在外层过滤，luaBase不会通过il2cpp形式push 如果再出现需要处理
     
 ）
+xlua兼容方案{
+    dll为同一个
+    
+}

@@ -19,6 +19,21 @@ namespace XLua.IL2CPP.Editor{
             FileExporter.GenCPPWrapAll();
         }
 
+        [MenuItem("Tools/XLuaIL2CPP/GenHash")]
+        public static void GenHash(){
+            MemberNameHashGen.Generate(new List <Type>(){typeof(ClassLuaCallCS), typeof(GameObject)}, false);
+        }
+#if AOE_APP
+        /// <summary>
+        /// 生成wrap代码
+        /// </summary>
+        [MenuItem("Tools/XLuaIL2CPP/GenAll")]
+        public static void GenerateAOEWrap(){
+             CSObjectWrapEditor.Generator.GetGenConfig(XLua.Utils.GetAllTypes());
+             var types = CSObjectWrapEditor.Generator.LuaCallCSharp.Concat(CSObjectWrapEditor.Generator.CSharpCallLua);
+             FileExporter.GenCPPWrap(types, FileExporter.filePath);
+        }
+#endif
         /// <summary>
         /// 生成LuaAPIAdapt代码
         /// </summary>
@@ -62,7 +77,7 @@ namespace XLua.IL2CPP.Editor{
                         Debug.Log("======================ctor======================");
                         foreach (var item in ctors)
                         {   
-                            Debug.Log(item+"|"+ item.Name + "|"+TypeUtils.GetMethodSignature(item)+"|"+item.IsStatic);
+                            Debug.Log(item+"|"+ item.Name + "|"+TypeUtils.GetMethodSignature(item)+"|"+item.IsStatic + "|" + item.IsSpecialName);
                         }
                     }
 
@@ -70,7 +85,7 @@ namespace XLua.IL2CPP.Editor{
                         Debug.Log("======================methods======================");
                         foreach (var item in methods)
                         {   
-                            Debug.Log(item+"|"+ item.Name+ "|"+TypeUtils.GetMethodSignature(item, false, false)+"|"+item.IsStatic);
+                            Debug.Log(item+"|"+ item.Name+ "|"+TypeUtils.GetMethodSignature(item, false, false)+"|"+item.IsStatic + "|" + item.IsSpecialName);
                         }
                     }
 
@@ -127,14 +142,17 @@ namespace XLua.IL2CPP.Editor{
                 }
             }
             if(GUILayout.Button("TestGen")){
-                var type = System.AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes()).First((Type x)=>{
-                        return x.Name == m_TypeName;
-                    });
+                var method =  typeof(ObjectTranslator).GetMethod("PushByType");
+                Debug.Log(method);
                 
-                Debug.Log(type.FullName);
-                Debug.Log(type.Name);
+                // var type = System.AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes()).First((Type x)=>{
+                //         return x.Name == m_TypeName;
+                //     });
+                
+                // Debug.Log(type.FullName);
+                // Debug.Log(type.Name);
 
-                FileExporter.GenCPPWrap(new List<Type>(){type}, Application.dataPath + "/../wrapTest.h");
+                // FileExporter.GenCPPWrap(new List<Type>(){type}, Application.dataPath + "/../wrapTest.h");
             }
         }
 

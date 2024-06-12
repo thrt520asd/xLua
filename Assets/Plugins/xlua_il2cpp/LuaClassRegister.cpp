@@ -5,9 +5,25 @@
 #include "vm/Reflection.h"
 #include "CppObjMapper.h"
 #include "ClassLuaCallCS_instance.h"
+
+
+// static int MethoCallBackHash_4_23(lua_State *L)
+// {
+//     WrapData **wrapData = GetLuaClassRegister()->GetMemberWrapData(4, 23);
+//     if (wrapData)
+//     {
+//         return MethodCallback(L, wrapData, 2);
+//     }
+//     else
+//     {
+//         // #TODO@benp
+//     }
+//     return 0;
+// }
+
 namespace xlua
 {
-    
+    #include "memberNameHash.h"
     LuaClassRegister::LuaClassRegister(/* args */)
     {
     }
@@ -52,17 +68,8 @@ namespace xlua
         auto iter = clsId2ClsDef.find(luaClsInfo->klass);
         if(iter == clsId2ClsDef.end()){
             bool hasHash = false;
-            if(strcmp(luaClsInfo->Name.c_str(), "ClassLuaCallCS") == 0 ){
-                luaClsInfo->memberHash = (MemberHash)ClassLuaCallCS_instance_hash;
-                luaClsInfo->memberWarpDatas = new MemberWrapData[GetClassLuaCallCS_instance_MaxLength()];
-                HashClsInfos.push_back(luaClsInfo);
-                HashClsInfos.push_back(luaClsInfo);
-                HashClsInfos.push_back(luaClsInfo);
-                HashClsInfos.push_back(luaClsInfo);
-                HashClsInfos.push_back(luaClsInfo);
-                HashClsInfos.push_back(luaClsInfo);
-                hasHash = true;
-            }
+            MemberHashType hashFunc = nullptr;
+            //#TODO@benp find hash func
             for(auto& method: luaClsInfo->Methods){
                 method.OverloadDatas.push_back(nullptr);
                 if (method.IsStatic && !method.IsGetter && !method.IsSetter) {
@@ -72,12 +79,13 @@ namespace xlua
                 else if(!method.IsGetter && !method.IsSetter){
                     // luaClsInfo->MethodsMap[method.Name.c_str()] = &method;
                     luaClsInfo->ObjGetMap.insert(std::pair<const char *, MemberWrapData>(method.Name.c_str(), {method.OverloadDatas.data(), XLUA_MemberType_Method}));
-                    unsigned int hash = ClassLuaCallCS_instance_hash(method.Name.c_str(), method.Name.length());
-                    if(hasHash){
-                        luaClsInfo->memberWarpDatas[hash].data = method.OverloadDatas.data();
-                        luaClsInfo->memberWarpDatas[hash].type = XLUA_MemberType_Method;
-                    }
+                    
                 }
+                if(!method.IsGetter && !method.IsSetter && hasHash){
+                    unsigned int hash = hashFunc(method.Name.c_str(), method.Name.length());
+                    luaClsInfo->memberWarpDatas[hash].data = method.OverloadDatas.data();
+                    luaClsInfo->memberWarpDatas[hash].type = XLUA_MemberType_Method;
+                } 
             }
 
             for(auto& field: luaClsInfo->Fields){
@@ -95,12 +103,13 @@ namespace xlua
                     }
                     if(field.Data->Setter){
                         luaClsInfo->ObjSetMap.insert(std::pair<const char *, MemberWrapData>(field.Name.c_str(), {field.Data, XLUA_MemberType_Field}));
-                        if(hasHash){
-                            unsigned int hash = ClassLuaCallCS_instance_hash(field.Name.c_str(), field.Name.length());
-                            luaClsInfo->memberWarpDatas[hash].data = field.Data;
-                            luaClsInfo->memberWarpDatas[hash].type = XLUA_MemberType_Field;
-                        }
+                        
                     }
+                }
+                if(hasHash){
+                    unsigned int hash = hashFunc(field.Name.c_str(), field.Name.length());
+                    luaClsInfo->memberWarpDatas[hash].data = &field;
+                    luaClsInfo->memberWarpDatas[hash].type = XLUA_MemberType_Field;
                 }
             }
 
@@ -129,9 +138,26 @@ namespace xlua
                             luaClsInfo->ObjSetMap.insert(std::pair<const char *, MemberWrapData>(propertyInfo.Name.c_str(), {propertyInfo.SetWrapData, XLUA_MemberType_Property}));
                         }
                     }
+                    if(hasHash){
+                        unsigned int hash = hashFunc(propertyInfo.Name.c_str(), propertyInfo.Name.length());
+                        luaClsInfo->memberWarpDatas[hash].data = &propertyInfo;
+                        luaClsInfo->memberWarpDatas[hash].type = XLUA_MemberType_Property;
+                    }
                 }
             }
             
+            for (auto& event : luaClsInfo->Events) {
+                if(event.IsStatic){
+                    luaClsInfo->ClsGetMap.insert(std::pair<const char *, MemberWrapData>(event.Name.c_str(), {&event, XLUA_MemberType_Event}));
+                }else{
+                    luaClsInfo->ObjGetMap.insert(std::pair<const char *, MemberWrapData>(event.Name.c_str(), {&event, XLUA_MemberType_Event}));
+                }
+                if(hasHash){
+                    unsigned int hash = hashFunc(event.Name.c_str(), event.Name.length());
+                    luaClsInfo->memberWarpDatas[hash].data = &event;
+                    luaClsInfo->memberWarpDatas[hash].type = XLUA_MemberType_Event;
+                }
+            }
 
             luaClsInfo->Ctors.push_back(nullptr);
             luaClsInfo->CtorWrapDatas = luaClsInfo->Ctors.data();

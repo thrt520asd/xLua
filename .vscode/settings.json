@@ -160,7 +160,8 @@
         "lua_api_adapt.h": "c",
         "llimits.h": "c",
         "i64lib.h": "c",
-        "cstdarg": "cpp"
+        "cstdarg": "cpp",
+        "coroutine": "cpp"
     },
     "workbench.preferredDarkColorTheme": "Default Dark+",
     "workbench.preferredHighContrastColorTheme": "Default High Contrast Light",

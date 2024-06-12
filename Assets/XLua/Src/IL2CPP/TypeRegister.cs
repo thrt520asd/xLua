@@ -158,7 +158,7 @@ namespace XLua.IL2CPP
                 flag = flag | BindingFlags.NonPublic;
             }
 
-            var cppClsDef = Register2Cpp(L, type, type.GetConstructors(flag), type.GetMethods(flag), type.GetProperties(flag), type.GetFields(flag), throwIfMemberFail);
+            var cppClsDef = Register2Cpp(L, type, type.GetConstructors(flag), type.GetMethods(flag), type.GetProperties(flag), type.GetFields(flag), type.GetEvents(flag), throwIfMemberFail);
 
             if (cppClsDef != IntPtr.Zero)
             {
@@ -214,7 +214,7 @@ namespace XLua.IL2CPP
         }
 
         /// 注册类型信息到IL2CPP,
-        private static IntPtr Register2Cpp(IntPtr L, Type type, MethodBase[] ctors = null, MethodBase[] methods = null, PropertyInfo[] properties = null, FieldInfo[] fields = null, bool throwIfMemberFail = false)
+        private static IntPtr Register2Cpp(IntPtr L, Type type, MethodBase[] ctors = null, MethodBase[] methods = null, PropertyInfo[] properties = null, FieldInfo[] fields = null, EventInfo[] eventsInfo = null, bool throwIfMemberFail = false)
         {
             IntPtr typeInfo = IntPtr.Zero;
             try
@@ -375,8 +375,6 @@ namespace XLua.IL2CPP
                     // add property delegate
                     Action<string, MethodInfo, bool> AddPropertyToType = (string name, MethodInfo method, bool isGetter) =>
                     {
-                        method = TypeUtils.HandleMaybeGenericMethod(method);
-                        if (method == null) return;
                         List<Type> usedTypes = TypeUtils.GetUsedTypes(method, false);
                         var signature = TypeUtils.GetMethodSignature(method, false, false);
                         // UnityEngine.Debug.Log(string.Format("add property {0}, usedTypeCount:{1} name: {2} isGetter{3} ", name, usedTypes.Count, name, isGetter));
@@ -442,7 +440,7 @@ namespace XLua.IL2CPP
                         foreach (var method in extensionMethods)
                         {
                             if(type.IsArray || type == typeof(System.Array) && (method.Name == ("get_Item") || method.Name == "set_Item" )){
-                                // Debug.Log("TypeReigster Add Array indexer "+method.ToString());
+                                
                                 AddPropertyToType("Item", method, method.Name == "get_Item");
                             }else{
                                 AddMethodToType(method.Name, method as MethodInfo, false, false, true);
@@ -506,6 +504,23 @@ namespace XLua.IL2CPP
                                 throw new Exception(string.Format("add field for {0}:{1} fail, signature:{2}", type, field, signature));
                             }
                             // UnityEngine.Debug.Log(string.Format("AddField {0} of {1} ok offset={2}", field, type, NativeAPI.GetFieldOffset(field, type.IsValueType)));
+                        }
+                    }
+
+                    if(eventsInfo != null){
+                        //event 依赖method 必须先处理method再处理event
+                        foreach (var eventInfo in eventsInfo)
+                        {
+                            bool suc = NativeAPI.AddEvent(typeInfo, eventInfo, eventInfo.GetAddMethod().IsStatic);
+                            if(!suc){
+                                if(!throwIfMemberFail){
+                                    #if WARNING_IF_MEMBERFAIL
+                                    UnityEngine.Debug.LogWarning( $"add event{eventInfo} for {type}failed");
+#endif
+                                    continue;
+                                }
+                                throw new Exception( $"add event{eventInfo} for {type}failed");
+                            }
                         }
                     }
                 }

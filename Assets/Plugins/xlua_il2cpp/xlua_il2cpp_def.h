@@ -15,8 +15,7 @@ using namespace std;
 namespace xlua
 {
 
-// #define PropertyWrapCache 1
-// #define FieldWrapCache 1
+
 #define ENABLE_MEMBER_HASH 1
 #define MethodPointer Il2CppMethodPointer
 
@@ -37,17 +36,17 @@ namespace xlua
 
     typedef Il2CppDelegate *((*GetDelegateType))(lua_State *L, int index, const Il2CppReflectionType* reflectType, intptr_t methodPointer, const MethodInfo *methodInfo);
 
-    typedef unsigned int (*MemberHash)(register const char*, register unsigned int len);
+    typedef unsigned int (*MemberHashType)(register const char*, register unsigned int len);
 
     typedef int (*CSharpGetTypeIdFunc)(lua_State* L, Il2CppReflectionType* type, void* method);
 
-    
+    typedef int (*HashWrapFunc)(lua_State* L);
 
     struct DelegateMiddlerware
     {
         lua_State *L;
         Il2CppMethodPointer FuncPtr;
-        Il2CppObject* lock;
+        Il2CppObject* luaLock;
         int reference;
     };
     struct BridgeFuncInfo
@@ -82,6 +81,14 @@ namespace xlua
         void *TypeInfos[0];
     };
 
+    struct EventWrapData
+    {
+        std::string Name;
+        WrapData* add;
+        WrapData* remove;
+        bool IsStatic;
+    };
+
     struct CSharpMethodInfo
     {
         std::string Name;
@@ -89,6 +96,7 @@ namespace xlua
         bool IsGetter;
         bool IsSetter;
         std::vector<WrapData *> OverloadDatas;
+        HashWrapFunc hashWrapFunc;
     };
 
     struct FieldWrapData
@@ -135,6 +143,7 @@ namespace xlua
     #define XLUA_MemberType_Method 1
     #define XLUA_MemberType_Property 2
     #define XLUA_MemberType_Field 3
+    #define XLUA_MemberType_Event 4
     struct CStrEqual {
         bool operator()(const char* lhs, const char* rhs) const {
             return strcmp(lhs, rhs) == 0;
@@ -170,11 +179,13 @@ namespace xlua
         std::vector<CSharpMethodInfo> Methods;
         std::vector<CSharpFieldInfo> Fields;
         std::vector<PropertyWrapData> Properties;
+        std::vector<EventWrapData> Events;
         std::unordered_map<const char*, MemberWrapData, CStrHash, CStrEqual> ObjGetMap;
         std::unordered_map<const char*, MemberWrapData, CStrHash, CStrEqual> ObjSetMap;
         std::unordered_map<const char*, MemberWrapData, CStrHash, CStrEqual> ClsGetMap;
         std::unordered_map<const char*, MemberWrapData, CStrHash, CStrEqual> ClsSetMap;
-        MemberHash memberHash;
+        std::unordered_map<std::string, int> MethodDicByName;
+        MemberHashType memberHash;
         MemberWrapData* memberWarpDatas;
         int memberLength;
         PropertyWrapData *Indexer;
@@ -239,6 +250,7 @@ namespace xlua
     void ReleaseCSharpTypeInfo(LuaClassInfo *clsInfo);
     int throw_exception2lua(lua_State* L, const char* msg);
     int throw_exception2lua_format(lua_State* L, const char* msg, ...);
+    int MethodCallback(lua_State *L, WrapData **wrapDatas, int paramOffset);
 
     /// @brief UnityLog
     typedef void (*LogCallback)(const char *value);

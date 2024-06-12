@@ -86,6 +86,9 @@ namespace XLua.IL2CPP
         public static extern bool AddField(IntPtr classInfo, IntPtr FieldWrap, string name, bool isStatic, IntPtr fieldInfo, int offset, IntPtr fieldTypeInfo);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern bool AddEvent(IntPtr classInfo, EventInfo eventInfo, bool isStatic);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern void SetTypeInfo(IntPtr wrapData, int index, IntPtr typeId);
 
 

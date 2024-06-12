@@ -295,61 +295,36 @@ function LuaAddRemoveCB(num)
     local function cb()
 	end
 	for i = 1, num do
-        if IL2CPP_ENHANCED_LUA then
-            csObj:add_NullEvent(cb)
-            csObj:remove_NullEvent(cb)
-        else
-            csObj:NullEvent('+', cb)
-            csObj:NullEvent('-', cb)
-        end
+		csObj:NullEvent('+', cb)
+		csObj:NullEvent('-', cb)
 	end
 end
 
 function LuaBaseParaCB()
 	local csObj = ClassLuaCallCS();
-    if IL2CPP_ENHANCED_LUA then
-        csObj:add_BaseParaEvent(function(x)
-        end)
-    else
-        csObj:BaseParaEvent('+', function(x)
-        end)
-    end
+	csObj:BaseParaEvent('+', function(x)
+	end)
 	csObj:InvokeBaseParaCB()
 end
 
 function LuaClassParaCB()
 	local csObj = ClassLuaCallCS();
-    if IL2CPP_ENHANCED_LUA then
-        csObj:add_ClassParaEvent(function(x)
-        end)
-    else
-        csObj:ClassParaEvent('+', function(x)
-        end)
-    end
+	csObj:ClassParaEvent('+', function(x)
+	end)
 	csObj:InvokeClassParaCB()
 end
 
 function LuaStructParaCB()
 	local csObj = ClassLuaCallCS();
-    if IL2CPP_ENHANCED_LUA then
-        csObj:add_StructParaEvent(function(x)
-        end)
-    else
-        csObj:StructParaEvent('+', function(x)
-        end)
-    end
+	csObj:StructParaEvent('+', function(x)
+	end)
 	csObj:InvokeStructParaCB()
 end
 
 function LuaVec3ParaCB()
 	local csObj = ClassLuaCallCS();
-    if IL2CPP_ENHANCED_LUA then
-        csObj:add_Vec3ParaEvent(function(x)
-        end)
-    else
-        csObj:Vec3ParaEvent('+', function(x)
-        end)
-    end
+	csObj:Vec3ParaEvent('+', function(x)
+	end)
 	csObj:InvokeVec3ParaCB()
 end
 

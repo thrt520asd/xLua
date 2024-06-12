@@ -414,30 +414,62 @@ $@"struct {Signature}{{
                 // }
             }
 
-            public static void GenLinkXml(string outDir)
+            public static void GenLinkXml(IEnumerable<Type> typeList, string outDir)
             {
                 // var configure = Puerts.Configure.GetConfigureByTags(new List<string>() {
                 //         "Puerts.BindingAttribute",
                 //     });
-                // var genTypes = configure["Puerts.BindingAttribute"].Select(kv => kv.Key)
-                //     .Where(o => o is Type)
-                //     .Cast<Type>()
-                //     .Where(t => !t.IsGenericTypeDefinition && !t.Name.StartsWith("<"))
-                //     .Distinct()
-                //     .ToList();
+                var genTypes = typeList
+                    .Where(t => !t.IsGenericTypeDefinition && !t.Name.StartsWith("<"))
+                    .Distinct()
+                    .ToList();
 
                 //#TODO@benp gen link
                 // using (var jsEnv = new Puerts.JsEnv())
                 // {
                 //     var linkXMLRender = jsEnv.ExecuteModule<Func<List<Type>, string>>("puerts/templates/linkxmlgen.tpl.mjs", "LinkXMLTemplate");
                 //     string linkXMLContent = linkXMLRender(genTypes);
-                //     var linkXMLPath = outDir + "link.xml";
-                //     using (StreamWriter textWriter = new StreamWriter(linkXMLPath, false, Encoding.UTF8))
-                //     {
-                //         textWriter.Write(linkXMLContent);
-                //         textWriter.Flush();
-                //     }
-                // }
+                string coennt = 
+$@"<linker>{
+    string.Join("\n    ", GetAssemblyInfo(typeList).Select(kv=>$@"<assembly fullname={kv.Key.FullName}>
+        {String.Join("\n    ", kv.Value.Select(name=>$@"<type fullname = ""{name}"" preserve = ""all""/>"))}
+    </assembly>"))}
+</linker>";
+                    
+                    var linkXMLPath = outDir + "link.xml";
+                    using (StreamWriter textWriter = new StreamWriter(linkXMLPath, false, Encoding.UTF8))
+                    {
+                        textWriter.Write("");
+                        textWriter.Flush();
+                    }
+                
+            }
+
+            private static Dictionary<Assembly, List<string>> GetAssemblyInfo(IEnumerable<Type> types)
+            {
+                Dictionary<Assembly, List<string>> dic = new Dictionary<Assembly, List<string>>();
+                foreach (var type in types)
+                {
+                    // 获取当前类型的程序集
+                    var assembly = type.Assembly;
+
+                    // 如果字典中还没有当前程序集的条目，则添加一个新列表
+                    if (!dic.ContainsKey(assembly))
+                    {
+                        dic[assembly] = new List<string>();
+                    }
+                    string name = type.FullName;
+                    if(type.IsGenericType){
+                        name = name.Split('[')[0];
+                    } else if(type.IsNested){
+                        name = name.Replace("+", "/");
+                    }
+                    // 将当前类型添加到对应程序集的列表中
+                    dic[assembly].Add(name);
+                }
+
+                return dic; 
+
             }
 
             public static void GenMarcoHeader(string outDir)

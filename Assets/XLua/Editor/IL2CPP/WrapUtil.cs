@@ -141,23 +141,6 @@ namespace XLua.IL2CPP.Editor.Generator
             {"r4","float"}
 
             };
-        public static string SToCPPTypeNoDeclare(string signature){
-            if (signature.IsOptionalParameter() || signature.IsOutParameter())
-            {
-                signature = signature.Substring(1);
-            }
-
-            var t = signature.IsPrimitiveSignatureRaw() ? PrimitiveSignatureCppTypeMap[signature] : "void*";
-            if (signature.StartsWith(TypeSignatures.StructPrefix) || signature.StartsWith(TypeSignatures.NullableStructPrefix) && signature.EndsWith("_"))
-            {
-                t = $"{signature}";
-            }
-            if (signature.IsRefParameter())
-            {
-                t = $"{SToCPPType(signature.Substring(1))}*";
-            }
-            return t;
-        }
 
         public static string SToCPPType(string signature)
         {
@@ -448,18 +431,6 @@ static int w_{signatureInfo.Signature}(void* method, MethodPointer methodPointer
             return ret;
         }
 
-        public static int GetParamIndex(string signature, int index)
-        {
-            if (signature == "t" || signature == "T")
-            {
-                return index + 1;
-            }
-            else
-            {
-                return index;
-            }
-            
-        }
         
         public static string GetThis(string signature)
         {
@@ -782,14 +753,6 @@ $@"//LuaValToCSVal unknow type with default
             }
         }
 
-        public static string ReturnToCS(string signature, string index){
-            if(signature == TypeSignatures.Void){
-                return "";
-            }
-            return 
-$@"{LuaValToCSVal(signature, "ret", index)}
-    return ret;";
-        }
         /// <summary>
         /// 返回异常情况下默认值
         /// </summary>
@@ -890,17 +853,16 @@ static {SToCPPType(bridgeInfo.ReturnSignature)} b_{bridgeInfo.Signature}(void* t
     int errFunc = lapi_pcall_prepare(L, errorFunc_ref, delegateInfo->reference);
     
     {string.Join("\n",bridgeInfo.ParameterSignatures.Select((s,i)=>CSValToLuaVal(s, "p"+i)))}
-    int n = lapi_lua_pcall(L, {bridgeInfo.ParameterSignatures.TriOutParamCnt()}, {bridgeInfo.LuaFuncReturnValueCnt()}, errFunc);
-    if(!n){{
-        {string.Join("\n",bridgeInfo.ParameterSignatures.Select((s,i)=>BridgeRefParamterSetBack(s, "p"+i, "errFunc +" + (LuaReturnRefValueRealIndex(bridgeInfo, i) + 1))))}
-        {(bridgeInfo.ReturnSignature.IsVoid() ? "" : LuaValToCSVal(bridgeInfo.ReturnSignature, "ret","errFunc + 1"))}
-        il2cpp_monitor_exit(delegateInfo.luaLock);
-        return {(bridgeInfo.ReturnSignature.IsVoid() ? "" : "ret")};
-    }}else{{
+    
+    if(lapi_lua_pcall(L, {bridgeInfo.ParameterSignatures.TriOutParamCnt()}, {bridgeInfo.LuaFuncReturnValueCnt()}, errFunc) != 0){{
        throwExceptionFromLuaError(L, oldTop);
+    }}else{{
+        {string.Join("\n",bridgeInfo.ParameterSignatures.Select((s,i)=>BridgeRefParamterSetBack(s, "p"+i, "errFunc +" + (LuaReturnRefValueRealIndex(bridgeInfo, i) + 1))))}
     }}
+    {(bridgeInfo.ReturnSignature.IsVoid() ? "" : LuaValToCSVal(bridgeInfo.ReturnSignature, "ret","errFunc + 1"))}
     lapi_lua_settop(L, errFunc-1);
     {ExitLock()}
+    return {(bridgeInfo.ReturnSignature.IsVoid() ? "" : "ret")};
     
 }}
 ";
