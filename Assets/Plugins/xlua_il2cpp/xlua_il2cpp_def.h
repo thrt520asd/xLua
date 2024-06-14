@@ -36,11 +36,18 @@ namespace xlua
 
     typedef Il2CppDelegate *((*GetDelegateType))(lua_State *L, int index, const Il2CppReflectionType* reflectType, intptr_t methodPointer, const MethodInfo *methodInfo);
 
-    typedef unsigned int (*MemberHashType)(register const char*, register unsigned int len);
+    typedef unsigned int (*ClassMemberHashFunc)(register const char*, register unsigned int len);
+    typedef unsigned int (*HashLengthFunc)();
 
     typedef int (*CSharpGetTypeIdFunc)(lua_State* L, Il2CppReflectionType* type, void* method);
 
     typedef int (*HashWrapFunc)(lua_State* L);
+
+    struct HashFuncs
+    {
+        ClassMemberHashFunc classMemberHashFunc;
+        HashLengthFunc HashLengthFunc;
+    };
 
     struct DelegateMiddlerware
     {
@@ -87,6 +94,7 @@ namespace xlua
         WrapData* add;
         WrapData* remove;
         bool IsStatic;
+        HashWrapFunc hashWrapFunc;
     };
 
     struct CSharpMethodInfo
@@ -185,9 +193,9 @@ namespace xlua
         std::unordered_map<const char*, MemberWrapData, CStrHash, CStrEqual> ClsGetMap;
         std::unordered_map<const char*, MemberWrapData, CStrHash, CStrEqual> ClsSetMap;
         std::unordered_map<std::string, int> MethodDicByName;
-        MemberHashType memberHash;
+        ClassMemberHashFunc memberHash;
         MemberWrapData* memberWarpDatas;
-        int memberLength;
+        int hashMemberCount;
         PropertyWrapData *Indexer;
 
         ~ LuaClassInfo(){
@@ -251,7 +259,7 @@ namespace xlua
     int throw_exception2lua(lua_State* L, const char* msg);
     int throw_exception2lua_format(lua_State* L, const char* msg, ...);
     int MethodCallback(lua_State *L, WrapData **wrapDatas, int paramOffset);
-
+    int EventWrapCallBack_Hash(lua_State* L, EventWrapData* eventWrapData, int offset);
     /// @brief UnityLog
     typedef void (*LogCallback)(const char *value);
 

@@ -17,12 +17,15 @@ namespace xlua
         LuaClassInfo *GetOrLoadLuaClsInfoByTypeId(const Il2CppClass *klass, lua_State *L);
         LuaClassInfo *GetLuaClsInfoByTypeId(const void *typeId);
 
+
         int RegisterClass(LuaClassInfo *luaClsInfo);
         WrapData** GetMemberWrapData(int typeId, int memberHash);
+        EventWrapData* GetMemberEventWrapData(int typeId, int memberHash);
         vector<LuaClassInfo*> HashClsInfos;
 
     private:
         std::unordered_map<const void *, LuaClassInfo *> clsId2ClsDef;
+        void RegisterClass_Hash(LuaClassInfo* luaClsInfo);
         // std::unordered_map<void *, int32_t> ilclass2luaMetaId;
     };
 

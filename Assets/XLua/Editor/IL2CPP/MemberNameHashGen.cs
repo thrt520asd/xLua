@@ -5,6 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Xml.Schema;
+using Unity.Entities.UniversalDelegates;
+using Unity.Mathematics;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
@@ -13,6 +16,8 @@ namespace XLua.IL2CPP.Editor.Generator{
         static string BinPath = Application.dataPath +"/../gperf.exe";
         static string OutputFolder = Application.dataPath + "/../MemberNameHash/";
         static string HeaderPath = Application.dataPath + "/Plugins/xlua_il2cpp/memberNameHash/memberNameHash.h";
+        static string HashWrapPath = Application.dataPath + "/Plugins/xlua_il2cpp/memberNameHash/HashWrap.h";
+        static string OutPutFolder2 = Application.dataPath + "/Plugins/xlua_il2cpp/memberNameHash/";
         public static void Generate(IEnumerable<Type> typeList, bool includeNonPublic){
             if(Directory.Exists(OutputFolder)){
                 Directory.Delete(OutputFolder, true);
@@ -20,13 +25,23 @@ namespace XLua.IL2CPP.Editor.Generator{
             if(!Directory.Exists(OutputFolder)){
                 Directory.CreateDirectory(OutputFolder);
             }
+            
+            if(Directory.Exists(OutPutFolder2)){
+                Directory.Delete(OutPutFolder2, true);
+            }
+            if(!Directory.Exists(OutPutFolder2)){
+                Directory.CreateDirectory(OutPutFolder2);
+            }
             FileStream fs = new FileStream(HeaderPath, FileMode.OpenOrCreate);
             StreamWriter sw = new StreamWriter(fs);
+            FileStream hwFs = new FileStream(HashWrapPath, FileMode.OpenOrCreate);
+            StreamWriter hwSw = new StreamWriter(hwFs);
             int count = typeList.Count();
-            float n = 0f;
+            int n = 0;
+            Dictionary<int, string> methodId2MethodName = new Dictionary<int, string>();
             foreach (var item in typeList)
             {
-                n++;
+                
                 string typeName = item.FullName.Replace(".", "_");
                 typeName = typeName.Replace("`", "");
                 BindingFlags flag = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public;
@@ -38,8 +53,9 @@ namespace XLua.IL2CPP.Editor.Generator{
                 var properties = item.GetProperties(flag); 
                 var fields = item.GetFields(flag);
                 var members = item.GetMembers(flag);
+                var events = item.GetEvents(flag);
                 string path = OutputFolder + typeName + ".gperf";
-                string cPath = OutputFolder + typeName + ".c";
+                string cPath = OutputFolder + typeName + ".h";
                 var methodsName = from method in methods 
                         where ! method.IsSpecialName 
                         select method.Name;
@@ -49,9 +65,12 @@ namespace XLua.IL2CPP.Editor.Generator{
 
                 var fieldName = from field in fields 
                         select field.Name;    
+                var eventsName = from eventInfo in events 
+
+                        select eventInfo.Name;    
 
                 string content = string.Join("\n", 
-                methodsName.Concat(propertyName).Concat(fieldName).Distinct());
+                methodsName.Concat(propertyName).Concat(fieldName).Concat(eventsName).Distinct());
                 
                 
                 File.WriteAllText(path, content);
@@ -75,40 +94,70 @@ namespace XLua.IL2CPP.Editor.Generator{
                 if(!string.IsNullOrEmpty(error)){
                     Debug.LogError(error);
                 }
-                //#TODO@benp 生成头文件
                 if(File.Exists(cPath)){
                     //解析离线hash结果
                     var memberNameHashDic = PreProcessHashFile(cPath, cPath+".preprocess", typeName);
                     if(memberNameHashDic != null){
-                        for (int i = 0; i < methods.Length; i++)
+                        
+                        foreach (var methodName in methodsName)
                         {
-                            var method = methods[i];
-                            bool hasVal = memberNameHashDic.TryGetValue(methods[i].Name, out int hash);
+                            bool hasVal = memberNameHashDic.TryGetValue(methodName, out int hash);
                             if(hasVal){
-                                sw.WriteLine($@"int MethodHashWrap_{n}_{i}(lua_State* L){{
-    auto wrapData = GetLuaClassRegister()->GetMemberWrapData({n}, {i});
+                                hwSw.WriteLine($@"//{methodName}
+int MethodHashWrap_{n}_{hash}(lua_State* L){{
+    auto wrapData = GetLuaClassRegister()->GetMemberWrapData({n}, {hash});
     if(wrapData){{
         return MethodCallback(L, wrapData, 2);
     }}else{{
         //#TODO@benp raise exception
     }}
 }}");
+                            methodId2MethodName[n * 100000 + hash] = $"MethodHashWrap_{n}_{hash}";
                             }else{
-                                Debug.LogError($"member {methods[i].Name} not find int memberNameHash check hash file");
+                                Debug.LogError($"member {methodName} not find int memberNameHash check hash file");
+                            }
+                        }
+
+                        foreach (var evtName in eventsName)
+                        {
+                            bool hasVal = memberNameHashDic.TryGetValue(evtName, out int hash);
+                            if(hasVal){
+                                hwSw.WriteLine($@"//{evtName}
+int EventHashWrap_{n}_{hash}(lua_State* L){{
+    auto wrapData = GetLuaClassRegister()->GetMemberEventWrapData({n}, {hash});
+    if(wrapData){{
+        return EventWrapCallBack_Hash(L, wrapData, 2);
+    }}else{{
+        //#TODO@benp raise exception
+    }}
+}}");
+                            methodId2MethodName[n * 100000 + hash] = $"EventHashWrap_{n}_{hash}";
+                            }else{
+                                Debug.LogError($"member {evtName} not find int memberNameHash check hash file");
                             }
                         }
                     }
-                    File.Copy(cPath+".preprocess", Application.dataPath +$"/Plugins/xlua_il2cpp/memberNameHash/{typeName}_hash.c", true);
+
+                    File.Copy(cPath+".preprocess", Application.dataPath +$"/Plugins/xlua_il2cpp/memberNameHash/{typeName}_hash.h", true);
                     
                     sw.WriteLine($@"unsigned int {typeName + "_hash"} (register const char *str, register unsigned int len);");
+                    sw.WriteLine($@"#include ""{typeName}_hash.h""");
                 }
+                
+                n++;
                 UnityEditor.EditorUtility.DisplayProgressBar("生成hash函数", typeName, n/(float)count);
             }
-            WriteClassId(typeList, sw);
-            sw.WriteLine($@"std::map<const char* , int> HashTypeIdDic = {{
-     {string.Join("\n", typeList.Select((t, i)=>$"{{ \"{t.FullName}\", {i} }},"))}
-}};
-");
+
+            WriteClassId(typeList, hwSw);
+            
+            sw.WriteLine($@"static HashFuncs s_classMemberHashFunc [] = {{
+    {string.Join("\n\t", typeList.Select(s=>$"{{(ClassMemberHashFunc){s}_hash,(HashLengthFunc){s}_MaxLength}},"))}
+}};");
+
+            hwSw.WriteLine($@"std::map<int, HashWrapFunc> s_HashWrapDic = {{
+    {string.Join("\n\t", methodId2MethodName.Select((k)=>$"{{{k.Key}, (HashWrapFunc){k.Value}}},"))}
+}};");
+            hwSw.Close();
             sw.Close();
             fs.Close();
             UnityEditor.EditorUtility.ClearProgressBar();
@@ -123,9 +172,16 @@ namespace XLua.IL2CPP.Editor.Generator{
 
         private static Dictionary<string, int> PreProcessHashFile(string path , string newPath, string typeName){
             string content = File.ReadAllText(path);
-            
+            int minHashValue = -1;
             Match match = Regex.Match(content, @"static const char \* wordlist\[\] =\s*\{([^}]*)\};", RegexOptions.Singleline);
-            Debug.Log(match.Success);
+            
+            Match minValueMatch = Regex.Match(content, @"#define\s+MIN_HASH_VALUE\s+(\d+)", RegexOptions.Singleline);
+            if(minValueMatch.Success){
+                string value = minValueMatch.Groups[1].Value;
+                int.TryParse(value, out minHashValue);
+            }
+            if(minHashValue == -1) return null;
+
             Dictionary<string, int> dic = null;
             if (match.Success)
             {
@@ -134,11 +190,12 @@ namespace XLua.IL2CPP.Editor.Generator{
                 
                 int n = 0 ;
                 int emptyCnt = 0;
-                foreach (var item in match2)
+                foreach (Match item in match2)
                 {
-                    dic[item.ToString()] = n++;
-                    Debug.Log("insert dic "+ item.ToString()+" "+n);
-                    if(item.ToString() == ""){
+                    string res = item.Groups[1].Value;;
+                    dic[res] = n++ - minHashValue;
+                    
+                    if(res == ""){
                         emptyCnt++;
                     }
                 }
@@ -163,13 +220,11 @@ $@"
   return __hVal - MIN_HASH_VALUE;
 }}
 unsigned int {typeName}_MaxLength() {{
-    return MAX_HASH_VALUE - MIN_HASH_VALUE;
+    return MAX_HASH_VALUE - MIN_HASH_VALUE + 1;
 }}
 /*
 #ifdef __GNUC__");
             content += "*/";
-
-            
             File.WriteAllText(newPath, content);
             return dic;
         }

@@ -91,6 +91,9 @@ namespace XLua.IL2CPP
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern void SetTypeInfo(IntPtr wrapData, int index, IntPtr typeId);
 
+        //设置luaState中存贮的c#类的typeId到C++
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern void SetClassTypeId(IntPtr L, Type t, int typeId);
 
         [DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern bool RegisterLuaClass(IntPtr classInfo, string fullName);

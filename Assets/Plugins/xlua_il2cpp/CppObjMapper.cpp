@@ -276,17 +276,29 @@ namespace xlua
         return -1;
     }
 
-    // void CppObjMapper::SetTypeId(void* kclass, int32_t metaId){
-    //     auto result = ilclass2luaMetaId.insert({kclass, metaId});
-    //     if(result.second){
-    //         // xlua::GLogFormatted("set type id insert success %p $d", kclass, metaId);
-    //     }else{
-    //         // xlua::GLogFormatted("set type id insert success %p $d", kclass, metaId);
+    //todo 线程安全思考
+    void CppObjMapper::SetTypeId(lua_State * L, const Il2CppClass* klass, int typeId){
 
-    //     }
+        // 使用operator[]简化代码，它会自动处理map的创建和查找
+        typeIdMap[(lua_State*)lapi_xlua_mainthread(L)][klass] = typeId;
+    }
+
+    //todo
+    // void CppObjMapper::ClearLuaState(lua_State *L){
+        
+        
     // }
 
     int CppObjMapper::GetTypeIdByIl2cppClass(lua_State *L, const Il2CppClass *klass){   
+        auto iter = typeIdMap.find((lua_State*)lapi_xlua_mainthread(L));
+        if(iter != typeIdMap.end()){
+            auto klass2Id = &iter->second;
+            auto iter2 = klass2Id->find(klass);
+            if(iter2 != klass2Id->end()){
+                return iter2->second;
+            }
+        }
+        
         auto reflectType = il2cpp::vm::Reflection::GetTypeObject(&((Il2CppClass*)klass)->byval_arg);
         return CSharpGetTypeId(L, reflectType);
     }

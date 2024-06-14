@@ -1135,6 +1135,9 @@ namespace XLua
                     typeIdMap.Add(type, type_id);
                 }
             }
+            #if IL2CPP_ENHANCED_LUA && ENABLE_IL2CPP
+            XLua.IL2CPP.NativeAPI.SetClassTypeId(L, type, type_id);
+            #endif
             return type_id;
         }
 

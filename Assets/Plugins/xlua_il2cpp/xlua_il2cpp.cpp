@@ -435,6 +435,22 @@ namespace xlua
         return 0;
     }
 
+    int EventWrapCallBack_Hash(lua_State* L, EventWrapData* eventWrapData, int offset) {
+        const char* str = lapi_lua_tostring(L, offset);
+        if (str) {
+            if (!strcmp(str, "-")) {
+                lapi_lua_replace(L, offset);
+                return PropertyCallback(L, eventWrapData->remove, offset);
+            }
+            else if (!strcmp(str, "+")) {
+                lapi_lua_replace(L, offset);
+                return PropertyCallback(L, eventWrapData->add, offset);
+            }
+        }
+        throw_exception2lua_format(L, "invalid arguments for event must be '-' or '+'");
+        return 0;
+    }
+
     void CacheMethod(lua_State* L, int index) {
         lapi_lua_pushvalue(L, index); //-1 table   -2closure
         if (lapi_lua_type(L, lapi_lua_gettop(L)) == LUA_TTABLE)
@@ -1403,6 +1419,8 @@ namespace xlua
         }
 
         clsInfo->Events.push_back({std::string(eventInfo->eventInfo->name), addWrapData, removeWrapData, isStatic});
+        
+        return true;
     }
 
     void SetTypeInfo(WrapData *data, int index, void *typeInfo)
@@ -2003,11 +2021,83 @@ namespace xlua
     }
 
     
+    int ObjSetCallBack_Hash(lua_State* L)
+    {
+        auto clsInfo = GetLuaClsInfo(L);
+        int type = lapi_lua_type(L, 2);
+        while (clsInfo)
+        {
+            if (type == LUA_TSTRING) {
+                size_t len = 0;
+                const char* key = lapi_lua_tolstring(L, 2, &len);
+                auto hash = clsInfo->memberHash(key, len);
+                if (hash < clsInfo->hashMemberCount) {
+                    MemberWrapData member = clsInfo->memberWarpDatas[hash];
+                    switch (member.type)
+                    {
+                    case XLUA_MemberType_Field: {
+                        
+                        CSharpFieldInfo* field = (CSharpFieldInfo*)member.data;
+                        if (!field->IsStatic) {
+                            auto fieldWrap = field->Data;
+                            fieldWrap->Setter(L, (FieldInfo*)fieldWrap->FieldInfo, fieldWrap->Offset, (Il2CppClass*)fieldWrap->TypeInfo, clsInfo->klass);
+                        }
+                        else {
+                            throw_exception2lua(L, "attempt to set a static field");
+                        }
+                        return 0;
+                    }
+                    case XLUA_MemberType_Property: {
+                        PropertyWrapData* propertyWrap = (PropertyWrapData*)member.data;
+                        if (!propertyWrap->IsStatic) {
+                            lapi_lua_replace(L, 2);
+                            return xlua::PropertyCallback(L, propertyWrap->SetWrapData, 2);
+                        }
+                        else {
+                            throw_exception2lua(L, "attempt to set a static property");
+                        }
+                    }
+                    
+                    default:
+                        break;
+                    }
+                }
+            }
+            else if (type == LUA_TNUMBER) {
+
+                if (clsInfo->Indexer && clsInfo->Indexer->SetWrapData)
+                {
+                    if (IsArray(clsInfo->klass))
+                    {
+                        PropertyCallback(L, clsInfo->Indexer->SetWrapData, 1);
+                    }
+                    else
+                    {
+                        PropertyCallback(L, clsInfo->Indexer->SetWrapData, 2);
+                    }
+                    return 0;
+                }
+            }
+
+            if (clsInfo->SuperTypeId)
+            {
+                clsInfo = GetLuaClassRegister()->GetOrLoadLuaClsInfoByTypeId((Il2CppClass*)clsInfo->SuperTypeId, L);
+            }
+            else
+            {
+                clsInfo = nullptr;
+            }
+        }
+
+        throw_exception2lua(L, "obj invalid for ObjSetCallBack");
+        return 0;
+    }
+
     /// Lua CSharp对象的getter函数 hash
     int ObjGetCallBack_Hash(lua_State *L)
     {
         auto clsInfo = GetLuaClsInfo(L);
-
+        //1 transform 2 GetComponent string 3 Type
         while (clsInfo)
         {
             int type = lapi_lua_type(L, 2);
@@ -2023,23 +2113,60 @@ namespace xlua
                 switch (member.type)
                 {
                 case XLUA_MemberType_Method:{
-                    // #TODO@benp  正式处理
-                    // lapi_lua_pushcclosure(L, MethoCallBackHash1, 0);
-                    return 1;
+                    CSharpMethodInfo* methodInfo = (CSharpMethodInfo*)member.data;
+                    if (!methodInfo->IsStatic) {
+
+                        if (methodInfo->hashWrapFunc) {
+                            lapi_lua_pushcclosure(L, methodInfo->hashWrapFunc, 0);
+                            return 1;
+                        }
+                        else {
+                            throw_exception2lua_format(L, "method %s not find wrap func", methodInfo->Name.c_str());
+                        }
+                    }
+                    else {
+                        throw_exception2lua(L, "attempt to index static method");
+                        return 0;
+                    }
                 }
                 case XLUA_MemberType_Field: {
-                    FieldWrapData *field = (FieldWrapData *)member.data;
-                    field->Getter(L, (FieldInfo *)field->FieldInfo, field->Offset, (Il2CppClass *)field->TypeInfo, clsInfo->klass);
-                    return 1;
+                    CSharpFieldInfo* field = (CSharpFieldInfo *)member.data;
+                    if (!field->IsStatic) {
+                        auto fieldWrap = field->Data;
+                        fieldWrap->Getter(L, (FieldInfo*)fieldWrap->FieldInfo, fieldWrap->Offset, (Il2CppClass*)fieldWrap->TypeInfo, clsInfo->klass);
+                        return 1;
+                    }
+                    else {
+                        throw_exception2lua(L, "attempt to index static field");
+                        return 0;
+                    }
                 }
                 case XLUA_MemberType_Property: {
-                    WrapData *wrapData = (WrapData *)member.data;
-                    lapi_lua_settop(L, 1);
-                    PropertyCallback(L, wrapData, 2);
-                    return 1;
+                    PropertyWrapData* propertyInfo = (PropertyWrapData*)member.data;
+                    if (!propertyInfo->IsStatic) {
+                        lapi_lua_settop(L, 1);
+                        PropertyCallback(L, propertyInfo->GetWrapData, 2);
+                        return 1;
+                    }
+                    else {
+                        throw_exception2lua(L, "attempt to index static property");
+                        return 0;
+                    }
                 }
                 case XLUA_MemberType_Event : {
-                    //todo
+                    EventWrapData* eventInfo = (EventWrapData*)member.data;
+                    if (!eventInfo->IsStatic) {
+                        if (eventInfo->hashWrapFunc) {
+                            lapi_lua_pushcclosure(L, eventInfo->hashWrapFunc, 0);
+                            return 1;
+                        }
+                        else {
+                            throw_exception2lua_format(L, "event %s not find wrap func", eventInfo->Name.c_str());
+                        }
+                    }
+                    else {
+                        throw_exception2lua(L, "attempt to index static event");
+                    }
                     return 0;
                 }
                 default:
@@ -2257,6 +2384,7 @@ namespace xlua
             }
             return delegate;
         }
+        return nullptr;
     }
 
     /// @brief 释放C#持有的lua引用
@@ -2293,6 +2421,11 @@ namespace xlua
     intptr_t GetLuaClsInfoByType(Il2CppReflectionType* type){
         Il2CppClass* klass = il2cpp_codegen_class_from_type(type->type);
         return (intptr_t)GetLuaClassRegister()->GetLuaClsInfoByTypeId(klass);
+    }
+
+    void SetClassTypeId(lua_State* L, Il2CppReflectionType* type, int typeId){
+
+        GetCppObjMapper()->SetTypeId(L, il2cpp_codegen_class_from_type(type->type), typeId);
     }
 
 }
@@ -2350,6 +2483,7 @@ extern "C"
         InternalCalls::Add("XLua.IL2CPP.NativeAPI::ReleaseCSharpTypeInfo(System.IntPtr)", (Il2CppMethodPointer)xlua::ReleaseCSharpTypeInfo);
         InternalCalls::Add("XLua.IL2CPP.NativeAPI::GetObjectFromLua(System.IntPtr,System.Int32,System.Type)", (Il2CppMethodPointer)xlua::GetObjectFromLua);
         InternalCalls::Add("XLua.IL2CPP.NativeAPI::PushAnyToLua(System.IntPtr,System.Object)", (Il2CppMethodPointer)xlua::PushAnyToLua);
+        InternalCalls::Add("XLua.IL2CPP.NativeAPI::SetClassTypeId(System.IntPtr,System.Type,System.Int32)", (Il2CppMethodPointer)xlua::SetClassTypeId);
         lapi_init(func_array);
     }
 
@@ -2526,7 +2660,7 @@ extern "C"
         lapi_lua_pushstring(L, "__newindex");
         lapi_lua_pushlightuserdata(L, clsInfo);
         lapi_lua_createtable(L, 0, 0);
-        lapi_lua_pushcclosure(L, xlua::ObjSetCallBack, 2);
+        lapi_lua_pushcclosure(L, xlua::ObjSetCallBack_Hash, 2);
         lapi_lua_settable(L, metatable_idx);
 
         if (!klass->valuetype)
@@ -2590,15 +2724,15 @@ extern "C"
     {
         auto top = lapi_lua_gettop(L);
         auto clsInfo = xlua::GetLuaClassRegister()->GetLuaClsInfoByTypeId(klass);
-        InitObjMetatable_Map(L, metatable_idx, clsInfo);
-        // if (clsInfo->memberHash)
-        // {
-        //     InitObjMetatable_Hash(L, metatable_idx, clsInfo);
-        // }
-        // else
-        // {
-        //     InitObjMetatable_Map(L, metatable_idx, clsInfo);
-        // }
+        //InitObjMetatable_Map(L, metatable_idx, clsInfo);
+         if (clsInfo->memberHash)
+         {
+             InitObjMetatable_Hash(L, metatable_idx, clsInfo);
+         }
+         else
+         {
+             InitObjMetatable_Map(L, metatable_idx, clsInfo);
+         }
         
     }
 
@@ -2631,11 +2765,6 @@ extern "C"
         return xlua::GetLuaClassRegister()->RegisterClass(luaClsInfo);
     }
 
-
-    // void SetClassMetaId(void *ilclass, int metaId)
-    // {
-    //     // xlua::GetCppObjMapper()->SetTypeId(ilclass, metaId);
-    // }
 
 #ifdef __cplusplus
 }

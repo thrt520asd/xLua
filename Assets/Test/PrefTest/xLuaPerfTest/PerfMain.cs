@@ -62,6 +62,24 @@ public class PerfMain : MonoBehaviour {
 
     void InitTestBtn(){
         int LOOP_TIMES = 1000000;
+        Dictionary<string, Action> TestCase = new Dictionary<string, Action>(){
+            {"C# call lua : base parameter function :,", CSharpCallLua_FuncBasePara},
+            {"C# call lua : class parameter function :,", CSharpCallLua_FuncClassPara},
+            {"C# call lua : struct parameter function :,,", CSharpCallLua_FuncStructPara},
+            {"C# call lua : two base parameter function :,,", CSharpCallLua_FuncTwoBasePara},
+            {"C# access lua table : access member ?get : ,", CSharpAccessLuaTable_Get},
+            {"C# access lua table : access member ?set : ,", CSharpAccessLuaTable_Set},
+            {"C# access lua table : access member function : ,", CSharpAccessLuaTable_MemberFunc},
+        };
+        foreach (var unitTest in TestCase)
+        {
+            Button newBtn = GameObject.Instantiate(BtnTemplate, BtnParent);
+            Text text = newBtn.transform.GetChild(0).GetComponent<Text>();
+            text.text = unitTest.Key;
+            newBtn.onClick.AddListener(()=>{
+                unitTest.Value();
+            });
+        }
         List<string> UnitTests = new List<string>(){
             "LuaAccessCSBaseMember_get",
             "LuaAccessCSBaseMember_set",
@@ -216,6 +234,94 @@ public class PerfMain : MonoBehaviour {
         }
 
         return cps;
+    }
+
+    private void CSharpCallLua_FuncBasePara(){
+        int LOOP_TIMES = 1000000;
+        FuncBasePara funcBaseParm = luaenv.Global.Get<FuncBasePara>("FuncBasePara");
+        PerformentTest("C# call lua : base parameter function :", LOOP_TIMES, loop_times =>
+        {
+            for (int i = 0; i < loop_times; i++)
+            {
+                funcBaseParm(i);
+            }
+        });
+    }
+
+    private void CSharpCallLua_FuncClassPara(){
+        int LOOP_TIMES = 1000000;
+        FuncClassPara funcClassPara = luaenv.Global.Get<FuncClassPara>("FuncClassPara");
+        ParaClass paraClass = new ParaClass ();
+        PerformentTest("C# call lua : base parameter function :", LOOP_TIMES, loop_times =>
+        {
+            for (int i = 0; i < loop_times; i++)
+            {
+                funcClassPara(paraClass);
+            }
+        });
+    }
+
+    private void CSharpCallLua_FuncStructPara(){
+        int LOOP_TIMES = 1000000;
+        FuncStructPara funcStructPara = luaenv.Global.Get<FuncStructPara>("FuncStructPara");
+        ParaStruct paraStruct = new ParaStruct ();
+        PerformentTest("C# call lua : base parameter function :", LOOP_TIMES, loop_times =>
+        {
+            for (int i = 0; i < loop_times; i++)
+            {
+                funcStructPara(paraStruct);
+            }
+        });
+    }
+
+    private void CSharpCallLua_FuncTwoBasePara(){
+        int LOOP_TIMES = 1000000;
+        FuncTwoBasePara funcTwoBasePara = luaenv.Global.Get<FuncTwoBasePara> ("FuncTwoBasePara");
+        PerformentTest("C# call lua : two base parameter function :", LOOP_TIMES, loop_times =>
+        {
+            for (int i = 0; i < loop_times; i++)
+            {
+                funcTwoBasePara(i, i);
+            }
+        });
+
+    }
+
+    private void CSharpAccessLuaTable_Get(){
+        int LOOP_TIMES = 1000000;
+        ITableAccess iTAccess = luaenv.Global.Get<ITableAccess> ("luaTable");
+        PerformentTest("C# access lua table : access member, get : ", LOOP_TIMES, loop_times =>
+        {
+            for (int i = 0; i < loop_times; i++)
+            {
+                int x = iTAccess.id;
+            }
+        });
+    }
+
+    private void CSharpAccessLuaTable_Set(){
+        int LOOP_TIMES = 1000000;
+        ITableAccess iTAccess = luaenv.Global.Get<ITableAccess> ("luaTable");
+        PerformentTest("C# access lua table : access member, set : ", LOOP_TIMES, loop_times =>
+        {
+            for (int i = 0; i < loop_times; i++)
+            {
+                iTAccess.id = 0;
+            }
+        });
+
+    }
+
+    private void CSharpAccessLuaTable_MemberFunc(){
+        int LOOP_TIMES = 1000000;
+        ITableAccess iTAccess = luaenv.Global.Get<ITableAccess> ("luaTable");
+        PerformentTest("C# access lua table : access member function : ", LOOP_TIMES, loop_times =>
+        {
+            for (int i = 0; i < loop_times; i++)
+            {
+                iTAccess.func();
+            }
+        });
     }
 
 	private void StartCSCallLua()

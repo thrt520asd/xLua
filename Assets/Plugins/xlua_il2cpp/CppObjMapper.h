@@ -10,7 +10,8 @@ namespace xlua
     {
     private:
         std::unordered_map<void *, int32_t> objCache;
-        // std::unordered_map<void *, int32_t> ilclass2luaMetaId;
+        std::unordered_map<lua_State*, std::unordered_map<const Il2CppClass*, int>> typeIdMap;
+        
         int32_t cacheRef;
 
     public:
@@ -43,6 +44,7 @@ namespace xlua
         bool TryPushStruct(lua_State *L, Il2CppClass *klass, void *pointer, unsigned int size);
 
         int CSharpGetTypeId(lua_State *L, Il2CppReflectionType *reflectionType);
+        void SetTypeId(lua_State *L, const Il2CppClass *kclass, int typeId);
         // void SetTypeId(void *kclass, int32_t metaId);
         int GetTypeIdByIl2cppClass(lua_State *L, const Il2CppClass *klass);
         void SetGetTypeIdFuncPtr(CSharpGetTypeIdFunc methodPtr, void* method);
