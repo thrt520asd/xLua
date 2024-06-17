@@ -193,7 +193,7 @@ namespace xlua
         std::unordered_map<const char*, MemberWrapData, CStrHash, CStrEqual> ClsGetMap;
         std::unordered_map<const char*, MemberWrapData, CStrHash, CStrEqual> ClsSetMap;
         std::unordered_map<std::string, int> MethodDicByName;
-        ClassMemberHashFunc memberHash;
+        ClassMemberHashFunc memberHashFunc;
         MemberWrapData* memberWarpDatas;
         int hashMemberCount;
         PropertyWrapData *Indexer;
@@ -202,7 +202,7 @@ namespace xlua
             if(memberWarpDatas){
                 delete[] memberWarpDatas;
                 memberWarpDatas = nullptr;
-                memberHash = nullptr;
+                memberHashFunc = nullptr;
             }
 
             for(auto& method: Methods){

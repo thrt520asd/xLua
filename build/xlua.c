@@ -7,7 +7,7 @@
 */
 
 #define LUA_LIB
-#define XLUA_IL2CPP //#TODO@benp 外部传入
+#define XLUA_IL2CPP 
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"

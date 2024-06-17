@@ -6,21 +6,6 @@
 #include "CppObjMapper.h"
 
 
-
-// static int MethoCallBackHash_4_23(lua_State *L)
-// {
-//     WrapData **wrapData = GetLuaClassRegister()->GetMemberWrapData(4, 23);
-//     if (wrapData)
-//     {
-//         return MethodCallback(L, wrapData, 2);
-//     }
-//     else
-//     {
-//         // #TODO@benp
-//     }
-//     return 0;
-// }
-
 namespace xlua
 {
     #include "memberNameHash.h"
@@ -85,8 +70,9 @@ namespace xlua
              ClassMemberHashFunc hashFunc = nullptr;
              hashFunc = hashFuncs.classMemberHashFunc;
              int hashCount = hashFuncs.HashLengthFunc();
-             luaClsInfo->memberHash = hashFunc;
+             luaClsInfo->memberHashFunc = hashFunc;
              luaClsInfo->memberWarpDatas = new MemberWrapData[hashCount]();
+             memset(luaClsInfo->memberWarpDatas, 0, sizeof(MemberWrapData) * hashCount);
              luaClsInfo->hashMemberCount = hashCount;
              GWarnFormatted("HashClsInfos id %d name %s length %d ", clsId, luaClsInfo->Name.c_str(), hashFuncs.HashLengthFunc());
 
@@ -148,7 +134,6 @@ namespace xlua
                     else {
                         ErrorFormatted("event find hash wrap func failed %d %s", hash, eventInfo.Name.c_str());
                     }
-                    // GWarnFormatted("memberWarpDatas %d %s", hash, eventInfo.Name);
                 }
                 else {
                     ErrorFormatted("memberWarpDatas hash out of range %d %s", hash, eventInfo.Name.c_str());
@@ -159,13 +144,11 @@ namespace xlua
 
     int LuaClassRegister::RegisterClass(LuaClassInfo *luaClsInfo)
     {   
-        // GWarnFormatted("RegisterClass %s", luaClsInfo->Name.c_str());
         auto iter = clsId2ClsDef.find(luaClsInfo->klass);
         if(iter == clsId2ClsDef.end()){
             for(auto& method: luaClsInfo->Methods){
                 method.OverloadDatas.push_back(nullptr);
                 if (method.IsStatic && !method.IsGetter && !method.IsSetter) {
-                    // luaClsInfo->StaticMethodsMap[method.Name.c_str()] = &method;
                     luaClsInfo->ClsGetMap.insert(std::pair<const char *, MemberWrapData>(method.Name.c_str(), {method.OverloadDatas.data(), XLUA_MemberType_Method}));
                 }
                 else if(!method.IsGetter && !method.IsSetter){
@@ -176,7 +159,6 @@ namespace xlua
             }
 
             for(auto& field: luaClsInfo->Fields){
-                // luaClsInfo->FieldMap[field.Name.c_str()] = &field;
                 if(field.IsStatic){
                     if(field.Data->Getter){
                         luaClsInfo->ClsGetMap.insert(std::pair<const char *, MemberWrapData>(field.Name.c_str(), {field.Data, XLUA_MemberType_Field}));
@@ -232,7 +214,6 @@ namespace xlua
 
             RegisterClass_Hash(luaClsInfo);
 
-            // GWarnFormatted("Register finish");
             return 1;
         }else{
             

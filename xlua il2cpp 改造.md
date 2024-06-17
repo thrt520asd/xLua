@@ -270,7 +270,6 @@ public static int OverLoad2(string x, string y)
 
 
 todo {
-    多luaEnv支持 需要多个CppMapper LuaClassRegister不需要多个
     hash and map  {
         hash 优点  速度快 
              缺点 生成配套代码
